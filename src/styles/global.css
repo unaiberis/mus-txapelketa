@@ -2,7 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* typography and layout tweaks */
+html, body { height: 100%; }
+body { font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
+
 /* small helpers */
-:root {
-  --brand: #0284c7;
-}
+:root { --brand: #0284c7; }

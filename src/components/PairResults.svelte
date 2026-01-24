@@ -12,13 +12,20 @@
   /* small custom style preserved */
 </style>
 
-<div class="">
-  <h2 class="text-xl font-medium">Pairs</h2>
+<div class="bg-slate-50 border border-slate-200 rounded p-4">
+  <div class="flex items-center justify-between">
+    <h2 class="text-lg font-semibold">Pairs</h2>
+    <div class="text-sm text-slate-500">{pairs.length} matches</div>
+  </div>
+
   <ul class="mt-3 space-y-2">
     {#each pairs as [a, b], i}
-      <li class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded p-3">
-        <div>{i + 1}. <span class="font-medium">{a.name}</span> — <span class="font-medium">{b.name}</span></div>
-        <button class="text-sm text-red-600" on:click={() => remove(i)}>Remove</button>
+      <li class="flex items-center justify-between bg-white border rounded p-3 shadow-sm">
+        <div class="text-sm"><span class="text-slate-600">{i + 1}.</span> <span class="font-medium">{a.name}</span> <span class="text-slate-400">—</span> <span class="font-medium">{b.name}</span></div>
+        <div class="flex items-center gap-2">
+          <button class="text-sm text-slate-500" on:click={() => { /* future: edit pair */ }}>Edit</button>
+          <button class="text-sm text-red-600" on:click={() => remove(i)}>Remove</button>
+        </div>
       </li>
     {/each}
   </ul>

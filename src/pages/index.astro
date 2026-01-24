@@ -10,12 +10,21 @@ import "../styles/global.css";
     <title>Mus Txapelketa</title>
     <link rel="stylesheet" href="/src/styles/global.css">
   </head>
-  <body class="bg-slate-50 text-slate-900">
-    <main class="max-w-4xl mx-auto p-6">
-      <h1 class="text-3xl font-semibold mb-4 text-sky-700">Mus Txapelketa — Generador de parejas</h1>
-      <div class="bg-white rounded-lg shadow p-6">
+  <body class="bg-slate-50 text-slate-900 antialiased">
+    <main class="max-w-5xl mx-auto p-6">
+      <header class="mb-6 flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-extrabold text-sky-700">Mus Txapelketa</h1>
+          <p class="mt-1 text-sm text-slate-600">Generador de parejas y cuadro para torneos de mus</p>
+        </div>
+        <div class="text-sm text-slate-500">v0.1 — Local mode</div>
+      </header>
+
+      <div class="bg-white rounded-lg shadow-md p-6">
         <Players />
       </div>
+
+      <footer class="mt-6 text-center text-xs text-slate-400">Hecho con ❤️ — Puedes exportar/guardar tus parejas localmente</footer>
     </main>
   </body>
 </html>

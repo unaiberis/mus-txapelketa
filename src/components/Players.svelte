@@ -187,48 +187,53 @@
   .file-input { display:inline-block }
 </style>
 
-<div>
-  <label for="players">Jugadores (una línea por jugador):</label>
-  <textarea id="players" bind:value={textarea} placeholder="Nombre\n..."></textarea>
-  <div class="controls flex flex-col md:flex-row md:items-center md:gap-4">
-    <div class="flex gap-2 items-center">
-      <button class="px-3 py-1 bg-sky-600 text-white rounded" on:click={importPlayers}>Import Players</button>
-      <button class="px-3 py-1 bg-gray-200 rounded" on:click={autoGeneratePairs}>Auto-generate Pairs</button>
-      <button class="px-3 py-1 bg-gray-200 rounded" on:click={addPairFromSelection}>Add Pair from selection</button>
-      <button class="px-3 py-1 bg-gray-200 rounded" on:click={generateBracket}>Generate Bracket</button>
-    </div>
+<div class="space-y-4">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+    <!-- Left: Player input & list -->
+    <div class="space-y-3">
+      <label for="players" class="text-sm font-medium text-slate-700">Jugadores (una línea por jugador):</label>
+      <textarea id="players" bind:value={textarea} placeholder="Nombre\n..." class="w-full border rounded p-3 h-40 resize-none"></textarea>
 
-    <div class="mt-3 md:mt-0 flex gap-2 items-center">
-      <input class="border rounded px-2 py-1" placeholder="Player A" bind:value={pairAName} />
-      <input class="border rounded px-2 py-1" placeholder="Player B" bind:value={pairBName} />
-      <button class="px-3 py-1 bg-green-600 text-white rounded disabled:opacity-50" on:click={addPairByNames} disabled={!pairAName.trim() || !pairBName.trim()}>Add Pair</button>
-      <button class="px-3 py-1 bg-gray-200 rounded" on:click={exportExcel}>Export Excel</button>
-      <button class="px-3 py-1 bg-gray-200 rounded" on:click={exportCSV}>Export CSV</button>
-      <input class="file-input" type="file" accept=".xlsx,.xls,.csv" on:change={onFileChange} />
-    </div>
-  </div>
-
-  <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-    <div class="col-span-1">
-      <h3 class="text-lg font-medium mb-2">Players</h3>
-      <div class="bg-slate-50 border border-slate-200 rounded p-3 max-h-80 overflow-auto">
-        {#each players as p}
-          <div class="p-2 rounded cursor-pointer hover:bg-slate-100 flex items-center justify-between " on:click={() => toggleSelect(p.id)}>
-            <span class="{selected.has(p.id) ? 'font-semibold text-sky-700' : ''}">{p.name}</span>
-            <input type="checkbox" class="ml-2" checked={selected.has(p.id)} on:change={() => toggleSelect(p.id)} />
-          </div>
-        {/each}
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div class="flex gap-2">
+          <button class="px-3 py-2 bg-sky-600 text-white rounded shadow" on:click={importPlayers}>Import Players</button>
+          <button class="px-3 py-2 bg-white border rounded" on:click={autoGeneratePairs}>Auto Pairs</button>
+          <button class="px-3 py-2 bg-white border rounded" on:click={() => { players = []; pairs = []; selected.clear(); savePlayersToStorage([]); }}>Clear</button>
+        </div>
+        <div class="flex gap-2 items-center">
+          <input class="border rounded px-3 py-2" placeholder="Player A" bind:value={pairAName} />
+          <input class="border rounded px-3 py-2" placeholder="Player B" bind:value={pairBName} />
+          <button class="px-4 py-2 bg-green-600 text-white rounded shadow disabled:opacity-50" on:click={addPairByNames} disabled={!pairAName.trim() || !pairBName.trim()}>Add Pair</button>
+        </div>
       </div>
-      <div class="mt-3 flex gap-2">
-        <button class="px-3 py-1 bg-sky-600 text-white rounded" on:click={addPairFromSelection}>Add Pair</button>
-        <button class="px-3 py-1 bg-gray-200 rounded" on:click={() => { players = []; pairs = []; selected.clear(); savePlayersToStorage([]); }}>Clear</button>
+
+      <div class="bg-slate-50 border border-slate-200 rounded p-3 max-h-80 overflow-auto mt-2">
+        <h4 class="text-sm font-semibold mb-2">Players</h4>
+        <div class="space-y-1">
+          {#each players as p}
+            <div class="flex items-center justify-between p-2 rounded hover:bg-white" on:click={() => toggleSelect(p.id)}>
+              <div class="flex items-center gap-2">
+                <input type="checkbox" checked={selected.has(p.id)} on:change={() => toggleSelect(p.id)} />
+                <span class="{selected.has(p.id) ? 'font-semibold text-sky-700' : ''}">{p.name}</span>
+              </div>
+              <small class="text-xs text-slate-400">#{p.id}</small>
+            </div>
+          {/each}
+        </div>
       </div>
     </div>
 
-    <div class="col-span-1 md:col-span-2">
+    <!-- Right: Pairs and bracket -->
+    <div class="space-y-4">
       <PairResults {pairs} on:removePair={(e) => removePair(e.detail)} />
 
-      <div class="mt-6">
+      <div class="flex gap-2">
+        <button class="px-3 py-2 bg-gray-200 rounded" on:click={exportExcel}>Export Players</button>
+        <button class="px-3 py-2 bg-gray-200 rounded" on:click={exportCSV}>Export Players CSV</button>
+        <button class="px-3 py-2 bg-gray-200 rounded" on:click={() => { /* placeholder for export pairs */ }}>Export Pairs</button>
+      </div>
+
+      <div class="mt-2">
         {#if bracket}
           <Bracket {bracket} />
         {/if}
