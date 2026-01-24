@@ -131,12 +131,8 @@
 </script>
 
 <style>
-  textarea { width: 100%; height: 120px; }
-  .controls { margin-top: 8px; display:flex; gap:8px; flex-wrap:wrap }
-  .players { display:flex; gap:16px; margin-top:12px; }
-  .player-list { border:1px solid #ddd; padding:8px; min-width:220px }
-  .player { cursor:pointer; padding:4px; }
-  .player.selected { background:#def }
+  /* Keep small custom styles if needed; main layout uses Tailwind */
+  .file-input { display:inline-block }
 </style>
 
 <div>
@@ -152,22 +148,31 @@
     <input type="file" accept=".xlsx,.xls,.csv" on:change={onFileChange} />
   </div>
 
-  <div class="players">
-    <div class="player-list">
-      <h3>Players</h3>
-      {#each players as p}
-        <div class="player {selected.has(p.id) ? 'selected' : ''}" on:click={() => toggleSelect(p.id)}>{p.name}</div>
-      {/each}
+  <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="col-span-1">
+      <h3 class="text-lg font-medium mb-2">Players</h3>
+      <div class="bg-slate-50 border border-slate-200 rounded p-3 max-h-80 overflow-auto">
+        {#each players as p}
+          <div class="p-2 rounded cursor-pointer hover:bg-slate-100 flex items-center justify-between " on:click={() => toggleSelect(p.id)}>
+            <span class="{selected.has(p.id) ? 'font-semibold text-sky-700' : ''}">{p.name}</span>
+            <input type="checkbox" class="ml-2" checked={selected.has(p.id)} on:change={() => toggleSelect(p.id)} />
+          </div>
+        {/each}
+      </div>
+      <div class="mt-3 flex gap-2">
+        <button class="px-3 py-1 bg-sky-600 text-white rounded" on:click={addPairFromSelection}>Add Pair</button>
+        <button class="px-3 py-1 bg-gray-200 rounded" on:click={() => { players = []; pairs = []; selected.clear(); savePlayersToStorage([]); }}>Clear</button>
+      </div>
     </div>
 
-    <div>
+    <div class="col-span-1 md:col-span-2">
       <PairResults {pairs} on:removePair={(e) => removePair(e.detail)} />
-    </div>
 
-    <div>
-      {#if bracket}
-        <Bracket {bracket} />
-      {/if}
+      <div class="mt-6">
+        {#if bracket}
+          <Bracket {bracket} />
+        {/if}
+      </div>
     </div>
   </div>
 </div>

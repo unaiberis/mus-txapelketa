@@ -9,10 +9,20 @@
 </script>
 
 <style>
-  .pair { padding: 4px 0; display:flex; gap:8px; align-items:center; }
-  .remove { color: #b00; cursor:pointer; }
+  /* small custom style preserved */
 </style>
 
+<div class="">
+  <h2 class="text-xl font-medium">Pairs</h2>
+  <ul class="mt-3 space-y-2">
+    {#each pairs as [a, b], i}
+      <li class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded p-3">
+        <div>{i + 1}. <span class="font-medium">{a.name}</span> — <span class="font-medium">{b.name}</span></div>
+        <button class="text-sm text-red-600" on:click={() => remove(i)}>Remove</button>
+      </li>
+    {/each}
+  </ul>
+</div>
 <div>
   <h2>Pairs</h2>
   <ul>
