@@ -5,13 +5,17 @@
   import type { Player } from '../lib/match';
   import { pairPlayers } from '../lib/match';
   import * as XLSX from 'xlsx';
-  import { savePlayersToStorage, loadPlayersFromStorage } from '../lib/storage';
+  import { savePlayersToStorage, loadPlayersFromStorage, savePairsToStorage, loadPairsFromStorage } from '../lib/storage';
 
   let textarea = '';
   let players: Player[] = [];
   let pairs: [Player, Player][] = [];
   let selected: Set<string> = new Set();
   let bracket: any = null;
+
+  // Inputs for manual pair entry
+  let pairAName = '';
+  let pairBName = '';
 
   function parsePlayers(text: string) {
     return text
@@ -43,15 +47,41 @@
     const b = players.find((p) => p.id === ids[1])!;
     pairs = [...pairs, [a, b]];
     selected.clear();
+    savePairsToStorage(pairs.map((p) => ({ a: p[0].name, b: p[1].name })));
+  }
+
+  function addPairByNames() {
+    const aName = pairAName.trim();
+    const bName = pairBName.trim();
+    if (!aName || !bName) return;
+    // Ensure players exist (case-sensitive by name)
+    const findOrCreate = (name: string) => {
+      let p = players.find((x) => x.name === name);
+      if (!p) {
+        const maxId = players.reduce((m, x) => Math.max(m, Number(x.id)), 0);
+        p = { id: String(maxId + 1), name };
+        players = [...players, p];
+        savePlayersToStorage(players);
+      }
+      return p;
+    };
+    const a = findOrCreate(aName);
+    const b = findOrCreate(bName);
+    pairs = [...pairs, [a, b]];
+    pairAName = '';
+    pairBName = '';
+    savePairsToStorage(pairs.map((p) => ({ a: p[0].name, b: p[1].name })));
   }
 
   function removePair(index: number) {
     pairs = pairs.filter((_, i) => i !== index);
+    savePairsToStorage(pairs.map((p) => ({ a: p[0].name, b: p[1].name })));
   }
 
   function autoGeneratePairs() {
     if (players.length < 2) return;
     pairs = pairPlayers(players);
+    savePairsToStorage(pairs.map((p) => ({ a: p[0].name, b: p[1].name })));
   }
 
   function generateBracket() {
@@ -127,6 +157,28 @@
       textarea = 'Aitor\nBea\nCarlos\nDani\nElena\nFermin\nGorka\nHana';
       importPlayers();
     }
+
+    // Load pairs from storage (if any)
+    const storedPairs = loadPairsFromStorage();
+    if (storedPairs && storedPairs.length) {
+      // Ensure players list includes any names from pairs
+      for (const sp of storedPairs) {
+        if (!players.find((p) => p.name === sp.a)) {
+          const maxId = players.reduce((m, x) => Math.max(m, Number(x.id)), 0);
+          players = [...players, { id: String(maxId + 1), name: sp.a }];
+        }
+        if (!players.find((p) => p.name === sp.b)) {
+          const maxId = players.reduce((m, x) => Math.max(m, Number(x.id)), 0);
+          players = [...players, { id: String(maxId + 1), name: sp.b }];
+        }
+      }
+      // Map names to player objects
+      pairs = storedPairs.map((sp) => {
+        const a = players.find((p) => p.name === sp.a)!;
+        const b = players.find((p) => p.name === sp.b)!;
+        return [a, b] as [Player, Player];
+      });
+    }
   });
 </script>
 
@@ -138,14 +190,22 @@
 <div>
   <label for="players">Jugadores (una línea por jugador):</label>
   <textarea id="players" bind:value={textarea} placeholder="Nombre\n..."></textarea>
-  <div class="controls">
-    <button on:click={importPlayers}>Import Players</button>
-    <button on:click={autoGeneratePairs}>Auto-generate Pairs</button>
-    <button on:click={addPairFromSelection}>Add Pair from selection (select 2)</button>
-    <button on:click={generateBracket}>Generate Bracket</button>
-    <button on:click={exportExcel}>Export Excel</button>
-    <button on:click={exportCSV}>Export CSV</button>
-    <input type="file" accept=".xlsx,.xls,.csv" on:change={onFileChange} />
+  <div class="controls flex flex-col md:flex-row md:items-center md:gap-4">
+    <div class="flex gap-2 items-center">
+      <button class="px-3 py-1 bg-sky-600 text-white rounded" on:click={importPlayers}>Import Players</button>
+      <button class="px-3 py-1 bg-gray-200 rounded" on:click={autoGeneratePairs}>Auto-generate Pairs</button>
+      <button class="px-3 py-1 bg-gray-200 rounded" on:click={addPairFromSelection}>Add Pair from selection</button>
+      <button class="px-3 py-1 bg-gray-200 rounded" on:click={generateBracket}>Generate Bracket</button>
+    </div>
+
+    <div class="mt-3 md:mt-0 flex gap-2 items-center">
+      <input class="border rounded px-2 py-1" placeholder="Player A" bind:value={pairAName} />
+      <input class="border rounded px-2 py-1" placeholder="Player B" bind:value={pairBName} />
+      <button class="px-3 py-1 bg-green-600 text-white rounded disabled:opacity-50" on:click={addPairByNames} disabled={!pairAName.trim() || !pairBName.trim()}>Add Pair</button>
+      <button class="px-3 py-1 bg-gray-200 rounded" on:click={exportExcel}>Export Excel</button>
+      <button class="px-3 py-1 bg-gray-200 rounded" on:click={exportCSV}>Export CSV</button>
+      <input class="file-input" type="file" accept=".xlsx,.xls,.csv" on:change={onFileChange} />
+    </div>
   </div>
 
   <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
