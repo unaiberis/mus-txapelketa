@@ -1,0 +1,20 @@
+{
+  "name": "mus-txapelketa",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "deploy": "npm run build && git add dist && git commit -m \"chore: build\" || true && npx peaceiris/actions-gh-pages@v3 -b gh-pages"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.34.0",
+    "svelte": "^4.0.0"
+  },
+  "devDependencies": {
+    "astro": "^3.0.0",
+    "@astrojs/svelte": "^3.0.0",
+    "typescript": "^5.0.0"
+  }
+}
