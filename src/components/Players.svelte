@@ -4,6 +4,8 @@
   import Bracket from './Bracket.svelte';
   import type { Player } from '../lib/match';
   import { pairPlayers } from '../lib/match';
+  import * as XLSX from 'xlsx';
+  import { savePlayersToStorage, loadPlayersFromStorage } from '../lib/storage';
 
   let textarea = '';
   let players: Player[] = [];
@@ -26,6 +28,7 @@
     pairs = [];
     selected.clear();
     bracket = null;
+    savePlayersToStorage(players);
   }
 
   function toggleSelect(id: string) {
@@ -73,16 +76,63 @@
     return rounds;
   }
 
+  function exportExcel() {
+    const data = players.map((p) => ({ Name: p.name }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Players');
+    XLSX.writeFile(wb, 'players.xlsx');
+  }
+
+  function exportCSV() {
+    const csv = players.map((p) => p.name).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'players.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function onFileChange(e: Event) {
+    const input = e.target as HTMLInputElement;
+    const file = input.files && input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const data = new Uint8Array(ev.target?.result as ArrayBuffer);
+      const wb = XLSX.read(data, { type: 'array' });
+      const first = wb.SheetNames[0];
+      const ws = wb.Sheets[first];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1 }) as any[];
+      const names = rows.flat().map(String).map((s) => s.trim()).filter(Boolean);
+      textarea = names.join('\n');
+      importPlayers();
+      // reset input
+      input.value = '';
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
   // Example seed players for demo
   onMount(() => {
-    if (!textarea) textarea = 'Aitor\nBea\nCarlos\nDani\nElena\nFermin\nGorka\nHana';
-    importPlayers();
+    const stored = loadPlayersFromStorage();
+    if (stored && stored.length) {
+      players = stored;
+      textarea = players.map((p) => p.name).join('\n');
+    } else {
+      textarea = 'Aitor\nBea\nCarlos\nDani\nElena\nFermin\nGorka\nHana';
+      importPlayers();
+    }
   });
 </script>
 
 <style>
   textarea { width: 100%; height: 120px; }
-  .controls { margin-top: 8px; display:flex; gap:8px; }
+  .controls { margin-top: 8px; display:flex; gap:8px; flex-wrap:wrap }
   .players { display:flex; gap:16px; margin-top:12px; }
   .player-list { border:1px solid #ddd; padding:8px; min-width:220px }
   .player { cursor:pointer; padding:4px; }
@@ -97,6 +147,9 @@
     <button on:click={autoGeneratePairs}>Auto-generate Pairs</button>
     <button on:click={addPairFromSelection}>Add Pair from selection (select 2)</button>
     <button on:click={generateBracket}>Generate Bracket</button>
+    <button on:click={exportExcel}>Export Excel</button>
+    <button on:click={exportCSV}>Export CSV</button>
+    <input type="file" accept=".xlsx,.xls,.csv" on:change={onFileChange} />
   </div>
 
   <div class="players">

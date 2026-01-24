@@ -9,7 +9,8 @@
     "deploy": "npm run build && git add dist && git commit -m \"chore: build\" || true && npx peaceiris/actions-gh-pages@v3 -b gh-pages"
   },
   "dependencies": {
-    "svelte": "^4.0.0"
+    "svelte": "^4.0.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "astro": "^3.0.0",
