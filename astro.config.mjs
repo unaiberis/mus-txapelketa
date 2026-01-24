@@ -5,6 +5,6 @@ import svelte from '@astrojs/svelte';
 export default defineConfig({
   integrations: [svelte()],
   output: 'static',
-  base: '/mus-txapelketa/',
+  base: './',
   site: 'https://unaiberis.github.io/mus-txapelketa/',
 });
