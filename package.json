@@ -9,7 +9,6 @@
     "deploy": "npm run build && git add dist && git commit -m \"chore: build\" || true && npx peaceiris/actions-gh-pages@v3 -b gh-pages"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.34.0",
     "svelte": "^4.0.0"
   },
   "devDependencies": {
