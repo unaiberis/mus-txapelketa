@@ -10,6 +10,31 @@ import "../styles/global.css";
     <title>Mus Txapelketa</title>
     <link rel="icon" href="/mus-txapelketa/favicon.svg" />
     <link rel="shortcut icon" href="/mus-txapelketa/favicon.ico" />
+    <script>
+      // Quick runtime check: ensure styles are applied; inject fallbacks if not
+      (function ensureStyles(){
+        try{
+          console.log('Style fallback check: link hrefs ->', Array.from(document.querySelectorAll('link[rel=stylesheet]')).map(l=>l.href));
+          function hasStyle(){
+            const el = document.createElement('div'); el.className='text-sky-700'; el.style.position='absolute'; el.style.left='-9999px'; document.documentElement.appendChild(el);
+            const color = getComputedStyle(el).color; el.remove();
+            return color && color !== 'rgb(0, 0, 0)';
+          }
+          if(!hasStyle()){
+            console.warn('Styles appear missing — injecting fallback stylesheets');
+            const fallbacks=['/mus-txapelketa/astro/index.8830309f.css','/mus-txapelketa/astro/index.a7b3c468.css'];
+            fallbacks.forEach(href=>{
+              const link=document.createElement('link'); link.rel='stylesheet'; link.href=href;
+              link.onload=()=>console.log('Fallback loaded:',href);
+              link.onerror=()=>console.warn('Fallback failed:',href);
+              document.head.appendChild(link);
+            });
+          } else {
+            console.log('Styles OK (initial check)');
+          }
+        }catch(e){console.error('Style check error',e)}
+      })();
+    </script>
   </head>
   <body class="bg-slate-50 text-slate-900 antialiased">
     <main class="max-w-5xl mx-auto p-6">
