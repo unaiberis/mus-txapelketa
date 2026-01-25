@@ -8,8 +8,8 @@ import "../styles/global.css";
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mus Txapelketa</title>
-    <link rel="icon" href="/mus-txapelketa/favicon.svg" />
-    <link rel="shortcut icon" href="/mus-txapelketa/favicon.ico" />
+    <link rel="icon" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.svg" />
     <script>
       // Quick runtime check: ensure styles are applied; inject fallbacks if not
       (function ensureStyles(){
@@ -22,7 +22,7 @@ import "../styles/global.css";
           }
           if(!hasStyle()){
             console.warn('Styles appear missing — injecting fallback stylesheets');
-            const fallbacks=['/mus-txapelketa/astro/index.8830309f.css','/mus-txapelketa/astro/index.a7b3c468.css'];
+            const fallbacks=['/astro/index.8830309f.css','/astro/index.a7b3c468.css'];
             fallbacks.forEach(href=>{
               const link=document.createElement('link'); link.rel='stylesheet'; link.href=href;
               link.onload=()=>console.log('Fallback loaded:',href);
@@ -37,18 +37,15 @@ import "../styles/global.css";
     </script>
   </head>
   <body class="bg-slate-50 text-slate-900 antialiased">
-    <main class="max-w-6xl mx-auto p-6">
+    <main class="max-w-8xl mx-auto p-6">
       <header class="mb-6 flex items-center justify-between">
         <div>
           <h1 class="text-3xl font-extrabold text-sky-700">Mus Txapelketa</h1>
           <p class="mt-1 text-sm text-slate-600">Generador de parejas y cuadro para torneos de mus</p>
         </div>
-        <div class="text-sm text-slate-500">v0.1 — Local mode</div>
       </header>
 
-      <div class="bg-white rounded-lg shadow-md p-6">
         <Players client:load />
-      </div>
 
       <footer class="mt-6 text-center text-xs text-slate-400">
         Mus Txapelketa

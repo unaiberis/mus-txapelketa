@@ -8,3 +8,47 @@ body { font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
 
 /* small helpers */
 :root { --brand: #0284c7; }
+
+/* Brackets viewer global tweaks (used by bracketry viewport) */
+
+
+#brackets-viewer-wrapper .participant,
+.bracket-viewport .participant {
+  cursor: pointer;
+}
+
+#brackets-viewer-wrapper .participant:hover,
+.bracket-viewport .participant:hover {
+  background: rgba(0,0,0,0.03);
+}
+
+/* Constrain seed/participant labels to avoid huge intrinsic widths */
+.bracket-viewport,
+#brackets-viewer-wrapper {
+  box-sizing: border-box;
+}
+
+.bracket-viewport > *,
+#brackets-viewer-wrapper > * {
+  min-width: 0; /* prevent children from forcing container width */
+}
+
+.bracket-viewport .seed-team,
+.bracket-viewport .seed,
+.bracket-viewport .participant,
+#brackets-viewer-wrapper .seed-team,
+#brackets-viewer-wrapper .seed,
+#brackets-viewer-wrapper .participant {
+  max-width: 180px;
+  white-space: normal; /* allow wrapping */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+}
+
+/* Default bracket variables (increased per-round width) */
+#brackets-viewer-wrapper,
+.bracket-viewport {
+  --matchMaxWidth: 360px; /* wider rounds by default */
+}
+

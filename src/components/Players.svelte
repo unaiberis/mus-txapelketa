@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import PairResults from './PairResults.svelte';
-  import Bracket from './Bracket.svelte';
+  import { onMount, tick, onDestroy } from 'svelte';
+  import PlayerPairCard from './PlayerPairCard.svelte';
+  import BracketsViewer from './BracketsViewer.svelte';
   import type { Player } from '../lib/match';
-  import { pairPlayers } from '../lib/match';
+  import { pairPlayers, shuffle } from '../lib/match';
   import * as XLSX from 'xlsx';
   import { savePlayersToStorage, loadPlayersFromStorage, savePairsToStorage, loadPairsFromStorage } from '../lib/storage';
 
@@ -12,10 +12,32 @@
   let pairs: [Player, Player][] = [];
   let selected: Set<string> = new Set();
   let bracket: any = null;
+  // Bracket rendering is handled via manager/viewer now.
+
+  // Brackets viewer integration (replacing bracketry)
+  let viewerRendered = false;
+  let showViewer = false;
+  let viewerLoading = false;
+
+  // Bracket rendering (now using bracketry)
+  // (React removed)
+
+  // Last rendered manager data (for re-renders)
+  let lastManagerData: { stages: any[]; matches: any[]; matchGames: any[]; participants: any[] } | null = null;
+
+  // Keep references to last manager and db so we can update matches (advance winners)
+  let lastManagerInstance: any = null;
+  let lastDbInstance: any = null;
+
+  // Random stage saved state (created with "Crear cuadro aleatorio")
+  let randomStageExists = false;
+  let randomStageData: { stages: any[]; matches: any[]; matchGames: any[]; participants: any[] } | null = null;
 
   // Inputs for manual pair entry
   let pairAName = '';
   let pairBName = '';
+  // Option for 'Completar hasta' (defaults to 64)
+  let targetPairsOption: number = 64;
 
   // Reactive flag for enabling add-by-name button
   $: canAddPairByNames = pairAName.trim().length > 0 && pairBName.trim().length > 0;
@@ -84,6 +106,19 @@
     savePairsToStorage(pairs.map((p) => ({ a: p[0].name, b: p[1].name })));
   }
 
+  function confirmClear() {
+    // Ask for confirmation before clearing all data
+    const ok = confirm('¿Estás seguro? Esto eliminará todos los jugadores y parejas.');
+    if (!ok) return;
+    players = [];
+    pairs = [];
+    selected.clear();
+    textarea = '';
+    bracket = null;
+    savePlayersToStorage([]);
+    savePairsToStorage([]);
+  }
+
   function updatePair(detail: { index: number; a: string; b: string }) {
     const { index, a: aName, b: bName } = detail;
     const aTrim = aName.trim();
@@ -115,26 +150,411 @@
     savePairsToStorage(pairs.map((p) => ({ a: p[0].name, b: p[1].name })));
   }
 
-  // Create 64 random pairs (128 players) with generated names
-  function create64Pairs() {
-    const totalPlayers = 128;
-    const newPlayers: Player[] = [];
-    for (let i = 0; i < totalPlayers; i++) {
-      newPlayers.push({ id: String(i + 1), name: `Jugador ${i + 1}` });
+  // Complete pairs up to a target number: only create the missing pairs and players if needed
+  function completePairsTo(targetPairs: number = 64) {
+    const targetPairsNum = Number(targetPairs) || 64;
+    const pairsNeeded = targetPairsNum - pairs.length;
+    if (pairsNeeded <= 0) return;
+
+    const requiredPlayersCount = pairsNeeded * 2;
+
+    // Determine currently unpaired players
+    const usedIds = new Set<string>(pairs.flatMap((p) => [p[0].id, p[1].id]));
+    const unpaired = players.filter((p) => !usedIds.has(p.id));
+
+    const toUse: Player[] = [...unpaired];
+
+    if (toUse.length < requiredPlayersCount) {
+      // Create additional players to reach required count
+      const neededNew = requiredPlayersCount - toUse.length;
+      let maxId = players.reduce((m, x) => Math.max(m, Number(x.id)), 0);
+      for (let i = 0; i < neededNew; i++) {
+        maxId++;
+        const p = { id: String(maxId), name: `Jugador ${maxId}` };
+        players = [...players, p];
+        toUse.push(p);
+      }
+      // Update textarea and storage for new players
+      textarea = players.map((p) => p.name).join('\n');
+      savePlayersToStorage(players);
     }
-    players = newPlayers;
-    textarea = players.map((p) => p.name).join('\n');
-    pairs = pairPlayers(players);
+
+    const take = toUse.slice(0, requiredPlayersCount);
+    const newPairs = pairPlayers(take);
+    pairs = [...pairs, ...newPairs];
     selected.clear();
     bracket = null;
-    savePlayersToStorage(players);
     savePairsToStorage(pairs.map((p) => ({ a: p[0].name, b: p[1].name })));
+    console.log('Completed pairs up to', targetPairsNum, 'now total pairs:', pairs.length);
   }
 
   function generateBracket() {
-    // Build a simple knockout bracket from pairs
+    // Build a simple knockout bracket from pairs (preserves current order)
     const seeds = pairs.map((p) => ({ a: p[0].name, b: p[1].name }));
     bracket = buildBracketFromPairs(seeds);
+  }
+
+  // Toggle: create or delete a random stage (saved in localStorage)
+  async function toggleRandomStage() {
+    viewerLoading = true;
+    try {
+      if (!randomStageExists) {
+        // create
+        if (pairs.length < 2) {
+          alert('Necesitas al menos 2 parejas para crear un cuadro aleatorio');
+          console.warn('Skipping random stage creation: insufficient pairs', { pairsLength: pairs.length });
+          return;
+        }
+        // Build seeding from *pairs* (show pair name + identifier) instead of flattening individual names
+        const pairLabels = pairs.map((p, i) => `${p[0].name} / ${p[1].name} #${i + 1}`);
+        const seeding = shuffle(pairLabels);
+        // Ensure size is a power of two (manager may require it)
+        const nextPow2 = (n: number) => { let p = 1; while (p < n) p <<= 1; return p; };
+        const size = nextPow2(seeding.length);
+        try {
+          const { BracketsManager } = await import('@unitetheculture/brackets-manager');
+          // Use local in-memory storage implementation
+          const { default: InMemoryStorage } = await import('../lib/inMemoryStorage');
+          const db = new InMemoryStorage();
+          const manager = new BracketsManager(db as any);
+          await manager.create({ tournamentId: 0, name: 'Stage', type: 'single_elimination', seeding, settings: { size } });
+          if (size !== seeding.length) console.log('Adjusted stage size to next power of two', { requested: seeding.length, adjusted: size });
+
+          const stages = db.data.stage || [];
+          const matches = db.data.match || [];
+          const participants = db.data.participant || [];
+          const matchGames = db.data.match_game || [];
+
+          randomStageData = { stages, matches, matchGames, participants };
+          randomStageExists = true;
+          localStorage.setItem('randomStageData', JSON.stringify(randomStageData));
+          console.log('Random stage created and saved (in memory + localStorage)');
+        } catch (e: any) {
+          console.error('Could not create random stage', { message: e?.message || String(e), stack: e?.stack }, { seedingLength: seeding.length, seedingSample: seeding.slice(0,6), size });
+          alert('Error al crear el cuadro aleatorio: ' + (e?.message || String(e)));
+        }
+      } else {
+        // delete
+        randomStageData = null;
+        randomStageExists = false;
+        localStorage.removeItem('randomStageData');
+        // clear any rendered bracket
+        const wrapper = document.getElementById('brackets-viewer-wrapper');
+        if (wrapper) wrapper.innerHTML = '';
+        console.log('Random stage deleted');
+      }
+    } finally {
+      viewerLoading = false;
+    }
+  }
+
+  // Render using brackets-manager -> fills an in-memory DB and renders viewer from it
+  async function renderWithManager(type = 'single_elimination') {
+    if (pairs.length === 0) {
+      console.warn('No pairs to render with Manager');
+      return;
+    }
+
+    viewerLoading = true;
+    viewerRendered = true;
+    showViewer = true;
+
+    await tick();
+    try {
+      const { BracketsManager } = await import('@unitetheculture/brackets-manager');
+      const { default: InMemoryStorage } = await import('../lib/inMemoryStorage');
+
+      // Create DB and manager instances (local in-memory storage)
+      let db = new InMemoryStorage();
+      let manager = new BracketsManager(db as any);
+
+      if (randomStageExists && randomStageData) {
+        // hydrate DB with saved arrays
+        db.data.stage = JSON.parse(JSON.stringify(randomStageData.stages || []));
+        db.data.match = JSON.parse(JSON.stringify(randomStageData.matches || []));
+        db.data.participant = JSON.parse(JSON.stringify(randomStageData.participants || []));
+        db.data.match_game = JSON.parse(JSON.stringify(randomStageData.matchGames || []));
+        lastDbInstance = db;
+        lastManagerInstance = manager;
+        console.log('Using saved random stage for rendering');
+      } else {
+        // Build seeding array from pairs (pair-level labels so the bracket shows pairs as single contestants)
+        const pairLabels = pairs.map((p, i) => `${p[0].name} / ${p[1].name} #${i + 1}`);
+        const seeding = pairLabels;
+        // Ensure a power-of-two size for the manager (it may require it)
+        const nextPow2 = (n: number) => { let p = 1; while (p < n) p <<= 1; return p; };
+        const size = nextPow2(seeding.length);
+        await manager.create({ tournamentId: 0, name: 'Stage', type, seeding, settings: { size } });
+        if (size !== seeding.length) console.log('Adjusted stage size to next power of two', { requested: seeding.length, adjusted: size });
+
+        // Now read raw data from the in-memory DB
+        const stages = db.data.stage || [];
+        const matches = db.data.match || [];
+        const participants = db.data.participant || [];
+        const matchGames = db.data.match_game || [];
+        // Save instances for interactive updates (advance winners)
+        lastDbInstance = db;
+        lastManagerInstance = manager;
+
+        console.log('Manager produced:', { stagesLength: stages.length, matchesLength: matches.length, participantsLength: participants.length });
+        // If we just created a stage on the fly and user wants it persistent, do not automatically save it; use explicit toggleRandomStage
+      }
+
+      // Save manager-produced data for re-renders (compact toggle, window resize, etc.)
+      const stages = db.data.stage || [];
+      const matches = db.data.match || [];
+      const participants = db.data.participant || [];
+      const matchGames = db.data.match_game || [];
+
+      lastManagerData = { stages, matches, matchGames, participants };
+      // Prepare bracketry data and render using bracketry library
+      const bracketryData = buildBracketryData(matches, participants);
+      const wrapperEl = document.getElementById('brackets-viewer-wrapper');
+      if (wrapperEl) {
+        try {
+          const { createBracket } = await import('bracketry');
+          // clear wrapper and set full height to fill parent
+          wrapperEl.innerHTML = '';
+          wrapperEl.style.height = '100%';
+          // expose global helper so bracketry callbacks can advance matches
+          (window as any).__advanceMatch = (mid: number, side: number) => onParticipantClick(mid, side);
+          createBracket(bracketryData, wrapperEl, { onMatchSideClick: (m: any, side: number) => { (window as any).__advanceMatch?.(m.matchId, side + 1); } });
+          // legacy DOM attach for other viewers
+          attachMatchClickHandlers();
+        } catch (e) {
+          console.error('Could not render bracketry', e);
+          wrapperEl.innerHTML = '<pre>' + JSON.stringify(bracketryData, null, 2) + '</pre>';
+        }
+      }
+      console.log('Brackets rendered from manager successfully');
+      viewerRendered = true;
+      showViewer = true;
+    } catch (e) {
+      console.error('renderWithManager failed', e);
+    } finally {
+      viewerLoading = false;
+    }
+  }
+
+  // Helper: compute layout options based on container width and rounds
+  function computeMatchLayoutOptions(matches: any[]) {
+    const wrapper = document.getElementById('brackets-viewer-wrapper');
+    const wrapperWidth = (wrapper && wrapper.clientWidth) ? wrapper.clientWidth : window.innerWidth;
+    let roundsCount = 1;
+    try {
+      const set = new Set(matches.map((m) => (m && typeof m.round_id !== 'undefined') ? m.round_id : 0));
+      roundsCount = Math.max(1, set.size);
+    } catch (e) {
+      roundsCount = 1;
+    }
+    // Layout widths for rounds
+    const baseHorMargin = 8;
+    const baseVerticalGap = 8;
+    const maxDesired = 360; // allow wide rounds
+    const reserved = (roundsCount + 1) * baseHorMargin * 2;
+    const desired = Math.max(24, Math.floor((wrapperWidth - reserved) / roundsCount) - 8);
+    const matchMaxWidth = Math.min(maxDesired, desired);
+    console.log('computeMatchLayoutOptions', { wrapperWidth, roundsCount, matchMaxWidth, matchMinVerticalGap: baseVerticalGap, matchHorMargin: baseHorMargin });
+    return { matchMaxWidth, matchMinVerticalGap: baseVerticalGap, matchHorMargin: baseHorMargin };
+  }
+
+  // Re-render the viewer using the lastManagerData (or provided data) with auto-fit layout
+  async function renderManagerViewer(data?: any) {
+    const d = data ?? lastManagerData;
+    if (!d) {
+      console.warn('No manager data to render');
+      return;
+    }
+    const { stages, matches, matchGames, participants } = d;
+    let wrapper = document.getElementById('brackets-viewer-wrapper');
+    if (!wrapper) {
+      console.warn('No #brackets-viewer-wrapper in DOM — creating fallback container');
+      wrapper = document.createElement('div');
+      wrapper.id = 'brackets-viewer-wrapper';
+      wrapper.classList.add('brackets-viewer', 'mt-2', 'w-full', 'min-h-[240px]', 'overflow-x-auto');
+      const main = document.querySelector('main') || document.body;
+      main.appendChild(wrapper);
+    }
+
+    // prepare wrapper
+    wrapper.innerHTML = '';
+    wrapper.classList.add('brackets-viewer');
+    wrapper.classList.remove('compact');
+
+    // Preferred renderer: bracketry
+    try {
+      const bracketData = buildBracketryData(matches, participants);
+      const wrapperEl = document.getElementById('brackets-viewer-wrapper');
+      if (wrapperEl) {
+        const { createBracket } = await import('bracketry');
+        wrapperEl.innerHTML = '';
+        wrapperEl.style.height = '100%';
+        // expose global helper so bracketry callbacks can advance matches
+        (window as any).__advanceMatch = (mid: number, side: number) => onParticipantClick(mid, side);
+        createBracket(bracketData, wrapperEl, { onMatchSideClick: (m: any, side: number) => { (window as any).__advanceMatch?.(m.matchId, side + 1); } });
+        // attach click handlers after rendering (DOM fallback)
+        attachMatchClickHandlers();
+      }
+    } catch (e) {
+      console.error('renderManagerViewer failed', e);
+    }
+  }
+
+  // Attach click handlers on rendered match participants to advance winners
+  function attachMatchClickHandlers() {
+    if (!lastManagerData || !lastManagerInstance) return;
+    const wrapper = document.getElementById('brackets-viewer-wrapper');
+    if (!wrapper) return;
+    // Remove previous listeners to avoid duplicates
+    wrapper.querySelectorAll('.participant').forEach((el) => {
+      el.replaceWith(el.cloneNode(true));
+    });
+
+    wrapper.querySelectorAll('[data-match-id]').forEach((matchEl) => {
+      const matchId = Number(matchEl.getAttribute('data-match-id'));
+      const participantsEls = matchEl.querySelectorAll('.participant');
+      participantsEls.forEach((pEl, idx) => {
+        pEl.addEventListener('click', async (ev) => {
+          ev.stopPropagation();
+          await onParticipantClick(matchId, idx + 1);
+        });
+      });
+    });
+  }
+
+
+
+  // Called when user clicks participant: mark that participant as winner for the match
+  async function onParticipantClick(matchId: number, participantSide: 1 | 2) {
+    if (!lastManagerInstance || !lastDbInstance) {
+      console.warn('Manager or DB not available for update');
+      return;
+    }
+    try {
+      console.log('User selected winner:', { matchId, participantSide });
+      // Build payload: winner gets result 'win' and score 1, loser gets score 0
+      const payload: any = { id: matchId };
+      if (participantSide === 1) {
+        payload.opponent1 = { score: 1, result: 'win' };
+        payload.opponent2 = { score: 0 };
+      } else {
+        payload.opponent1 = { score: 0 };
+        payload.opponent2 = { score: 1, result: 'win' };
+      }
+      // Use manager.update.match to apply the result and propagate to next rounds
+      await lastManagerInstance.update.match(payload);
+
+      // Read fresh data from DB and re-render
+      const stages = lastDbInstance.data.stage || [];
+      const matches = lastDbInstance.data.match || [];
+      const participants = lastDbInstance.data.participant || [];
+      const matchGames = lastDbInstance.data.match_game || [];
+      lastManagerData = { stages, matches, matchGames, participants };
+      // update viewer using bracketry
+      await renderManagerViewer(lastManagerData);
+      try {
+        const bracketData = buildBracketryData(matches, participants);
+        const wrapperEl = document.getElementById('brackets-viewer-wrapper');
+        if (wrapperEl) {
+          const { createBracket } = await import('bracketry');
+          wrapperEl.innerHTML = '';
+        wrapperEl.style.height = '100%';
+        // expose global helper so bracketry callbacks can advance matches
+        (window as any).__advanceMatch = (mid: number, side: number) => onParticipantClick(mid, side);
+        createBracket(bracketData, wrapperEl, { onMatchSideClick: (m: any, side: number) => { (window as any).__advanceMatch?.(m.matchId, side + 1); } });
+          // re-attach click handlers for newly rendered content
+          attachMatchClickHandlers();
+        }
+      } catch (e) {
+        console.error('Could not re-render bracketry after match update', e);
+      }
+      console.log('Match updated and viewer re-rendered for match', matchId);
+    } catch (e) {
+      console.error('Could not update match', e);
+    }
+  }
+
+// renderWithManagerD3 removed — rendering now uses bracketry directly.
+
+  // Toggle showing the bracket (using bracketry)
+
+  async function toggleShowBracket() {
+    // If already rendered, unmount and hide
+    const existingWrapper = document.getElementById('brackets-viewer-wrapper');
+    if (existingWrapper && existingWrapper.innerHTML.trim()) {
+      existingWrapper.innerHTML = '';
+      showViewer = false;
+      viewerRendered = false;
+      return;
+    }
+
+    // Build bracketry data either from saved random stage or from current pairs
+    let data: any;
+
+    if (randomStageExists && randomStageData) {
+      const matches = randomStageData.matches || [];
+      const participants = randomStageData.participants || [];
+      data = buildBracketryData(matches, participants);
+    } else {
+      if (pairs.length === 0) {
+        alert('No hay cuadro creado y no hay parejas. Pulsa "Crear cuadro aleatorio" o añade parejas primero.');
+        return;
+      }
+
+      // Build an in-memory stage from current pairs so user can view a bracket without saving it
+      try {
+        // Use pair labels (name + index) so ephemeral stage shows pairs as contestants
+        const pairLabels = pairs.map((p, i) => `${p[0].name} / ${p[1].name} #${i + 1}`);
+        const seeding = pairLabels;
+        const nextPow2 = (n: number) => { let p = 1; while (p < n) p <<= 1; return p; };
+        const size = nextPow2(seeding.length);
+        const { BracketsManager } = await import('@unitetheculture/brackets-manager');
+        const { default: InMemoryStorage } = await import('../lib/inMemoryStorage');
+        const db = new InMemoryStorage();
+        const manager = new BracketsManager(db as any);
+        await manager.create({ tournamentId: 0, name: 'Stage', type: 'single_elimination', seeding, settings: { size } });
+        if (size !== seeding.length) console.log('Adjusted ephemeral stage size to next power of two', { requested: seeding.length, adjusted: size });
+
+        const matches = db.data.match || [];
+        const participants = db.data.participant || [];
+        const matchGames = db.data.match_game || [];
+
+        // keep instances so clicks can advance winners even for ephemeral stage
+        lastDbInstance = db;
+        lastManagerInstance = manager;
+        lastManagerData = { stages: db.data.stage || [], matches, matchGames, participants };
+
+        data = buildBracketryData(matches, participants);
+      } catch (e) {
+        console.error('Could not build stage from pairs', e);
+        alert('Error al generar el cuadro desde las parejas.');
+        return;
+      }
+    }
+
+    // Show wrapper and render via bracketry
+    showViewer = true;
+    viewerRendered = true;
+    await tick();
+    const wrapper = document.getElementById('brackets-viewer-wrapper');
+    if (!wrapper) {
+      console.warn('No #brackets-viewer-wrapper found');
+      return;
+    }
+    wrapper.innerHTML = '';
+    wrapper.classList.remove('compact');
+    wrapper.style.height = '100%';
+    try {
+      const { createBracket } = await import('bracketry');
+      // expose global helper so bracketry callbacks can advance matches
+      (window as any).__advanceMatch = (mid: number, side: number) => onParticipantClick(mid, side);
+      createBracket(data, wrapper, { onMatchSideClick: (m: any, side: number) => { (window as any).__advanceMatch?.(m.matchId, side + 1); } });
+      // attach click handlers to allow advancing winners (fallback)
+      attachMatchClickHandlers();
+    } catch (e) {
+      console.error('Could not render bracketry in toggleShowBracket', e);
+      wrapper.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+    }
   }
 
   function buildBracketFromPairs(seeds: Array<{ a: string; b: string }>) {
@@ -152,6 +572,11 @@
     }
     return rounds;
   }
+
+  // Convert manager matches + participants into bracketry data shape
+  // (moved to src/lib/bracketryUtils.ts)
+  import { buildBracketryData as _buildBracketryData } from '../lib/bracketryUtils';
+  const buildBracketryData = _buildBracketryData;
 
   function exportExcel() {
     const data = players.map((p) => ({ Name: p.name }));
@@ -228,40 +653,112 @@
       });
     }
 
+    // Load previously saved random stage (if any)
+    try {
+      const raw = localStorage.getItem('randomStageData');
+      if (raw) {
+        randomStageData = JSON.parse(raw);
+        randomStageExists = !!randomStageData;
+      }
+    } catch (e) {
+      console.warn('Could not load saved random stage', e);
+    }
+
+  });
+
+  onDestroy(() => {
+    // no-op (react mount removed)
   });
 </script>
 
 <div class="space-y-4">
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-    <!-- Left: Player input & list -->
-    <div class="space-y-3">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div class="flex gap-2">
-          <button class="px-3 py-2 bg-sky-600 text-white rounded shadow" on:click={importPlayers}>Import Players</button>
-          <button class="px-3 py-2 bg-white border rounded" on:click={autoGeneratePairs}>Auto Pairs</button>
-          <button class="px-3 py-2 bg-indigo-600 text-white rounded shadow" on:click={create64Pairs} aria-label="Crear 64 parejas aleatorias">Crear 64 parejas</button>
-          <button class="px-3 py-2 bg-white border rounded" on:click={() => { players = []; pairs = []; selected.clear(); savePlayersToStorage([]); }}>Clear</button>
-        </div>
-        <div class="flex gap-2 items-center">
-          <input class="border rounded px-3 py-2" placeholder="Player A" bind:value={pairAName} on:input={() => console.log('Player A input', JSON.stringify(pairAName), 'trimLen', pairAName.trim().length)} />
-          <input class="border rounded px-3 py-2" placeholder="Player B" bind:value={pairBName} on:input={() => console.log('Player B input', JSON.stringify(pairBName), 'trimLen', pairBName.trim().length)} />
-          <button type="button" class="px-4 py-2 bg-green-600 text-white rounded shadow disabled:opacity-50" on:click={addPairByNames} disabled={! (pairAName.trim().length > 0 && pairBName.trim().length > 0) } aria-disabled={! (pairAName.trim().length > 0 && pairBName.trim().length > 0) }>Add Pair</button>
-        </div>
-      </div>
+  <div class="flex flex-wrap gap-2 items-center bg-gray-50 p-2 rounded-lg border border-gray-200">
+    
+    <div class="flex flex-wrap gap-2">
+      <button class="btn btn-sky" on:click={importPlayers}>Importar Jugadores</button>
+      <button class="btn btn-white" on:click={confirmClear}>Limpiar Todo</button>
     </div>
 
-    <!-- Right: removed (moved below) -->
+    <div class="flex items-center gap-2 bg-white p-1 border rounded-md shadow-sm">
+      <span class="text-xs font-semibold px-2 text-gray-500 uppercase">Completar hasta:</span>
+      <select bind:value={targetPairsOption} class="bg-transparent text-sm font-medium focus:outline-none">
+        <option value="16">16</option>
+        <option value="32">32</option>
+        <option value="64">64</option>
+        <option value="128">128</option>
+      </select>
+      <button class="btn btn-indigo py-1 px-3 text-sm" on:click={() => completePairsTo(targetPairsOption)}>
+        Ejecutar
+      </button>
+    </div>
 
-  </div>
-
-  <!-- Right: Pairs and bracket (moved here) -->
-  <div class="space-y-4 mt-6">
-    <PairResults {pairs} on:removePair={(e) => removePair(e.detail)} on:updatePair={(e) => updatePair(e.detail)} />
+    <div class="flex flex-wrap gap-2">
+      <button class="btn btn-amber" on:click={toggleRandomStage} disabled={viewerLoading}>
+        {randomStageExists ? 'Borrar Cuadro' : 'Crear Cuadro Aleatorio'}
+      </button>
+      
+      {#if randomStageExists || pairs.length > 0}
+        <button class="btn btn-purple" on:click={() => toggleShowBracket()}>
+          {showViewer ? 'Ocultar Cuadro' : 'Mostrar Cuadro'}
+        </button>
+      {/if}
+    </div>
 
     <div class="flex gap-2">
-      <button class="px-3 py-2 bg-gray-200 rounded" on:click={exportExcel}>Export Players</button>
-      <button class="px-3 py-2 bg-gray-200 rounded" on:click={exportCSV}>Export Players CSV</button>
-      <button class="px-3 py-2 bg-gray-200 rounded" on:click={() => { /* placeholder for export pairs */ }}>Export Pairs</button>
+      <button class="btn btn-gray text-xs" on:click={exportExcel}>Excel</button>
+      <button class="btn btn-gray text-xs" on:click={exportCSV}>CSV</button>
     </div>
   </div>
+
+  <div class="bg-white p-2 rounded-lg border border-gray-200 shadow-sm">
+    <h3 class="text-sm font-bold text-gray-700 mb-2 uppercase tracking-wider">Añadir Pareja Manual</h3>
+    <div class="flex flex-wrap gap-2 items-end">
+      <div class="flex flex-col gap-1">
+        <label for="pair-a" class="text-xs text-gray-500 ml-1">Jugador A</label>
+        <input id="pair-a" class="input-field" placeholder="Nombre..." bind:value={pairAName} />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label for="pair-b" class="text-xs text-gray-500 ml-1">Jugador B</label>
+        <input id="pair-b" class="input-field" placeholder="Nombre..." bind:value={pairBName} />
+      </div>
+      <button 
+        type="button" 
+        class="btn btn-green h-[36px] px-4 disabled:bg-gray-300" 
+        on:click={addPairByNames} 
+        disabled={!(pairAName.trim() && pairBName.trim())}
+      >
+        Añadir Pareja
+      </button>
+    </div>
+  </div>
+
+  <div class="flex flex-col lg:flex-row gap-6">
+    <div class="flex-1">
+      <PlayerPairCard {pairs} on:removePair={(e) => removePair(e.detail)} on:updatePair={(e) => updatePair(e.detail)} />
+
+    </div>
+    {#if showViewer}
+      <div class="w-full lg:w-2/5 min-h-[360px] bg-gray-50 rounded-xl border-2 border-dashed border-gray-300 overflow-hidden sticky top-4">
+        <BracketsViewer />
+      </div>
+    {/if}
+  </div>
 </div>
+
+<style lang="postcss">
+  /* Clases de utilidad para mantener coherencia */
+  .btn {
+    @apply px-4 py-1 rounded-md font-medium transition-all active:scale-95 shadow-sm text-sm whitespace-nowrap;
+  }
+  .btn-sky { @apply bg-sky-600 text-white hover:bg-sky-700; }
+  .btn-indigo { @apply bg-indigo-600 text-white hover:bg-indigo-700; }
+  .btn-white { @apply bg-white border border-gray-300 text-gray-700 hover:bg-gray-50; }
+  .btn-amber { @apply bg-amber-500 text-white hover:bg-amber-600; }
+  .btn-purple { @apply bg-purple-600 text-white hover:bg-purple-700; }
+  .btn-gray { @apply bg-gray-200 text-gray-700 hover:bg-gray-300; }
+  .btn-green { @apply bg-green-600 text-white hover:bg-green-700; }
+  
+  .input-field {
+    @apply border border-gray-300 rounded-md px-3 py-1 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition-all w-full sm:w-48;
+  }
+</style>
