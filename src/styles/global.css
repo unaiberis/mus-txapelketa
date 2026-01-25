@@ -50,7 +50,7 @@ body { font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
 #brackets-viewer-wrapper,
 .bracket-viewport {
   --matchMaxWidth: 320px; /* slightly narrower rounds by default */
-  font-size: 0.95rem;
+  font-size: 1rem; /* slightly larger for readability */
 }
 
 /* Compact bracket vertical spacing and typography to reduce overall height */
@@ -62,7 +62,7 @@ body { font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
 #brackets-viewer-wrapper .participant,
 .bracket-viewport .participant {
   padding: 4px 6px; /* reduce vertical padding */
-  font-size: 0.85rem; /* smaller vertical text */
+  font-size: 0.95rem; /* increased for readability */
   line-height: 1.1;
   border-radius: 4px;
   margin: 2px 0;
@@ -86,27 +86,62 @@ body { font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
 /* Even more compact variant when container has .compact */
 #brackets-viewer-wrapper.compact,
 .bracket-viewport.compact {
-  --matchMaxWidth: 280px; /* narrower rounds */
-  font-size: 0.88rem;
-  min-height: 120px;
+  --matchMaxWidth: 220px; /* narrower rounds */
+  font-size: 1.05rem; /* increased for readability */
+  min-height: 40px;
 }
 
-#brackets-viewer-wrapper.compact .match,
-.bracket-viewport.compact .match {
-  margin: 4px 0; /* very small vertical gap between matches */
+/* Reduce match wrapper padding and collapse line heights */
+#brackets-viewer-wrapper.compact .match-wrapper,
+.bracket-viewport.compact .match-wrapper {
+  padding: 0 2px; /* smaller horizontal padding */
+  margin: 0 0 2px 0; /* tiny vertical gap */
+  min-height: 0;
 }
 
-#brackets-viewer-wrapper.compact .participant,
-.bracket-viewport.compact .participant {
-  padding: 2px 4px; /* minimal vertical padding */
-  font-size: 0.76rem; /* smaller text for high density */
+#brackets-viewer-wrapper.compact .match-body,
+.bracket-viewport.compact .match-body {
+  padding: 0; /* remove internal padding */
+  height: auto;
+  gap: 0;
+}
+
+/* Compact the side blocks and player titles */
+#brackets-viewer-wrapper.compact .sides,
+.bracket-viewport.compact .sides {
+  gap: 1px;
+  padding: 0;
+}
+
+#brackets-viewer-wrapper.compact .player-wrapper,
+.bracket-viewport.compact .player-wrapper {
+  padding: 0;
+  height: 11px; /* even smaller fixed height */
+  min-height: 11px;
+}
+
+#brackets-viewer-wrapper.compact .player-title,
+.bracket-viewport.compact .player-title {
+  font-size: 0.95rem; /* increased for readability */
   line-height: 1;
-  margin: 1px 0;
+  padding: 0 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Shrink line wrapper connectors */
+#brackets-viewer-wrapper.compact .line-wrapper.upper,
+.bracket-viewport.compact .line-wrapper.upper,
+#brackets-viewer-wrapper.compact .line-wrapper.lower,
+.bracket-viewport.compact .line-wrapper.lower {
+  height: 6px;
+  min-height: 6px;
 }
 
 #brackets-viewer-wrapper.compact .round,
 .bracket-viewport.compact .round {
-  gap: 4px; /* tighter round spacing */
+  gap: 0; /* minimal round spacing */
 }
 
 #brackets-viewer-wrapper.compact .seed-team,
@@ -115,6 +150,8 @@ body { font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
 .bracket-viewport.compact .seed-team,
 .bracket-viewport.compact .seed,
 .bracket-viewport.compact .participant {
-  max-width: 140px; /* narrower labels to reduce tall boxes */
+  max-width: 80px; /* keep labels narrow to reduce height */
+  padding: 0 1px;
+  font-size: 0.75rem; /* increased for readability */
 }
 

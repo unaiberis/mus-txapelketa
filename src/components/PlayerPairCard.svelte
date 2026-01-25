@@ -58,7 +58,7 @@
         {#each matchLabels as m, i}
           <div class="bg-white border rounded-md px-2 py-2 shadow-sm hover:shadow-md transition">
             <div class="flex items-center justify-between mb-2">
-              <div class="text-xxs text-slate-400">Mesa {i + 1}</div>
+              <div class="text-xxs text-slate-400">{i + 1}. mahaia</div>
             </div>
             <div class="flex flex-col gap-1">
               <div class="bg-slate-50 border border-slate-100 rounded px-2 py-1 text-sm font-medium truncate flex items-center gap-2">

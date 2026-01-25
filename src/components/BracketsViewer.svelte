@@ -4,8 +4,8 @@
 </script>
 
 <div class="brackets-side">
-  <div id="brackets-viewer-wrapper" bind:this={wrapperEl} class="brackets-viewer mt-1 w-full min-h-[120px]" style="height: 100%; overflow: hidden;"></div>
-</div>
+  <div id="brackets-viewer-wrapper" bind:this={wrapperEl} class="brackets-viewer mt-0 w-full min-h-[48px]" style="height: 100%; overflow: hidden;"></div>
+</div> 
 
 <style>
 .brackets-side {
