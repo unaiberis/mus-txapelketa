@@ -17,6 +17,9 @@
   let pairAName = '';
   let pairBName = '';
 
+  // Simple runtime style check report (used by debug UI)
+  let styleReport: string[] = [];
+
   // Reactive flag for enabling add-by-name button
   $: canAddPairByNames = pairAName.trim().length > 0 && pairBName.trim().length > 0;
 
@@ -130,6 +133,35 @@
     URL.revokeObjectURL(url);
   }
 
+  // Runtime style checks (console logs + on-page report)
+  function runStyleChecks() {
+    const results: string[] = [];
+    try {
+      const header = document.querySelector('h1.text-sky-700');
+      if (header) results.push(`h1.text-sky-700 color: ${getComputedStyle(header as Element).color}`);
+      else results.push('h1.text-sky-700 not found');
+
+      const mainEl = document.querySelector('main');
+      if (mainEl) results.push(`main background: ${getComputedStyle(mainEl as Element).backgroundColor}`);
+
+      const temp = document.createElement('div');
+      temp.className = 'bracket'; temp.style.position = 'absolute'; temp.style.left = '-9999px';
+      document.body.appendChild(temp);
+      results.push(`.bracket display: ${getComputedStyle(temp).display}`);
+      temp.remove();
+
+      const s = document.createElement('div'); s.className = 'shadow-sm'; s.style.position='absolute'; s.style.left='-9999px'; document.body.appendChild(s);
+      results.push(`shadow-sm boxShadow: ${getComputedStyle(s).boxShadow || 'none'}`);
+      s.remove();
+
+    } catch (err) {
+      results.push('error: ' + err);
+    }
+    styleReport = results;
+    console.group('Style checks'); results.forEach(r => console.log(r)); console.groupEnd();
+    return results;
+  }
+
   function onFileChange(e: Event) {
     const input = e.target as HTMLInputElement;
     const file = input.files && input.files[0];
@@ -182,6 +214,10 @@
         return [a, b] as [Player, Player];
       });
     }
+
+    // Run style checks on mount and shortly after (handles delayed style injection)
+    runStyleChecks();
+    setTimeout(runStyleChecks, 500);
   });
 </script>
 
@@ -191,6 +227,10 @@
 </style>
 
 <div class="space-y-4">
+  <div class="text-xs text-slate-500 mb-2 flex items-center gap-2">
+    <div><strong>Style checks:</strong> {#if styleReport.length}{styleReport.join(' | ')}{#else}running...{/if}</div>
+    <button class="ml-2 px-2 py-1 bg-slate-100 rounded text-xs" on:click={runStyleChecks}>Re-run</button>
+  </div>
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
     <!-- Left: Player input & list -->
     <div class="space-y-3">
