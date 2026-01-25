@@ -228,7 +228,11 @@
 
 <div class="space-y-4">
   <div class="text-xs text-slate-500 mb-2 flex items-center gap-2">
-    <div><strong>Style checks:</strong> {#if styleReport.length}{styleReport.join(' | ')}{#else}running...{/if}</div>
+    <div><strong>Style checks:</strong> {#if styleReport.length}
+        {styleReport.join(' | ')}
+      {:else}
+        running...
+      {/if}</div>
     <button class="ml-2 px-2 py-1 bg-slate-100 rounded text-xs" on:click={runStyleChecks}>Re-run</button>
   </div>
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
