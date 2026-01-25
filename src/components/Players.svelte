@@ -19,6 +19,8 @@
 
   // Reactive flag for enabling add-by-name button
   $: canAddPairByNames = pairAName.trim().length > 0 && pairBName.trim().length > 0;
+  // Debug: log inputs and computed flag whenever they change
+  $: console.log('pair inputs:', JSON.stringify(pairAName), JSON.stringify(pairBName), 'trim lengths', pairAName.trim().length, pairBName.trim().length, 'canAddPairByNames', canAddPairByNames);
 
   function parsePlayers(text: string) {
     return text
@@ -54,6 +56,7 @@
   }
 
   function addPairByNames() {
+    console.log('addPairByNames called', { pairAName, pairBName, canAddPairByNames });
     const aName = pairAName.trim();
     const bName = pairBName.trim();
     if (!aName || !bName) return;
@@ -200,8 +203,8 @@
           <button class="px-3 py-2 bg-white border rounded" on:click={() => { players = []; pairs = []; selected.clear(); savePlayersToStorage([]); }}>Clear</button>
         </div>
         <div class="flex gap-2 items-center">
-          <input class="border rounded px-3 py-2" placeholder="Player A" bind:value={pairAName} />
-          <input class="border rounded px-3 py-2" placeholder="Player B" bind:value={pairBName} />
+          <input class="border rounded px-3 py-2" placeholder="Player A" bind:value={pairAName} on:input={() => console.log('Player A input', JSON.stringify(pairAName), 'trimLen', pairAName.trim().length)} />
+          <input class="border rounded px-3 py-2" placeholder="Player B" bind:value={pairBName} on:input={() => console.log('Player B input', JSON.stringify(pairBName), 'trimLen', pairBName.trim().length)} />
           <button type="button" class="px-4 py-2 bg-green-600 text-white rounded shadow disabled:opacity-50" on:click={addPairByNames} disabled={! (pairAName.trim().length > 0 && pairBName.trim().length > 0) } aria-disabled={! (pairAName.trim().length > 0 && pairBName.trim().length > 0) }>Add Pair</button>
         </div>
       </div>
