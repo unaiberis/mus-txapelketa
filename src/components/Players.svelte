@@ -194,8 +194,6 @@
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
     <!-- Left: Player input & list -->
     <div class="space-y-3">
-      <textarea id="players" bind:value={textarea} placeholder="Nombre\n..." class="w-full border rounded p-3 h-40 resize-none"></textarea>
-
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div class="flex gap-2">
           <button class="px-3 py-2 bg-sky-600 text-white rounded shadow" on:click={importPlayers}>Import Players</button>
@@ -206,20 +204,6 @@
           <input class="border rounded px-3 py-2" placeholder="Player A" bind:value={pairAName} on:input={() => console.log('Player A input', JSON.stringify(pairAName), 'trimLen', pairAName.trim().length)} />
           <input class="border rounded px-3 py-2" placeholder="Player B" bind:value={pairBName} on:input={() => console.log('Player B input', JSON.stringify(pairBName), 'trimLen', pairBName.trim().length)} />
           <button type="button" class="px-4 py-2 bg-green-600 text-white rounded shadow disabled:opacity-50" on:click={addPairByNames} disabled={! (pairAName.trim().length > 0 && pairBName.trim().length > 0) } aria-disabled={! (pairAName.trim().length > 0 && pairBName.trim().length > 0) }>Add Pair</button>
-        </div>
-      </div>
-
-      <div class="bg-slate-50 border border-slate-200 rounded p-3 max-h-80 overflow-auto mt-2">
-        <div class="space-y-1">
-          {#each players as p}
-            <div class="flex items-center justify-between p-2 rounded hover:bg-white">
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={selected.has(p.id)} on:change={() => toggleSelect(p.id)} />
-                <span class="{selected.has(p.id) ? 'font-semibold text-sky-700' : ''}">{p.name}</span>
-              </label>
-              <small class="text-xs text-slate-400">#{p.id}</small>
-            </div>
-          {/each}
         </div>
       </div>
     </div>
@@ -236,12 +220,6 @@
       <button class="px-3 py-2 bg-gray-200 rounded" on:click={exportExcel}>Export Players</button>
       <button class="px-3 py-2 bg-gray-200 rounded" on:click={exportCSV}>Export Players CSV</button>
       <button class="px-3 py-2 bg-gray-200 rounded" on:click={() => { /* placeholder for export pairs */ }}>Export Pairs</button>
-    </div>
-
-    <div class="mt-2">
-      {#if bracket}
-        <Bracket {bracket} />
-      {/if}
     </div>
   </div>
 </div>

@@ -26,11 +26,3 @@
     {/each}
   </ul>
 </div>
-<div>
-  <h2>Pairs</h2>
-  <ul>
-    {#each pairs as [a, b], i}
-      <li class="pair">{i + 1}. {a.name} — {b.name} <span class="remove" on:click={() => remove(i)}>Remove</span></li>
-    {/each}
-  </ul>
-</div>
