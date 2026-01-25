@@ -14,7 +14,7 @@ import "../styles/global.css";
       // Quick runtime check: ensure styles are applied; inject fallbacks if not
       (function ensureStyles(){
         try{
-          console.log('Style fallback check: link hrefs ->', Array.from(document.querySelectorAll('link[rel=stylesheet]')).map(l=>l.href));
+          console.log('Style fallback check: link hrefs ->', Array.from(document.querySelectorAll<HTMLLinkElement>('link[rel=stylesheet]')).map(l=>l.href));
           function hasStyle(){
             const el = document.createElement('div'); el.className='text-sky-700'; el.style.position='absolute'; el.style.left='-9999px'; document.documentElement.appendChild(el);
             const color = getComputedStyle(el).color; el.remove();
