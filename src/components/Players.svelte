@@ -155,6 +155,7 @@
 
   // Example seed players for demo
   onMount(() => {
+    console.log('Players component hydrated on client (onMount)');
     const stored = loadPlayersFromStorage();
     if (stored && stored.length) {
       players = stored;
