@@ -49,6 +49,72 @@ body { font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
 /* Default bracket variables (increased per-round width) */
 #brackets-viewer-wrapper,
 .bracket-viewport {
-  --matchMaxWidth: 360px; /* wider rounds by default */
+  --matchMaxWidth: 320px; /* slightly narrower rounds by default */
+  font-size: 0.95rem;
+}
+
+/* Compact bracket vertical spacing and typography to reduce overall height */
+#brackets-viewer-wrapper .match,
+.bracket-viewport .match {
+  margin: 6px 0; /* smaller vertical gap between matches */
+}
+
+#brackets-viewer-wrapper .participant,
+.bracket-viewport .participant {
+  padding: 4px 6px; /* reduce vertical padding */
+  font-size: 0.85rem; /* smaller vertical text */
+  line-height: 1.1;
+  border-radius: 4px;
+  margin: 2px 0;
+}
+
+#brackets-viewer-wrapper .round,
+.bracket-viewport .round {
+  gap: 6px; /* tighter round spacing */
+}
+
+/* Make seeds/participants wrap quicker and take less vertical space */
+#brackets-viewer-wrapper .seed-team,
+#brackets-viewer-wrapper .seed,
+#brackets-viewer-wrapper .participant,
+.bracket-viewport .seed-team,
+.bracket-viewport .seed,
+.bracket-viewport .participant {
+  max-width: 160px; /* slightly narrower labels to avoid tall boxes */
+}
+
+/* Even more compact variant when container has .compact */
+#brackets-viewer-wrapper.compact,
+.bracket-viewport.compact {
+  --matchMaxWidth: 280px; /* narrower rounds */
+  font-size: 0.88rem;
+  min-height: 120px;
+}
+
+#brackets-viewer-wrapper.compact .match,
+.bracket-viewport.compact .match {
+  margin: 4px 0; /* very small vertical gap between matches */
+}
+
+#brackets-viewer-wrapper.compact .participant,
+.bracket-viewport.compact .participant {
+  padding: 2px 4px; /* minimal vertical padding */
+  font-size: 0.76rem; /* smaller text for high density */
+  line-height: 1;
+  margin: 1px 0;
+}
+
+#brackets-viewer-wrapper.compact .round,
+.bracket-viewport.compact .round {
+  gap: 4px; /* tighter round spacing */
+}
+
+#brackets-viewer-wrapper.compact .seed-team,
+#brackets-viewer-wrapper.compact .seed,
+#brackets-viewer-wrapper.compact .participant,
+.bracket-viewport.compact .seed-team,
+.bracket-viewport.compact .seed,
+.bracket-viewport.compact .participant {
+  max-width: 140px; /* narrower labels to reduce tall boxes */
 }
 

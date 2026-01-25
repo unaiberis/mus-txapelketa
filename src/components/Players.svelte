@@ -11,6 +11,8 @@
   let players: Player[] = [];
   let pairs: [Player, Player][] = [];
   let selected: Set<string> = new Set();
+  // When showing bracket, precompute the first-round match pair labels for display
+  let matchLabels: { a: string; b: string }[] = [];
   let bracket: any = null;
   // Bracket rendering is handled via manager/viewer now.
 
@@ -309,6 +311,12 @@
       lastManagerData = { stages, matches, matchGames, participants };
       // Prepare bracketry data and render using bracketry library
       const bracketryData = buildBracketryData(matches, participants);
+      // compute first round match labels for display in the pairs panel
+      try {
+        matchLabels = (bracketryData.matches || []).filter((m: any) => m.roundIndex === 0).map((m: any) => ({ a: m.sides[0]?.title || '', b: m.sides[1]?.title || '' }));
+      } catch (err) {
+        matchLabels = [];
+      }
       const wrapperEl = document.getElementById('brackets-viewer-wrapper');
       if (wrapperEl) {
         try {
@@ -379,11 +387,17 @@
     // prepare wrapper
     wrapper.innerHTML = '';
     wrapper.classList.add('brackets-viewer');
-    wrapper.classList.remove('compact');
+    wrapper.classList.add('compact');
 
     // Preferred renderer: bracketry
     try {
       const bracketData = buildBracketryData(matches, participants);
+      // compute matchLabels for first round
+      try {
+        matchLabels = (bracketData.matches || []).filter((m: any) => m.roundIndex === 0).map((m: any) => ({ a: m.sides[0]?.title || '', b: m.sides[1]?.title || '' }));
+      } catch (err) {
+        matchLabels = [];
+      }
       const wrapperEl = document.getElementById('brackets-viewer-wrapper');
       if (wrapperEl) {
         const { createBracket } = await import('bracketry');
@@ -482,9 +496,11 @@
     // If already rendered, unmount and hide
     const existingWrapper = document.getElementById('brackets-viewer-wrapper');
     if (existingWrapper && existingWrapper.innerHTML.trim()) {
+      existingWrapper.classList.remove('compact');
       existingWrapper.innerHTML = '';
       showViewer = false;
       viewerRendered = false;
+      matchLabels = [];
       return;
     }
 
@@ -532,6 +548,13 @@
       }
     }
 
+    // compute matchLabels for first round so they can be shown in the pairs panel
+    try {
+      matchLabels = (data.matches || []).filter((m: any) => m.roundIndex === 0).map((m: any) => ({ a: m.sides[0]?.title || '', b: m.sides[1]?.title || '' }));
+    } catch (err) {
+      matchLabels = [];
+    }
+
     // Show wrapper and render via bracketry
     showViewer = true;
     viewerRendered = true;
@@ -542,7 +565,7 @@
       return;
     }
     wrapper.innerHTML = '';
-    wrapper.classList.remove('compact');
+    wrapper.classList.add('compact');
     wrapper.style.height = '100%';
     try {
       const { createBracket } = await import('bracketry');
@@ -732,13 +755,13 @@
     </div>
   </div>
 
-  <div class="flex flex-col lg:flex-row gap-6">
+  <div class="flex flex-col lg:flex-row">
     <div class="flex-1">
-      <PlayerPairCard {pairs} on:removePair={(e) => removePair(e.detail)} on:updatePair={(e) => updatePair(e.detail)} />
+      <PlayerPairCard {pairs} matchLabels={matchLabels} viewOnly={showViewer} on:removePair={(e) => removePair(e.detail)} on:updatePair={(e) => updatePair(e.detail)} />
 
     </div>
     {#if showViewer}
-      <div class="w-full lg:w-2/5 min-h-[360px] bg-gray-50 rounded-xl border-2 border-dashed border-gray-300 overflow-hidden sticky top-4">
+      <div class="w-full lg:w-2/5 min-h-[220px] bg-gray-50 overflow-hidden sticky p-0 m-0">
         <BracketsViewer />
       </div>
     {/if}

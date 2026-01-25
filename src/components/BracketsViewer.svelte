@@ -4,13 +4,13 @@
 </script>
 
 <div class="brackets-side">
-  <div id="brackets-viewer-wrapper" bind:this={wrapperEl} class="brackets-viewer mt-2 w-full min-h-[240px]" style="height: 100%; overflow: hidden;"></div>
+  <div id="brackets-viewer-wrapper" bind:this={wrapperEl} class="brackets-viewer mt-1 w-full min-h-[120px]" style="height: 100%; overflow: hidden;"></div>
 </div>
 
 <style>
 .brackets-side {
   width: 40%;
-  min-width: 320px;
+  min-width: 280px;
   position: fixed;
   top: 0;
   right: 0;
@@ -19,9 +19,9 @@
   overflow: visible;
   border-left: 1px solid #e5e7eb;
   background: var(--bg, #fff);
-  padding: 0.5rem;
+  padding: 0.25rem; /* reduce overall padding */
   z-index: 20;
-}
+} 
 
 @media (max-width: 1024px) {
   .brackets-side { width: 100%; position: static; height: auto; border-left: none; padding: 0; }
