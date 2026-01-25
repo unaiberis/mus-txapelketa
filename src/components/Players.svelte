@@ -5,12 +5,101 @@
   import type { Player } from '../lib/match';
   import { pairPlayers, shuffle } from '../lib/match';
   import * as XLSX from 'xlsx';
+  import { buildBracketryData } from '../lib/bracketryUtils';
   import { savePlayersToStorage, loadPlayersFromStorage, savePairsToStorage, loadPairsFromStorage } from '../lib/storage';
 
   let textarea = '';
   let players: Player[] = [];
   let pairs: [Player, Player][] = [];
   let selected: Set<string> = new Set();
+
+  // Basque given names split by gender (supplied)
+  const BASQUE_GIVENS = {
+    masc: [
+      'Adur', 'Aimar', 'Aitor', 'Ametz', 'Ander', 'Antton', 'Aratz', 'Asier', 'Beñat', 'Bittor',
+      'Egoi', 'Ekaitz', 'Ekhi', 'Enaitz', 'Eneko', 'Endika', 'Eñaut', 'Gaizka', 'Gorka', 'Hodei',
+      'Ibai', 'Iban', 'Igor', 'Iker', 'Imanol', 'Iñaki', 'Iñigo', 'Ipar', 'Iraitz', 'Iurgi',
+      'Izani', 'Jabi', 'Jakes', 'Joanes', 'Jokin', 'Jon', 'Josu', 'Julen', 'Kepa', 'Lander',
+      'Luken', 'Markel', 'Mattin', 'Mikel', 'Oihan', 'Oier', 'Orhi', 'Ortzi', 'Patxi', 'Peio',
+      'Unai', 'Unax', 'Urko', 'Xabier', 'Zigor'
+    ],
+    fem: [
+      'Aia', 'Ainhoa', 'Ainara', 'Aintzane', 'Aizpea', 'Alaia', 'Alaitz', 'Alazne', 'Amagoia', 'Amaia',
+      'Ane', 'Araitz', 'Arantxa', 'Arene', 'Argi', 'Eba', 'Edurne', 'Eider', 'Ekiñe', 'Elaia',
+      'Elori', 'Enara', 'Estibaliz', 'Garazi', 'Garbiñe', 'Goizane', 'Haizea', 'Idoia', 'Irati', 'Iraia',
+      'Iratxe', 'Irune', 'Itsaso', 'Itziar', 'Izaro', 'Izaskun', 'Jone', 'Larraitz', 'Leire', 'Lide',
+      'Lorea', 'Maddi', 'Maialen', 'Maitane', 'Maite', 'Malen', 'Miren', 'Nagore', 'Naia', 'Naiara',
+      'Naroa', 'Nekane', 'Nerea', 'Oihana', 'Olatz', 'Onintza', 'Udane', 'Uxue', 'Zuriñe'
+    ]
+  };
+
+  // Basque surnames supplied (extended list)
+  const BASQUE_SURNAMES = [
+    'Abaitua', 'Agirre', 'Aizpurua', 'Alberdi', 'Alkorta', 'Altuna', 'Amundarain', 'Anitua', 'Ansotegi',
+    'Arana', 'Aranguren', 'Aranzabal', 'Areitio', 'Aretxabaleta', 'Aristi', 'Aristizabal', 'Armendariz',
+    'Arregi', 'Arrieta', 'Arrizabalaga', 'Arruabarrena', 'Artetxe', 'Azkarate', 'Azkue', 'Azurmendi',
+    'Barandiaran', 'Barrenetxea', 'Basagoiti', 'Bengoa', 'Bengoetxea', 'Berasategi', 'Bilbao', 'Bolibar',
+    'Echevarría', 'Elorriaga', 'Elorza', 'Elustondo', 'Erreka', 'Eskibel', 'Etxeberria', 'Gabiria',
+    'Gabilondo', 'Galarza', 'Galdos', 'Garate', 'Garmendia', 'Gaztelu', 'Goikoetxea', 'Gurrutxaga',
+    'Ibarra', 'Ibarretxe', 'Idigoras', 'Igartua', 'Iraola', 'Iriondo', 'Irusta', 'Iturbe', 'Iturriaga',
+    'Izagirre', 'Laka', 'Landa', 'Larrañaga', 'Larrinaga', 'Lazkano', 'Legarreta', 'Lertxundi', 'Loyola',
+    'Madariaga', 'Maguregi', 'Maiz', 'Mendieta', 'Mendizabal', 'Muguruza', 'Munitiz', 'Murua', 'Ochoa',
+    'Olabarria', 'Olarte', 'Olaizola', 'Ondarra', 'Orbegozo', 'Ordorika', 'Ormaetxea', 'Orozko', 'Osa',
+    'Otegi', 'Otxoa', 'Pagadi', 'Pagaldai', 'Retegi', 'Sagasti', 'Salaberria', 'Sarasola', 'Soraluze',
+    'Tellechea', 'Unamuno', 'Urbina', 'Uriarte', 'Uribarri', 'Uribe', 'Urkizu', 'Urkullu', 'Urrutia',
+    'Urrutikoetxea', 'Zabala', 'Zabaleta', 'Zaldibar', 'Zearra', 'Zelaia', 'Zubiria', 'Zubizarreta', 'Zuloaga'
+  ];
+
+  // Merge masc + fem givens for generation
+  const BASQUE_GIVENS_MERGED = [...BASQUE_GIVENS.masc, ...BASQUE_GIVENS.fem];
+
+  // Precompute up to 256 unique full names by combining givens and surnames
+  const BASQUE_NAMES: string[] = (() => {
+    const out: string[] = [];
+    for (const s of BASQUE_SURNAMES) {
+      for (const g of BASQUE_GIVENS_MERGED) {
+        out.push(`${g} ${s}`);
+        if (out.length === 256) break;
+      }
+      if (out.length === 256) break;
+    }
+    // Fill any remaining slots with indexed names if needed
+    let i = 1;
+    while (out.length < 256) {
+      out.push(`Jugador ${i}`);
+      i++;
+    }
+    // Shuffle names to avoid grouping by surname (distribute surnames across the list)
+    return shuffle(out);
+  })();
+
+  // Pick a random combination of given + surname, avoid collisions with usedNames
+  function pickBasqueName(usedNames: Set<string>) : string | null {
+    const givens = BASQUE_GIVENS_MERGED;
+    const surnames = BASQUE_SURNAMES;
+    if (!givens.length || !surnames.length) return null;
+    const maxAttempts = givens.length * surnames.length;
+    for (let i = 0; i < maxAttempts; i++) {
+      const g = givens[Math.floor(Math.random() * givens.length)];
+      const s = surnames[Math.floor(Math.random() * surnames.length)];
+      const name = `${g} ${s}`;
+      if (!usedNames.has(name)) return name;
+    }
+    return null;
+  }
+
+  // Helper: generate N unique random Basque names
+  function generateRandomNames(count: number) {
+    const out: string[] = [];
+    const used = new Set<string>();
+    for (let i = 0; i < count; i++) {
+      const n = pickBasqueName(used) || `Jugador ${i + 1}`;
+      used.add(n);
+      out.push(n);
+    }
+    return out;
+  }
+
   // When showing bracket, precompute the first-round match pair labels for display
   let matchLabels: { a: string; b: string }[] = [];
   let bracket: any = null;
@@ -170,9 +259,13 @@
       // Create additional players to reach required count
       const neededNew = requiredPlayersCount - toUse.length;
       let maxId = players.reduce((m, x) => Math.max(m, Number(x.id)), 0);
+      const used = new Set(players.map((p) => p.name));
       for (let i = 0; i < neededNew; i++) {
         maxId++;
-        const p = { id: String(maxId), name: `Jugador ${maxId}` };
+        // Try to assign an unused Basque name; fallback to generic label if exhausted
+        const name = pickBasqueName(used) || `Jugador ${maxId}`;
+        used.add(name);
+        const p = { id: String(maxId), name };
         players = [...players, p];
         toUse.push(p);
       }
@@ -597,9 +690,8 @@
   }
 
   // Convert manager matches + participants into bracketry data shape
-  // (moved to src/lib/bracketryUtils.ts)
-  import { buildBracketryData as _buildBracketryData } from '../lib/bracketryUtils';
-  const buildBracketryData = _buildBracketryData;
+  // (moved to src/lib/bracketryUtils.ts) — using top-level import above
+
 
   function exportExcel() {
     const data = players.map((p) => ({ Name: p.name }));
@@ -648,30 +740,63 @@
     const stored = loadPlayersFromStorage();
     if (stored && stored.length) {
       players = stored;
+      // Migrate any generic "Jugador N" names to Basque names if available
+      const used = new Set(players.map((p) => p.name));
+      players = players.map((p) => {
+        if (/^Jugador\s*\d+$/i.test(p.name)) {
+          const replacement = pickBasqueName(used);
+          if (replacement) {
+            used.add(replacement);
+            return { ...p, name: replacement };
+          }
+        }
+        return p;
+      });
       textarea = players.map((p) => p.name).join('\n');
+      savePlayersToStorage(players);
     } else {
-      textarea = 'Aitor\nBea\nCarlos\nDani\nElena\nFermin\nGorka\nHana';
+      textarea = generateRandomNames(8).join('\n');
       importPlayers();
     }
 
     // Load pairs from storage (if any)
     const storedPairs = loadPairsFromStorage();
     if (storedPairs && storedPairs.length) {
-      // Ensure players list includes any names from pairs
+      // Ensure players list includes any names from pairs and migrate generic 'Jugador N' entries
+      const used = new Set(players.map((p) => p.name));
       for (const sp of storedPairs) {
-        if (!players.find((p) => p.name === sp.a)) {
-          const maxId = players.reduce((m, x) => Math.max(m, Number(x.id)), 0);
-          players = [...players, { id: String(maxId + 1), name: sp.a }];
+        // For a
+        let nameA = sp.a;
+        if (/^Jugador\s*\d+$/i.test(sp.a)) {
+          const repl = pickBasqueName(used);
+          if (repl) { nameA = repl; used.add(repl); }
         }
-        if (!players.find((p) => p.name === sp.b)) {
+        if (!players.find((p) => p.name === nameA)) {
           const maxId = players.reduce((m, x) => Math.max(m, Number(x.id)), 0);
-          players = [...players, { id: String(maxId + 1), name: sp.b }];
+          players = [...players, { id: String(maxId + 1), name: nameA }];
+        }
+
+        // For b
+        let nameB = sp.b;
+        if (/^Jugador\s*\d+$/i.test(sp.b)) {
+          const repl = pickBasqueName(used);
+          if (repl) { nameB = repl; used.add(repl); }
+        }
+        if (!players.find((p) => p.name === nameB)) {
+          const maxId = players.reduce((m, x) => Math.max(m, Number(x.id)), 0);
+          players = [...players, { id: String(maxId + 1), name: nameB }];
         }
       }
+      // Persist any changes to players (migrations or additions)
+      savePlayersToStorage(players);
+
       // Map names to player objects
       pairs = storedPairs.map((sp) => {
-        const a = players.find((p) => p.name === sp.a)!;
-        const b = players.find((p) => p.name === sp.b)!;
+        const aName = /^Jugador\s*\d+$/i.test(sp.a) ? players.find((p) => p.name !== undefined && p.name === sp.a) ? sp.a : players.find((p) => p.name !== undefined && p.name.startsWith(sp.a.split(' ')[0]))!.name : sp.a;
+        // Use the possibly migrated names instead of raw stored pair names
+        const a = players.find((p) => p.name === (aName as string))!;
+        const bName = /^Jugador\s*\d+$/i.test(sp.b) ? players.find((p) => p.name !== undefined && p.name === sp.b) ? sp.b : players.find((p) => p.name !== undefined && p.name.startsWith(sp.b.split(' ')[0]))!.name : sp.b;
+        const b = players.find((p) => p.name === (bName as string))!;
         return [a, b] as [Player, Player];
       });
     }
