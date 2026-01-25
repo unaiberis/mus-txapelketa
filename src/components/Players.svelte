@@ -194,7 +194,6 @@
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
     <!-- Left: Player input & list -->
     <div class="space-y-3">
-      <label for="players" class="text-sm font-medium text-slate-700">Jugadores (una línea por jugador):</label>
       <textarea id="players" bind:value={textarea} placeholder="Nombre\n..." class="w-full border rounded p-3 h-40 resize-none"></textarea>
 
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -211,7 +210,6 @@
       </div>
 
       <div class="bg-slate-50 border border-slate-200 rounded p-3 max-h-80 overflow-auto mt-2">
-        <h4 class="text-sm font-semibold mb-2">Players</h4>
         <div class="space-y-1">
           {#each players as p}
             <div class="flex items-center justify-between p-2 rounded hover:bg-white" on:click={() => toggleSelect(p.id)}>
@@ -226,21 +224,24 @@
       </div>
     </div>
 
-    <!-- Right: Pairs and bracket -->
-    <div class="space-y-4">
-      <PairResults {pairs} on:removePair={(e) => removePair(e.detail)} />
+    <!-- Right: removed (moved below) -->
 
-      <div class="flex gap-2">
-        <button class="px-3 py-2 bg-gray-200 rounded" on:click={exportExcel}>Export Players</button>
-        <button class="px-3 py-2 bg-gray-200 rounded" on:click={exportCSV}>Export Players CSV</button>
-        <button class="px-3 py-2 bg-gray-200 rounded" on:click={() => { /* placeholder for export pairs */ }}>Export Pairs</button>
-      </div>
+  </div>
 
-      <div class="mt-2">
-        {#if bracket}
-          <Bracket {bracket} />
-        {/if}
-      </div>
+  <!-- Right: Pairs and bracket (moved here) -->
+  <div class="space-y-4 mt-6">
+    <PairResults {pairs} on:removePair={(e) => removePair(e.detail)} />
+
+    <div class="flex gap-2">
+      <button class="px-3 py-2 bg-gray-200 rounded" on:click={exportExcel}>Export Players</button>
+      <button class="px-3 py-2 bg-gray-200 rounded" on:click={exportCSV}>Export Players CSV</button>
+      <button class="px-3 py-2 bg-gray-200 rounded" on:click={() => { /* placeholder for export pairs */ }}>Export Pairs</button>
+    </div>
+
+    <div class="mt-2">
+      {#if bracket}
+        <Bracket {bracket} />
+      {/if}
     </div>
   </div>
 </div>
