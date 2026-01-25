@@ -212,11 +212,11 @@
       <div class="bg-slate-50 border border-slate-200 rounded p-3 max-h-80 overflow-auto mt-2">
         <div class="space-y-1">
           {#each players as p}
-            <div class="flex items-center justify-between p-2 rounded hover:bg-white" on:click={() => toggleSelect(p.id)}>
-              <div class="flex items-center gap-2">
+            <div class="flex items-center justify-between p-2 rounded hover:bg-white">
+              <label class="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={selected.has(p.id)} on:change={() => toggleSelect(p.id)} />
                 <span class="{selected.has(p.id) ? 'font-semibold text-sky-700' : ''}">{p.name}</span>
-              </div>
+              </label>
               <small class="text-xs text-slate-400">#{p.id}</small>
             </div>
           {/each}
