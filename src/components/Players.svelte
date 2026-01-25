@@ -200,9 +200,9 @@
           <button class="px-3 py-2 bg-white border rounded" on:click={() => { players = []; pairs = []; selected.clear(); savePlayersToStorage([]); }}>Clear</button>
         </div>
         <div class="flex gap-2 items-center">
-          <input class="border rounded px-3 py-2" placeholder="Player A" bind:value={pairAName} on:input={() => pairAName = pairAName} />
-          <input class="border rounded px-3 py-2" placeholder="Player B" bind:value={pairBName} on:input={() => pairBName = pairBName} />
-          <button type="button" class="px-4 py-2 bg-green-600 text-white rounded shadow disabled:opacity-50" on:click={addPairByNames} disabled={!canAddPairByNames} aria-disabled={!canAddPairByNames}>Add Pair</button>
+          <input class="border rounded px-3 py-2" placeholder="Player A" bind:value={pairAName} />
+          <input class="border rounded px-3 py-2" placeholder="Player B" bind:value={pairBName} />
+          <button type="button" class="px-4 py-2 bg-green-600 text-white rounded shadow disabled:opacity-50" on:click={addPairByNames} disabled={! (pairAName.trim().length > 0 && pairBName.trim().length > 0) } aria-disabled={! (pairAName.trim().length > 0 && pairBName.trim().length > 0) }>Add Pair</button>
         </div>
       </div>
 
