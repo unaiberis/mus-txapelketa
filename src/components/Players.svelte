@@ -84,9 +84,50 @@
     savePairsToStorage(pairs.map((p) => ({ a: p[0].name, b: p[1].name })));
   }
 
+  function updatePair(detail: { index: number; a: string; b: string }) {
+    const { index, a: aName, b: bName } = detail;
+    const aTrim = aName.trim();
+    const bTrim = bName.trim();
+    if (!aTrim || !bTrim) return;
+
+    // Helper to find or create a player by name
+    const findOrCreate = (name: string) => {
+      let p = players.find((x) => x.name === name);
+      if (!p) {
+        const maxId = players.reduce((m, x) => Math.max(m, Number(x.id)), 0);
+        p = { id: String(maxId + 1), name };
+        players = [...players, p];
+        savePlayersToStorage(players);
+      }
+      return p;
+    };
+
+    const aPlayer = findOrCreate(aTrim);
+    const bPlayer = findOrCreate(bTrim);
+
+    pairs = pairs.map((p, i) => (i === index ? [aPlayer, bPlayer] : p));
+    savePairsToStorage(pairs.map((p) => ({ a: p[0].name, b: p[1].name })));
+  }
+
   function autoGeneratePairs() {
     if (players.length < 2) return;
     pairs = pairPlayers(players);
+    savePairsToStorage(pairs.map((p) => ({ a: p[0].name, b: p[1].name })));
+  }
+
+  // Create 64 random pairs (128 players) with generated names
+  function create64Pairs() {
+    const totalPlayers = 128;
+    const newPlayers: Player[] = [];
+    for (let i = 0; i < totalPlayers; i++) {
+      newPlayers.push({ id: String(i + 1), name: `Jugador ${i + 1}` });
+    }
+    players = newPlayers;
+    textarea = players.map((p) => p.name).join('\n');
+    pairs = pairPlayers(players);
+    selected.clear();
+    bracket = null;
+    savePlayersToStorage(players);
     savePairsToStorage(pairs.map((p) => ({ a: p[0].name, b: p[1].name })));
   }
 
@@ -198,6 +239,7 @@
         <div class="flex gap-2">
           <button class="px-3 py-2 bg-sky-600 text-white rounded shadow" on:click={importPlayers}>Import Players</button>
           <button class="px-3 py-2 bg-white border rounded" on:click={autoGeneratePairs}>Auto Pairs</button>
+          <button class="px-3 py-2 bg-indigo-600 text-white rounded shadow" on:click={create64Pairs} aria-label="Crear 64 parejas aleatorias">Crear 64 parejas</button>
           <button class="px-3 py-2 bg-white border rounded" on:click={() => { players = []; pairs = []; selected.clear(); savePlayersToStorage([]); }}>Clear</button>
         </div>
         <div class="flex gap-2 items-center">
@@ -214,7 +256,7 @@
 
   <!-- Right: Pairs and bracket (moved here) -->
   <div class="space-y-4 mt-6">
-    <PairResults {pairs} on:removePair={(e) => removePair(e.detail)} />
+    <PairResults {pairs} on:removePair={(e) => removePair(e.detail)} on:updatePair={(e) => updatePair(e.detail)} />
 
     <div class="flex gap-2">
       <button class="px-3 py-2 bg-gray-200 rounded" on:click={exportExcel}>Export Players</button>
