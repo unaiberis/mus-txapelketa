@@ -221,11 +221,6 @@
   });
 </script>
 
-<style>
-  /* Keep small custom styles if needed; main layout uses Tailwind */
-  .file-input { display:inline-block }
-</style>
-
 <div class="space-y-4">
   <div class="text-xs text-slate-500 mb-2 flex items-center gap-2">
     <div><strong>Style checks:</strong> {#if styleReport.length}

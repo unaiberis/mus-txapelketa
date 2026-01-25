@@ -8,10 +8,6 @@
   }
 </script>
 
-<style>
-  /* small custom style preserved */
-</style>
-
 <div class="bg-slate-50 border border-slate-200 rounded p-4">
   <div class="flex items-center justify-between">
     <h2 class="text-lg font-semibold">Pairs</h2>
