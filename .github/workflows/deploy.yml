@@ -22,6 +22,19 @@ jobs:
           node-version: '18'
       - run: npm install --legacy-peer-deps
       - run: npm run build
+      - name: Create stable CSS and update index references
+        run: |
+          set -e
+          mkdir -p dist/astro
+          css_file=$(ls dist/_astro/index.*.css | head -n1 || true)
+          if [ -z "$css_file" ]; then
+            echo "No built CSS found in dist/_astro; aborting" >&2
+            exit 1
+          fi
+          echo "Copying $css_file to dist/astro/style.css"
+          cp "$css_file" dist/astro/style.css
+          echo "Rewriting asset references in dist/index.html to use /mus-txapelketa/astro/style.css"
+          sed -i -E 's#/mus-txapelketa/(_?astro)/index\.[a-f0-9]+\.css#/mus-txapelketa/astro/style.css#g' dist/index.html || true
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
