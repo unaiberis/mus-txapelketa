@@ -12,17 +12,11 @@ npm run dev
 
 > Asegúrate de que el servidor dev esté accesible en la URL/puerto que usarán las pruebas (por defecto Astro suele servir en http://localhost:3000).
 
-2. Ejecutar las pruebas E2E con Playwright (MCP):
+2. Ejecutar las pruebas E2E usando únicamente el *agente* MCP Playwright:
 
-```bash
-# Ejemplo (si Playwright está instalado en el proyecto):
-npx playwright test
+> **Importante:** No ejecutar pruebas locales con `npx playwright test` ni crear tests E2E locales en este repositorio. Todas las verificaciones E2E deben realizarse mediante el agente MCP Playwright (MCP), que ejecutará Playwright de forma controlada en el entorno de pruebas.
 
-# Para depuración en modo visible:
-npx playwright test --headed
-```
-
-> Si el repositorio define un script específico para las pruebas E2E (por ejemplo `npm run test:e2e`), usa ese script en su lugar.
+Si necesitas que el repositorio incluya artefactos de prueba o ejemplos para el agente (por ejemplo fragmentos de Playwright o `playwright.config.*`), podemos añadirlos como referencia, pero no se deben ejecutar localmente en CI o por desarrolladores con `npx playwright test`.
 
 ## Buenas prácticas
 
