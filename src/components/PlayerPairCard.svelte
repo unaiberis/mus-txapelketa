@@ -1,5 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
+  import { t } from '../lib/i18n';
   export let pairs: [ { id: string; name: string }, { id: string; name: string } ][] = [];
   // When true the component only shows names (no Edit / Remove) so participants can view the bracket clearly
   export let viewOnly: boolean = false;
@@ -48,8 +49,8 @@
 
 <div class="bg-slate-50 border border-slate-200 rounded p-2">
   <div class="flex items-center justify-between">
-    <h2 class="text-sm font-semibold">Pairs</h2>
-    <div class="text-sm text-slate-500">{(matchLabels && matchLabels.length > 0) ? matchLabels.length : pairs.length} matches</div>
+    <h2 class="text-sm font-semibold">{$t('pairsTitle')}</h2>
+    <div class="text-sm text-slate-500">{$t('matchesCount', { count: (matchLabels && matchLabels.length > 0) ? matchLabels.length : pairs.length })}</div>
   </div>
 
   <div class="mt-2">
@@ -58,7 +59,7 @@
         {#each matchLabels as m, i}
           <div class="bg-white border rounded-md px-2 py-2 shadow-sm hover:shadow-md transition">
             <div class="flex items-center justify-between mb-2">
-              <div class="text-xxs text-slate-400">{i + 1}. mahaia</div>
+              <div class="text-xxs text-slate-400">{$t('table_short', { n: i + 1 })}</div>
             </div>
             <div class="flex flex-col gap-1">
               <div class="bg-slate-50 border border-slate-100 rounded px-2 py-1 text-sm font-medium truncate flex items-center gap-2">
@@ -79,7 +80,7 @@
       </div>
     {:else}
       {#if pairs.length === 0}
-        <div class="text-sm text-slate-500">No hay parejas todavía.</div>
+        <div class="text-sm text-slate-500">{$t('noPairs')}</div>
       {:else}
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1">
           {#each pairs as [a, b], i}
@@ -88,12 +89,12 @@
               {#if editingIndex === i}
                 <div class="flex items-center gap-2 w-full">
                   <div class="text-xxs text-slate-400 w-6">#{i + 1}</div>
-                  <input class="flex-1 border rounded px-2 py-1 text-xs" bind:value={editA} aria-label="Jugador A" />
-                  <input class="w-36 border rounded px-2 py-1 text-xs" bind:value={editB} aria-label="Jugador B" />
+                  <input class="flex-1 border rounded px-2 py-1 text-xs" bind:value={editA} aria-label={$t('playerA')} />
+                  <input class="w-36 border rounded px-2 py-1 text-xs" bind:value={editB} aria-label={$t('playerB')} />
                 </div>
                 <div class="flex gap-1 ml-2">
-                  <button class="text-xxs px-2 py-0.5 bg-sky-600 text-white rounded" on:click={() => saveEdit(i)}>Save</button>
-                  <button class="text-xxs px-2 py-0.5 bg-white border rounded" on:click={cancelEdit}>Cancel</button>
+                  <button class="text-xxs px-2 py-0.5 bg-sky-600 text-white rounded" on:click={() => saveEdit(i)}>{$t('save')}</button>
+                  <button class="text-xxs px-2 py-0.5 bg-white border rounded" on:click={cancelEdit}>{$t('cancel')}</button>
                 </div>
               {:else}
                 <div class="flex items-center gap-3 truncate">
@@ -105,8 +106,8 @@
 
                 {#if !viewOnly}
                   <div class="flex items-center gap-2">
-                    <button class="text-xxs text-slate-500 hover:text-sky-600" on:click={() => startEdit(i)}>Edit</button>
-                    <button class="text-xxs text-red-600 hover:underline" on:click={() => remove(i)}>Remove</button>
+                    <button class="text-xxs text-slate-500 hover:text-sky-600" on:click={() => startEdit(i)}>{$t('edit')}</button>
+                    <button class="text-xxs text-red-600 hover:underline" on:click={() => remove(i)}>{$t('remove')}</button>
                   </div>
                 {/if}
               {/if}
