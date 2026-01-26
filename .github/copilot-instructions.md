@@ -18,6 +18,8 @@ npm run dev
 
 Si necesitas que el repositorio incluya artefactos de prueba o ejemplos para el agente (por ejemplo fragmentos de Playwright o `playwright.config.*`), podemos añadirlos como referencia, pero no se deben ejecutar localmente en CI o por desarrolladores con `npx playwright test`.
 
+> Nota: este repositorio incluye pruebas de ejemplo destinadas únicamente al agente MCP Playwright (ubicadas en `tests/mcp/`). **No** ejecutes estas pruebas localmente; deben ser ejecutadas por MCP en el entorno de pruebas controlado.
+
 ## Buenas prácticas
 
 - Ejecuta `npm run dev` antes de lanzar las pruebas para que la suite tenga el backend disponible.
