@@ -604,33 +604,116 @@
   }
 
   // Add small 'Mesa N' badges to first-round matches inside the rendered bracket
+  let __mesaResizeHandlerInstalled = false;
+  function positionAllMesaBadges() {
+    const wrapper = document.getElementById('brackets-viewer-wrapper') || document.querySelector('.bracket-viewport');
+    if (!wrapper) return;
+    wrapper.querySelectorAll('.round-wrapper[round-index="0"] .match-wrapper').forEach((matchEl: Element) => {
+      const badge = matchEl.querySelector('.mesa-badge') as HTMLElement | null;
+      if (!badge) return;
+      try {
+        const titleEl = matchEl.querySelector('.player-title') as HTMLElement | null;
+        const matchRect = (matchEl as HTMLElement).getBoundingClientRect();
+        let leftPx = matchRect.width + 8;
+        if (titleEl) {
+          const titleRect = titleEl.getBoundingClientRect();
+          leftPx = Math.round((titleRect.right - matchRect.left) + 8);
+        }
+        // vertical center using match-body
+        const matchBody = matchEl.querySelector('.match-body') as HTMLElement | null;
+        let topPx = matchRect.height / 2;
+        if (matchBody) {
+          const mbRect = matchBody.getBoundingClientRect();
+          topPx = Math.round((mbRect.top + mbRect.bottom) / 2 - matchRect.top);
+        }
+        badge.style.left = leftPx + 'px';
+        badge.style.top = topPx + 'px';
+      } catch (e) {}
+    });
+  }
+
   async function addMesaBadges(bracketData: any) {
     const wrapper = document.getElementById('brackets-viewer-wrapper') || document.querySelector('.bracket-viewport');
     if (!wrapper || !bracketData || !Array.isArray(bracketData.matches)) return;
     const firstRoundMatches = (bracketData.matches || []).filter((m: any) => m.roundIndex === 0);
+    if (!firstRoundMatches.length) return;
+
     firstRoundMatches.forEach((m: any, idx: number) => {
-      const matchEl = wrapper.querySelector(`[data-match-id="${m.matchId}"]`);
+      // Prefer a match element by data-match-id, but fall back to the nth .match-wrapper inside round 0
+      let matchEl = wrapper.querySelector(`[data-match-id="${m.matchId}"]`);
+      if (!matchEl) {
+        matchEl = wrapper.querySelector(`.round-wrapper[round-index="0"] .match-wrapper:nth-child(${idx + 1})`);
+      }
       if (!matchEl) return;
+
       matchEl.classList.add('has-mesa-badge');
       const matchBody = matchEl.querySelector('.match-body') || matchEl;
-      // ensure container is positioned so absolute badges can be placed reliably
-      matchBody.classList.add('mesa-badge-container');
+      // mark wrapper so we can position absolute elements relative to it (badge will live outside match-body)
+      matchEl.classList.add('mesa-badge-outer');
+      // ensure the match-body itself is not constrained so titles can be fully visible
+      matchBody.classList.remove('mesa-badge-container');
 
       const existing = matchEl.querySelector('.mesa-badge') as HTMLElement | null;
+      // Helper to compute a left offset for the badge so it sits just to the right of the title (avoids overlap)
+      const positionBadge = (badgeEl: HTMLElement) => {
+        try {
+          const titleEl = matchEl.querySelector('.player-title') as HTMLElement | null;
+          const matchRect = matchEl.getBoundingClientRect();
+          let leftPx = matchRect.width + 8; // fallback: to the right of the match box
+          if (titleEl) {
+            const titleRect = titleEl.getBoundingClientRect();
+            leftPx = Math.round((titleRect.right - matchRect.left) + 8);
+          }
+          // compute vertical center based on match-body so badge aligns with the horizontal connector
+          const matchBody = matchEl.querySelector('.match-body') as HTMLElement | null;
+          let topPx = matchRect.height / 2;
+          if (matchBody) {
+            const mbRect = matchBody.getBoundingClientRect();
+            topPx = Math.round((mbRect.top + mbRect.bottom) / 2 - matchRect.top);
+          }
+          badgeEl.style.left = leftPx + 'px';
+          badgeEl.style.top = topPx + 'px';
+          // set final transform explicitly (ensure correct vertical centering)
+          badgeEl.style.transform = 'translateY(-50%) scale(1)';
+        } catch (e) {
+          // ignore measurement errors
+        }
+      };
+
       if (!existing) {
         const badge = document.createElement('div');
         badge.className = 'mesa-badge';
         badge.setAttribute('role', 'note');
         badge.setAttribute('aria-hidden', 'true');
         badge.innerText = get(t)('table_short', { n: idx + 1 });
-        matchBody.prepend(badge);
-        // small enter animation (allow DOM to paint first)
-        setTimeout(() => badge.classList.add('mesa-badge--visible'), 20);
+        // append to the match wrapper so the badge appears to the right of the match box
+        matchEl.appendChild(badge);
+        // position it based on the title (and match) bounding boxes
+        setTimeout(() => {
+          positionBadge(badge);
+          // small enter animation (allow DOM to paint first)
+          badge.classList.add('mesa-badge--visible');
+        }, 20);
       } else {
         // update text in case seeding/labels changed
         existing.innerText = get(t)('table_short', { n: idx + 1 });
+        // re-position in case sizes changed
+        setTimeout(() => positionBadge(existing!), 10);
       }
     });
+
+    // install resize handler once to keep badges positioned when the window size changes
+    if (!__mesaResizeHandlerInstalled) {
+      __mesaResizeHandlerInstalled = true;
+      window.addEventListener('resize', () => {
+        // debounce a little
+        clearTimeout((window as any).__mesaResizeTimer);
+        (window as any).__mesaResizeTimer = setTimeout(() => positionAllMesaBadges(), 80);
+      });
+    }
+
+    // ensure badges are placed correctly right now
+    setTimeout(() => positionAllMesaBadges(), 40);
   }
 
   // Attach click handlers on rendered match participants to advance winners
@@ -1064,22 +1147,34 @@
   }
 
   /* Mesa badge styles */
-  .has-mesa-badge .match-body.mesa-badge-container { position: relative; }
+  /* Position badge relative to the match wrapper so it appears to the right of the connector line */
+  :global(#brackets-viewer-wrapper .match-wrapper.mesa-badge-outer) { position: relative; }
+  /* Ensure badge layout tweaks apply globally (only additive styles here) */
+  :global(.mesa-badge) {
+    transform-origin: center left;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 10;
+  }
+  /* Keep player titles fully visible (no truncation) — we place the badge outside the match box instead */
+
   .mesa-badge {
     position: absolute;
-    left: 0.5rem;
-    top: 0.5rem;
+    /* default left is harmless; real positioning uses inline style set by JS to place it after the title */
+    left: calc(100% + 0.5rem);
+    top: 50%;
     @apply inline-flex items-center justify-center text-xs font-semibold rounded-full px-2 py-0.5;
     background-color: #f59e0b; /* amber-400 */
     color: #111827; /* gray-900 */
-    pointer-events: none;
     opacity: 0;
-    transform: translateY(-6px) scale(0.98);
+    /* start slightly above the final centered position for an enter animation */
+    transform: translateY(calc(-50% - 6px)) scale(0.98);
     transition: opacity .18s ease, transform .18s ease;
-    z-index: 10;
+    transform-origin: center left;
   }
   .mesa-badge.mesa-badge--visible {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    /* final position: vertically centered */
+    transform: translateY(-50%) scale(1);
   }
 </style>

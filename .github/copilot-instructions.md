@@ -1,29 +1,50 @@
-# Instrucciones Copilot (MCP Playwright) ✅
+Instrucciones Copilot (MCP + Playwright) ✅
+Objetivo
 
-**Objetivo:** Después de cada cambio de código, validar el cambio con el agente de pruebas MCP usando Playwright para detectar regresiones o problemas en la UI.
+Después de cada cambio de código, validar la funcionalidad y la UI utilizando el agente de pruebas MCP basado en microsoft/playwright-mcp, con el fin de detectar regresiones o comportamientos inesperados.
 
-## Flujo recomendado
+Flujo recomendado
+1. Levantar la aplicación en modo desarrollo
 
-1. Levantar la app en modo desarrollo:
+Si la aplicación ya está corriendo en el puerto 4321, úsala (http://localhost:4321). Si no lo está, arráncala ejecutando `npm run dev`.
 
-```bash
-npm run dev
-```
+Comandos de ejemplo:
 
-> Asegúrate de que el servidor dev esté accesible en la URL/puerto que usarán las pruebas (por defecto Astro suele servir en http://localhost:3000).
+- PowerShell (Windows):
 
-2. Ejecutar las pruebas E2E usando únicamente el *agente* MCP Playwright:
+  if (Get-NetTCPConnection -LocalPort 4321 -ErrorAction SilentlyContinue) { Write-Host "Usando http://localhost:4321" } else { npm run dev }
 
-> **Importante:** No ejecutar pruebas locales con `npx playwright test` ni crear tests E2E locales en este repositorio. Todas las verificaciones E2E deben realizarse mediante el agente MCP Playwright (MCP), que ejecutará Playwright de forma controlada en el entorno de pruebas.
+- macOS/Linux:
 
-Si necesitas que el repositorio incluya artefactos de prueba o ejemplos para el agente (por ejemplo fragmentos de Playwright o `playwright.config.*`), podemos añadirlos como referencia, pero no se deben ejecutar localmente en CI o por desarrolladores con `npx playwright test`.
+  if lsof -i :4321 >/dev/null 2>&1; then echo "Usando http://localhost:4321"; else npm run dev; fi
 
-> Nota: este repositorio incluye pruebas de ejemplo destinadas únicamente al agente MCP Playwright (ubicadas en `tests/mcp/`). **No** ejecutes estas pruebas localmente; deben ser ejecutadas por MCP en el entorno de pruebas controlado.
 
-## Buenas prácticas
+Asegúrate de que la aplicación esté accesible y funcionando correctamente antes de continuar.
 
-- Ejecuta `npm run dev` antes de lanzar las pruebas para que la suite tenga el backend disponible.
-- Si las pruebas fallan, reproduce localmente, corrige y vuelve a ejecutar las pruebas antes de abrir el PR o subir los cambios.
-- Mantén los tests E2E pequeños y enfocados: cada prueba debe verificar únicamente el comportamiento añadido o modificado.
+2. Ejecutar el agente de pruebas MCP (Playwright)
 
-Si necesitas que añada un `script` en `package.json` para facilitar la ejecución (por ejemplo `test:e2e` o `pw:test`), puedo añadirlo y documentarlo aquí.
+Utiliza exclusivamente el agente MCP oficial basado en microsoft/playwright-mcp para ejecutar las pruebas automatizadas de UI.
+
+⚠️ Importante:
+
+No ejecutes el agente usando npx mcp-playwright.
+
+No instales ni invoques variantes no oficiales.
+
+El agente correcto ya está disponible como playwright dentro del entorno MCP y corresponde a microsoft/playwright-mcp.
+
+Debe usarse directamente a través del MCP configurado.
+
+Buenas prácticas
+
+Ejecuta las pruebas después de cada cambio relevante en el código.
+
+Presta especial atención a:
+
+Flujos críticos de usuario
+
+Cambios visuales inesperados
+
+Errores de consola o fallos intermitentes
+
+Si una prueba falla, corrige el problema antes de continuar con nuevos cambios.
