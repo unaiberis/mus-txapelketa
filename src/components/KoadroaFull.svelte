@@ -136,6 +136,28 @@
     margin: 0;
   }
   #brackets-viewer-wrapper { width: 100%; height: 100%; }
+
+  /* Force bracketry to occupy full available width */
+  :global(.bracket-root) {
+    width: 100% !important;
+    --width: 100% !important; /* override internal width variable */
+    --matchMaxWidth: 100% !important;
+    display: block !important;
+  }
+  :global(.matches-positioner) {
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+  :global(.equal-width-columns-grid) {
+    grid-auto-columns: 1fr !important; /* distribute columns evenly */
+  }
+  :global(.matches-scroller) {
+    overflow-x: auto !important;
+  }
+  :global(.round-titles-wrapper.equal-width-columns-grid) {
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
 </style>
 
 <div class="koadroa-full">
