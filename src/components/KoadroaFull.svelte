@@ -93,7 +93,11 @@
         wrapperEl.innerHTML = '<div class="p-4 text-center text-gray-500">No hay parejas para mostrar el cuadro.</div>';
         return;
       }
-      const pairLabels = pairs.map((p: any, i: number) => `${p[0].name} / ${p[1].name} #${i + 1}`);
+      const pairLabels = pairs.map((p: any, i: number) => {
+        if (p && typeof p === 'object' && 'a' in p && 'b' in p) return `${p.a} / ${p.b} #${i + 1}`;
+        if (Array.isArray(p) && p[0] && p[1]) return `${p[0].name || p[0]} / ${p[1].name || p[1]} #${i + 1}`;
+        return `Pair ${i + 1}`;
+      });
       const seeding = pairLabels;
       const nextPow2 = (n: number) => { let p = 1; while (p < n) p <<= 1; return p; };
       const size = nextPow2(seeding.length);
