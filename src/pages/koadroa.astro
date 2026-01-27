@@ -11,7 +11,13 @@ import KoadroaFull from '../components/KoadroaFull.svelte';
     <link rel="icon" href="/favicon.svg" />
   </head>
   <body class="bg-slate-50 text-slate-900 antialiased">
-    <main class="w-full max-w-full p-0 h-screen m-0">
+    ---
+    import Header from '../components/Header.astro';
+    ---
+
+    <Header />
+
+    <main class="pt-14 w-full max-w-full p-0 h-screen m-0">
       <section id="koadroa-island" class="p-0 m-0 h-full">
         <KoadroaFull client:idle />
       </section>

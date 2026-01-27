@@ -129,7 +129,7 @@
   :global(body) { margin: 0; }
   .koadroa-full {
     width: 100vw;
-    height: 100vh;
+    height: calc(100vh - 56px); /* account for fixed header (h-14 = 56px) */
     display: block;
     overflow: auto;
     padding: 0;
