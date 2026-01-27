@@ -6,17 +6,17 @@ Después de cada cambio de código, validar la funcionalidad y la UI utilizando 
 Flujo recomendado
 1. Levantar la aplicación en modo desarrollo
 
-Si la aplicación ya está corriendo en el puerto 4321, úsala (http://localhost:4321). Si no lo está, arráncala ejecutando `npm run dev`.
+Si la aplicación ya está corriendo en el puerto 4321, úsala (localhost:4321/mus-txapelketa).
 
 Comandos de ejemplo:
 
 - PowerShell (Windows):
 
-  if (Get-NetTCPConnection -LocalPort 4321 -ErrorAction SilentlyContinue) { Write-Host "Usando http://localhost:4321" } else { npm run dev }
+  if (Get-NetTCPConnection -LocalPort 4321 -ErrorAction SilentlyContinue) { Write-Host "Usando localhost:4321/mus-txapelketa" } else { npm run dev }
 
 - macOS/Linux:
 
-  if lsof -i :4321 >/dev/null 2>&1; then echo "Usando http://localhost:4321"; else npm run dev; fi
+  if lsof -i :4321 >/dev/null 2>&1; then echo "Usando localhost:4321/mus-txapelketa"; else npm run dev; fi
 
 
 Asegúrate de que la aplicación esté accesible y funcionando correctamente antes de continuar.
