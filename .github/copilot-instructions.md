@@ -48,3 +48,5 @@ Cambios visuales inesperados
 Errores de consola o fallos intermitentes
 
 Si una prueba falla, corrige el problema antes de continuar con nuevos cambios.
+
+No hagas commits hasta asegurarte de que lo que se ha pedido hacer funciona correctamente. Siempre asegurate con el mcp Playwright

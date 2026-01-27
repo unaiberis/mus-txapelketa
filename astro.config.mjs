@@ -7,5 +7,5 @@ export default defineConfig({
   output: 'static',
   base: '/',
   // NOTE: if you deploy to GitHub Pages under a project path, change `site` and `base` accordingly.
-  site: 'https://unaiberis.github.io/mus-txapelketa/',
+  site: 'https://unaiberis.github.io/',
 });

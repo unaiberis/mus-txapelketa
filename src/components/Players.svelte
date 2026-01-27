@@ -17,6 +17,8 @@
   let selected: Set<string> = new Set();
   // When true the pairs panel is shown. Set to false when clearing all to remove the Pairs div completely.
   let showPairs = true;
+  // When false, all bracket/viewer related UI and actions are disabled (used on homepage)
+  export let allowViewer: boolean = true; 
 
   // Basque given names split by gender (supplied)
   const BASQUE_GIVENS = {
@@ -306,6 +308,10 @@
 
   // Toggle: create or delete a random stage (saved in localStorage)
   async function toggleRandomStage() {
+    if (!allowViewer) {
+      console.warn('Viewer disabled here - toggleRandomStage aborted');
+      return;
+    }
     // When creating a random stage, confirm that editing will be blocked
     viewerLoading = true;
     try {
@@ -375,6 +381,10 @@
 
   // Render using brackets-manager -> fills an in-memory DB and renders viewer from it
   async function renderWithManager(type: StageType = 'single_elimination') {
+    if (!allowViewer) {
+      console.warn('Viewer disabled here - renderWithManager aborted');
+      return;
+    }
     // Allow rendering if we have a saved random stage even when pairs are empty
     if (pairs.length === 0 && !(randomStageExists && randomStageData)) {
       console.warn('No pairs to render with Manager');
@@ -923,7 +933,7 @@
     }
 
     // If a random stage was previously saved, render it immediately so it survives refresh
-    if (randomStageExists && randomStageData) {
+    if (allowViewer && randomStageExists && randomStageData) {
       try {
         await renderWithManager();
       } catch (e) {
@@ -959,11 +969,13 @@
       </button>
     </div>
 
-    <div class="flex flex-wrap gap-2">
-      <button class="btn {randomStageExists ? 'btn-red' : 'btn-amber'}" on:click={toggleRandomStage} disabled={viewerLoading} aria-pressed={randomStageExists}>
-        {$t(randomStageExists ? 'deleteBracket' : 'createBracket')}
-      </button>
-    </div>
+    {#if allowViewer}
+      <div class="flex flex-wrap gap-2">
+        <button class="btn {randomStageExists ? 'btn-red' : 'btn-amber'}" on:click={toggleRandomStage} disabled={viewerLoading} aria-pressed={randomStageExists}>
+          {$t(randomStageExists ? 'deleteBracket' : 'createBracket')}
+        </button>
+      </div>
+    {/if}
 
     <div class="flex gap-2">
       <button class="btn btn-gray text-xs" on:click={exportExcel}>{$t('excel')}</button>
@@ -1009,7 +1021,7 @@
       {/if}
 
     </div>
-    {#if showViewer}
+    {#if allowViewer && showViewer}
       <div class="w-full lg:w-2/5 min-h-[120px] bg-gray-50 overflow-hidden sticky p-0 m-0">
         <BracketsViewer />
       </div>

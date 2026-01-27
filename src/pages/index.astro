@@ -49,10 +49,23 @@ import "../styles/global.css";
       </header>
 
       <nav class="mb-4">
-        <a class="text-sm inline-block rounded px-3 py-1 bg-sky-50 text-sky-700 hover:bg-sky-100" href="/koadroa/">Ver cuadro (server islands)</a>
+        <a class="inline-flex items-center gap-3 p-3 rounded-lg bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all text-sky-700" href="/koadroa/" aria-label="Ver cuadro" title="Ver cuadro">
+          <svg class="w-6 h-6 text-sky-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+            <path d="M4 4v6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M4 8h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M10 8v8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M10 12h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M16 12v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M16 16h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div class="text-left">
+            <div class="font-semibold">Ver cuadro</div>
+            <div class="text-xs text-gray-500">Ir al cuadro completo</div>
+          </div>
+        </a>
       </nav>
 
-        <Players client:load />
+        <Players client:load allowViewer={false} />
 
       <footer class="mt-6 text-center text-xs text-slate-400">
         Mus Txapelketa
