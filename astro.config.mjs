@@ -5,6 +5,7 @@ import svelte from '@astrojs/svelte';
 export default defineConfig({
   integrations: [svelte()],
   output: 'static',
-  base: '/mus-txapelketa/',
+  base: '/',
+  // NOTE: if you deploy to GitHub Pages under a project path, change `site` and `base` accordingly.
   site: 'https://unaiberis.github.io/mus-txapelketa/',
 });

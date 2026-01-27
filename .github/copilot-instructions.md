@@ -12,7 +12,7 @@ Comandos de ejemplo:
 
 - PowerShell (Windows):
 
-  if (Get-NetTCPConnection -LocalPort 4321 -ErrorAction SilentlyContinue) { Write-Host "Usando localhost:4321/mus-txapelketa" } else { npm run dev }
+  if (Get-NetTCPConnection -LocalPort 4321 -ErrorAction SilentlyContinue) { Write-Host "Usando http://localhost:4321" } else { npm run dev }
 
 - macOS/Linux:
 

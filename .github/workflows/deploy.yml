@@ -33,8 +33,8 @@ jobs:
           fi
           echo "Copying $css_file to dist/astro/style.css"
           cp "$css_file" dist/astro/style.css
-          echo "Rewriting asset references in dist/index.html to use /mus-txapelketa/astro/style.css"
-          sed -i -E 's#/mus-txapelketa/(_?astro)/index\.[a-f0-9]+\.css#/mus-txapelketa/astro/style.css#g' dist/index.html || true
+          echo "Rewriting asset references in dist/index.html to use /astro/style.css (no project base)"
+          sed -i -E 's#/mus-txapelketa/(_?astro)/index\.[a-f0-9]+\.css#/astro/style.css#g' dist/index.html || true
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
