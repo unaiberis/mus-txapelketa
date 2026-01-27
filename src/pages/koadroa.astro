@@ -11,13 +11,8 @@ import KoadroaFull from '../components/KoadroaFull.svelte';
     <link rel="icon" href="/favicon.svg" />
   </head>
   <body class="bg-slate-50 text-slate-900 antialiased">
-    <main class="w-full max-w-full p-6">
-      <header class="mb-6">
-        <h1 class="text-2xl font-bold text-sky-700">Koadroa</h1>
-        <p class="mt-1 text-sm text-slate-600">Koadroa ikusi eta kudeatu (server island: HTML server-rendered + hydratación diferida).</p>
-      </header>
-
-      <section id="koadroa-island" class="p-0 m-0" style="height:100vh;">
+    <main class="w-full max-w-full p-0 h-screen m-0">
+      <section id="koadroa-island" class="p-0 m-0 h-full">
         <KoadroaFull client:idle />
       </section>
     </main>
