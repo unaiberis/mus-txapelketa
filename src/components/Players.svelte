@@ -949,48 +949,7 @@
 </script>
 
 <div class="space-y-4">
-  <div class="flex flex-wrap gap-2 items-center bg-gray-50 p-2 rounded-lg border border-gray-200">
-    
-    <div class="flex flex-wrap gap-2">
-      <button class="btn btn-sky" on:click={importPlayers} disabled={randomStageExists || showViewer}>{$t('importPlayers')}</button>
-      <button class="btn btn-white" on:click={confirmClear}>{$t('clearAll')}</button>
-    </div>
-
-    <div class="flex items-center gap-2 bg-white p-1 border rounded-md shadow-sm">
-      <span class="text-xs font-semibold px-2 text-gray-500 uppercase">{$t('completeTo')}</span>
-      <select bind:value={targetPairsOption} class="bg-transparent text-sm font-medium focus:outline-none" disabled={randomStageExists || showViewer}>
-        <option value="16">16</option>
-        <option value="32">32</option>
-        <option value="64">64</option>
-        <option value="128">128</option>
-      </select>
-      <button class="btn btn-indigo py-1 px-3 text-sm" on:click={() => completePairsTo(targetPairsOption)} disabled={randomStageExists || showViewer}>
-        {$t('execute')}
-      </button>
-    </div>
-
-    {#if allowViewer}
-      <div class="flex flex-wrap gap-2">
-        <button class="btn {randomStageExists ? 'btn-red' : 'btn-amber'}" on:click={toggleRandomStage} disabled={viewerLoading} aria-pressed={randomStageExists}>
-          {$t(randomStageExists ? 'deleteBracket' : 'createBracket')}
-        </button>
-      </div>
-    {/if}
-
-    <div class="flex gap-2">
-      <button class="btn btn-gray text-xs" on:click={exportExcel}>{$t('excel')}</button>
-      <button class="btn btn-gray text-xs" on:click={exportCSV}>{$t('csv')}</button>
-    </div>
-
-    <div class="ml-auto flex items-center gap-2">
-      <label class="text-xs text-gray-500">Idioma</label>
-      <select bind:value={$lang} class="bg-white text-sm rounded px-2 py-1 border">
-        {#each $languages as L}
-          <option value={L.code}>{L.label}</option>
-        {/each}
-      </select>
-    </div>
-  </div>
+  <!-- Toolbar moved to header; controls are now present in the site header to avoid duplication -->
 
   <div class="bg-white p-2 rounded-lg border border-gray-200 shadow-sm">
     <h3 class="text-sm font-bold text-gray-700 mb-2 uppercase tracking-wider">{$t('addPair')}</h3>

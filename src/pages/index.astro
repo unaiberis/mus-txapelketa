@@ -1,6 +1,6 @@
 ---
-import Players from '../components/Players.svelte';
-import Header from '../components/Header.astro';
+import Players from "../components/Players.svelte";
+import Header from "../components/Header.astro";
 import "../styles/global.css";
 ---
 
@@ -13,27 +13,48 @@ import "../styles/global.css";
     <link rel="shortcut icon" href="/favicon.svg" />
     <script>
       // Quick runtime check: ensure styles are applied; inject fallbacks if not
-      (function ensureStyles(){
-        try{
-          console.log('Style fallback check: link hrefs ->', Array.from(document.querySelectorAll<HTMLLinkElement>('link[rel=stylesheet]')).map(l=>l.href));
-          function hasStyle(){
-            const el = document.createElement('div'); el.className='text-sky-700'; el.style.position='absolute'; el.style.left='-9999px'; document.documentElement.appendChild(el);
-            const color = getComputedStyle(el).color; el.remove();
-            return color && color !== 'rgb(0, 0, 0)';
+      (function ensureStyles() {
+        try {
+          console.log(
+            "Style fallback check: link hrefs ->",
+            Array.from(
+              document.querySelectorAll<HTMLLinkElement>(
+                "link[rel=stylesheet]",
+              ),
+            ).map((l) => l.href),
+          );
+          function hasStyle() {
+            const el = document.createElement("div");
+            el.className = "text-sky-700";
+            el.style.position = "absolute";
+            el.style.left = "-9999px";
+            document.documentElement.appendChild(el);
+            const color = getComputedStyle(el).color;
+            el.remove();
+            return color && color !== "rgb(0, 0, 0)";
           }
-          if(!hasStyle()){
-            console.warn('Styles appear missing — injecting fallback stylesheets');
-            const fallbacks=['/astro/index.8830309f.css','/astro/index.a7b3c468.css'];
-            fallbacks.forEach(href=>{
-              const link=document.createElement('link'); link.rel='stylesheet'; link.href=href;
-              link.onload=()=>console.log('Fallback loaded:',href);
-              link.onerror=()=>console.warn('Fallback failed:',href);
+          if (!hasStyle()) {
+            console.warn(
+              "Styles appear missing — injecting fallback stylesheets",
+            );
+            const fallbacks = [
+              "/astro/index.8830309f.css",
+              "/astro/index.a7b3c468.css",
+            ];
+            fallbacks.forEach((href) => {
+              const link = document.createElement("link");
+              link.rel = "stylesheet";
+              link.href = href;
+              link.onload = () => console.log("Fallback loaded:", href);
+              link.onerror = () => console.warn("Fallback failed:", href);
               document.head.appendChild(link);
             });
           } else {
-            console.log('Styles OK (initial check)');
+            console.log("Styles OK (initial check)");
           }
-        }catch(e){console.error('Style check error',e)}
+        } catch (e) {
+          console.error("Style check error", e);
+        }
       })();
     </script>
   </head>
@@ -44,28 +65,99 @@ import "../styles/global.css";
       <header class="mb-6 flex items-center justify-between">
         <div>
           <h1 class="text-3xl font-extrabold text-sky-700">Mus Txapelketa</h1>
-          <p class="mt-1 text-sm text-slate-600">Generador de parejas y cuadro para torneos de mus</p>
+          <p class="mt-1 text-sm text-slate-600">
+            Generador de parejas y cuadro para torneos de mus
+          </p>
         </div>
+
+        <div class="mx-4 flex items-center cards-mini">
+          <div class="flex flex-wrap gap-2 items-center bg-gray-50 p-2 rounded-lg border border-gray-200">
+            <div class="flex flex-wrap gap-2">
+              <button class="btn btn-sky">Importar Jugadores</button>
+              <button class="btn btn-white">Limpiar Todo</button>
+            </div>
+            <div class="flex items-center gap-2 bg-white p-1 border rounded-md shadow-sm">
+              <span class="text-xs font-semibold px-2 text-gray-500 uppercase">Completar hasta:</span>
+              <select class="bg-transparent text-sm font-medium focus:outline-none">
+                <option value="16">16</option>
+                <option value="32">32</option>
+                <option value="64">64</option>
+                <option value="128">128</option>
+              </select>
+              <button class="btn btn-indigo py-1 px-3 text-sm">Ejecutar</button>
+            </div>
+            <div class="flex gap-2">
+              <button class="btn btn-gray text-xs">Excel</button>
+              <button class="btn btn-gray text-xs">CSV</button>
+            </div>
+            <div class="ml-auto flex items-center gap-2">
+              <label class="text-xs text-gray-500">Idioma</label>
+              <select class="bg-white text-sm rounded px-2 py-1 border">
+                <option value="es">Español</option>
+                <option value="en">English</option>
+                <option value="eu">Euskera</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <nav class="ml-4">
+          <a
+            class="inline-flex items-center gap-3 p-3 rounded-lg bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all text-sky-700"
+            href="/koadroa/"
+            aria-label="Ver cuadro"
+            title="Ver cuadro"
+          >
+            <svg
+              class="w-6 h-6 text-sky-600"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                d="M4 5h3v4H4M4 15h3v4H4"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"></path>
+              <path
+                d="M7 7h3v10H7"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"></path>
+              <path
+                d="M10 12h4"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"></path>
+              <path
+                d="M14 8v8h3"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"></path>
+              <path
+                d="M17 6v4M17 14v4"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"></path>
+            </svg>
+            <div class="text-left">
+              <div class="font-semibold">Ver cuadro</div>
+              <div class="text-xs text-gray-500">Ir al cuadro completo</div>
+            </div>
+          </a>
+        </nav>
       </header>
 
-      <nav class="mb-4">
-        <a class="inline-flex items-center gap-3 p-3 rounded-lg bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all text-sky-700" href="/koadroa/" aria-label="Ver cuadro" title="Ver cuadro">
-          <svg class="w-6 h-6 text-sky-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-            <path d="M4 4v6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M4 8h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M10 8v8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M10 12h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M16 12v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M16 16h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <div class="text-left">
-            <div class="font-semibold">Ver cuadro</div>
-            <div class="text-xs text-gray-500">Ir al cuadro completo</div>
-          </div>
-        </a>
-      </nav>
 
-        <Players client:load allowViewer={false} />
+
+      <Players client:load allowViewer={false} />
 
       <footer class="mt-6 text-center text-xs text-slate-400">
         Mus Txapelketa

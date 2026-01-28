@@ -1,87 +1,232 @@
 ---
 interface Props {
-  showBack?: boolean;
+    showBack?: boolean;
 }
 const { showBack = false } = Astro.props as Props;
-const BASE = import.meta.env.BASE_URL || '/';
+const BASE = import.meta.env.BASE_URL || "/";
 ---
 
-<header class="site-header fixed inset-x-0 top-0 h-14 bg-white/90 backdrop-blur border-b z-50">
-  <div class="max-w-full mx-auto px-4 h-full flex items-center">
-    {showBack ? (
-      <a class="text-sky-700 font-semibold text-sm hover:underline" href={BASE} aria-label="Volver al inicio">← Volver</a>
-    ) : (
-      <div class="w-12" />
-    )}
+<header
+    class="site-header fixed inset-x-0 top-0 h-14 bg-white/90 backdrop-blur border-b z-50"
+>
+    <div class="max-w-full mx-auto px-4 h-full flex items-center">
+        {
+            showBack ? (
+                <a
+                    class="text-sky-700 font-semibold text-sm hover:underline"
+                    href={BASE}
+                    aria-label="Volver al inicio"
+                >
+                    ← Volver
+                </a>
+            ) : (
+                <div class="w-12" />
+            )
+        }
 
-    <div class="ml-3 flex items-center gap-3">
-      <div class="relative flex items-center" style="width:64px; height:64px;">
-<svg viewBox="0 0 400 250" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <radialGradient id="tapeteGrad" cx="50%" cy="50%" r="70%">
-      <stop offset="0%" stop-color="#065f46" />
-      <stop offset="100%" stop-color="#042f2e" />
-    </radialGradient>
-    
-    <linearGradient id="bordeMadera" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#451a03" />
-      <stop offset="50%" stop-color="#78350f" />
-      <stop offset="100%" stop-color="#451a03" />
-    </linearGradient>
+        <div class="ml-3 flex items-center gap-3">
+            <div
+                class="relative flex items-center"
+                style="width:64px; height:64px;"
+            >
+                <svg viewBox="0 0 400 250" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <radialGradient
+                            id="tapeteGrad"
+                            cx="50%"
+                            cy="50%"
+                            r="70%"
+                        >
+                            <stop offset="0%" stop-color="#065f46"></stop>
+                            <stop offset="100%" stop-color="#042f2e"></stop>
+                        </radialGradient>
 
-    <filter id="sombraCarta" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="2" dy="3" stdDeviation="2" flood-opacity="0.5"/>
-    </filter>
-  </defs>
+                        <linearGradient
+                            id="bordeMadera"
+                            x1="0%"
+                            y1="0%"
+                            x2="100%"
+                            y2="0%"
+                        >
+                            <stop offset="0%" stop-color="#451a03"></stop>
+                            <stop offset="50%" stop-color="#78350f"></stop>
+                            <stop offset="100%" stop-color="#451a03"></stop>
+                        </linearGradient>
 
-  <rect x="0" y="0" width="400" height="250" fill="url(#bordeMadera)" />
-  
-  <rect x="15" y="15" width="370" height="220" rx="10" fill="url(#tapeteGrad)" />
+                        <filter
+                            id="sombraCarta"
+                            x="-10%"
+                            y="-10%"
+                            width="120%"
+                            height="120%"
+                        >
+                            <feDropShadow
+                                dx="2"
+                                dy="3"
+                                stdDeviation="2"
+                                flood-opacity="0.5"></feDropShadow>
+                        </filter>
+                    </defs>
 
-  <g transform="translate(40, 60) rotate(-5)">
-    <rect width="70" height="110" rx="5" fill="#fff" filter="url(#sombraCarta)" stroke="#ddd" />
-    <rect x="5" y="5" width="60" height="100" fill="none" stroke="#111" stroke-width="0.5" />
-    <text x="12" y="20" font-family="serif" font-weight="bold" font-size="12">12</text>
-    <circle cx="35" cy="65" r="22" fill="#fbbf24" stroke="#b45309" stroke-width="1.5" />
-    <circle cx="35" cy="65" r="16" fill="none" stroke="#b45309" stroke-dasharray="2 1" />
-    <circle cx="35" cy="65" r="5" fill="#fff" opacity="0.4" />
-  </g>
+                    <rect
+                        x="0"
+                        y="0"
+                        width="400"
+                        height="250"
+                        fill="url(#bordeMadera)"></rect>
 
-  <g transform="translate(125, 55) rotate(-1)">
-    <rect width="70" height="110" rx="5" fill="#fff" filter="url(#sombraCarta)" stroke="#ddd" />
-    <path d="M5 20 V105 H65 V5 H5 V10" fill="none" stroke="#111" stroke-width="0.5" />
-    <text x="12" y="20" font-family="serif" font-weight="bold" font-size="12" fill="#be123c">12</text>
-    <path d="M25 80 h20 l-2 -5 h-16 Z M30 75 l-2 -20 h14 l-2 20 Z M25 50 c0 -15 20 -15 20 0 Z" fill="#e11d48" stroke="#9f1239" />
-  </g>
+                    <rect
+                        x="15"
+                        y="15"
+                        width="370"
+                        height="220"
+                        rx="10"
+                        fill="url(#tapeteGrad)"></rect>
 
-  <g transform="translate(210, 55) rotate(2)">
-    <rect width="70" height="110" rx="5" fill="#fff" filter="url(#sombraCarta)" stroke="#ddd" />
-    <path d="M5 20 V40 M5 60 V105 H65 V5 H5 V10" fill="none" stroke="#111" stroke-width="0.5" />
-    <text x="12" y="20" font-family="serif" font-weight="bold" font-size="12" fill="#1e293b">12</text>
-    <path d="M35 40 L42 85 L35 90 L28 85 Z" fill="#475569" stroke="#1e293b" />
-    <path d="M25 85 L45 85 M35 85 V95" stroke="#1e293b" stroke-width="2" />
-  </g>
+                    <g transform="translate(40, 60) rotate(-5)">
+                        <rect
+                            width="70"
+                            height="110"
+                            rx="5"
+                            fill="#fff"
+                            filter="url(#sombraCarta)"
+                            stroke="#ddd"></rect>
+                        <rect
+                            x="5"
+                            y="5"
+                            width="60"
+                            height="100"
+                            fill="none"
+                            stroke="#111"
+                            stroke-width="0.5"></rect>
+                        <text
+                            x="12"
+                            y="20"
+                            font-family="serif"
+                            font-weight="bold"
+                            font-size="12">12</text
+                        >
+                        <circle
+                            cx="35"
+                            cy="65"
+                            r="22"
+                            fill="#fbbf24"
+                            stroke="#b45309"
+                            stroke-width="1.5"></circle>
+                        <circle
+                            cx="35"
+                            cy="65"
+                            r="16"
+                            fill="none"
+                            stroke="#b45309"
+                            stroke-dasharray="2 1"></circle>
+                        <circle cx="35" cy="65" r="5" fill="#fff" opacity="0.4"
+                        ></circle>
+                    </g>
 
-  <g transform="translate(295, 60) rotate(6)">
-    <rect width="70" height="110" rx="5" fill="#fff" filter="url(#sombraCarta)" stroke="#ddd" />
-    <path d="M5 20 V35 M5 50 V70 M5 85 V105 H65 V5 H5 V10" fill="none" stroke="#111" stroke-width="0.5" />
-    <text x="35" y="25" text-anchor="middle" font-family="serif" font-weight="bold" font-size="16" fill="#166534">1</text>
-    <path d="M32 85 L30 45 C30 35 40 35 40 45 L38 85 Z" fill="#15803d" stroke="#14532d" />
-    <circle cx="31" cy="55" r="2" fill="#14532d" />
-    <circle cx="39" cy="65" r="2" fill="#14532d" />
-    <circle cx="32" cy="75" r="2" fill="#14532d" />
-  </g>
-</svg>      </div>
+                    <g transform="translate(125, 55) rotate(-1)">
+                        <rect
+                            width="70"
+                            height="110"
+                            rx="5"
+                            fill="#fff"
+                            filter="url(#sombraCarta)"
+                            stroke="#ddd"></rect>
+                        <path
+                            d="M5 20 V105 H65 V5 H5 V10"
+                            fill="none"
+                            stroke="#111"
+                            stroke-width="0.5"></path>
+                        <text
+                            x="12"
+                            y="20"
+                            font-family="serif"
+                            font-weight="bold"
+                            font-size="12"
+                            fill="#be123c">12</text
+                        >
+                        <path
+                            d="M25 80 h20 l-2 -5 h-16 Z M30 75 l-2 -20 h14 l-2 20 Z M25 50 c0 -15 20 -15 20 0 Z"
+                            fill="#e11d48"
+                            stroke="#9f1239"></path>
+                    </g>
 
-      <div class="leading-tight">
-        <div class="font-semibold text-sky-700">Mus Txapelketa</div>
-        <div class="text-xs text-slate-500">Generador de parejas y cuadro</div>
-      </div>
+                    <g transform="translate(210, 55) rotate(2)">
+                        <rect
+                            width="70"
+                            height="110"
+                            rx="5"
+                            fill="#fff"
+                            filter="url(#sombraCarta)"
+                            stroke="#ddd"></rect>
+                        <path
+                            d="M5 20 V40 M5 60 V105 H65 V5 H5 V10"
+                            fill="none"
+                            stroke="#111"
+                            stroke-width="0.5"></path>
+                        <text
+                            x="12"
+                            y="20"
+                            font-family="serif"
+                            font-weight="bold"
+                            font-size="12"
+                            fill="#1e293b">12</text
+                        >
+                        <path
+                            d="M35 40 L42 85 L35 90 L28 85 Z"
+                            fill="#475569"
+                            stroke="#1e293b"></path>
+                        <path
+                            d="M25 85 L45 85 M35 85 V95"
+                            stroke="#1e293b"
+                            stroke-width="2"></path>
+                    </g>
+
+                    <g transform="translate(295, 60) rotate(6)">
+                        <rect
+                            width="70"
+                            height="110"
+                            rx="5"
+                            fill="#fff"
+                            filter="url(#sombraCarta)"
+                            stroke="#ddd"></rect>
+                        <path
+                            d="M5 20 V35 M5 50 V70 M5 85 V105 H65 V5 H5 V10"
+                            fill="none"
+                            stroke="#111"
+                            stroke-width="0.5"></path>
+                        <text
+                            x="35"
+                            y="25"
+                            text-anchor="middle"
+                            font-family="serif"
+                            font-weight="bold"
+                            font-size="16"
+                            fill="#166534">1</text
+                        >
+                        <path
+                            d="M32 85 L30 45 C30 35 40 35 40 45 L38 85 Z"
+                            fill="#15803d"
+                            stroke="#14532d"></path>
+                        <circle cx="31" cy="55" r="2" fill="#14532d"></circle>
+                        <circle cx="39" cy="65" r="2" fill="#14532d"></circle>
+                        <circle cx="32" cy="75" r="2" fill="#14532d"></circle>
+                    </g>
+                </svg>
+            </div>
+
+            <div class="leading-tight">
+                <div class="font-semibold text-sky-700">Mus Txapelketa</div>
+                <div class="text-xs text-slate-500">
+                    Generador de parejas y cuadro
+                </div>
+            </div>
+        </div>
     </div>
-
-  </div>
 </header>
 
 <style>
-.site-header { box-shadow: 0 1px 0 rgba(0,0,0,0.04); }
+    .site-header {
+        box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
+    }
 </style>
