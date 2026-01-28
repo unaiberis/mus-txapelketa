@@ -17,11 +17,7 @@ import "../styles/global.css";
         try {
           console.log(
             "Style fallback check: link hrefs ->",
-            Array.from(
-              document.querySelectorAll<HTMLLinkElement>(
-                "link[rel=stylesheet]",
-              ),
-            ).map((l) => l.href),
+            Array.from(document.querySelectorAll("link[rel=stylesheet]")).map((l) => l.href),
           );
           function hasStyle() {
             const el = document.createElement("div");
@@ -64,34 +60,34 @@ import "../styles/global.css";
     <main class="pt-14 w-full max-w-full p-6">
       <header class="mb-6 flex items-center justify-between">
         <div>
-          <h1 class="text-3xl font-extrabold text-sky-700">Mus Txapelketa</h1>
-          <p class="mt-1 text-sm text-slate-600">
+          <h1 class="text-3xl font-extrabold site-title">Mus Txapelketa</h1>
+          <p class="mt-1 text-sm subtitle">
             Generador de parejas y cuadro para torneos de mus
           </p>
         </div>
 
         <div class="mx-4 flex items-center cards-mini">
-          <div class="flex flex-wrap gap-2 items-center bg-gray-50 p-2 rounded-lg border border-gray-200">
+          <div class="flex flex-wrap gap-2 items-center bg-panel-100 text-panel-700 p-3 rounded-lg border border-wood-300 shadow-card-md">
             <div class="flex flex-wrap gap-2">
-              <button class="btn btn-sky">Importar Jugadores</button>
-              <button class="btn btn-white">Limpiar Todo</button>
+              <button class="inline-flex items-center gap-2 rounded-full bg-brand-500 hover:bg-brand-700 text-white px-4 py-2 shadow-card-md">Importar Jugadores</button>
+              <button class="inline-flex items-center gap-2 rounded-full bg-panel-100 text-panel-700 border border-wood-100 px-4 py-2">Limpiar Todo</button>
             </div>
-            <div class="flex items-center gap-2 bg-white p-1 border rounded-md shadow-sm">
-              <span class="text-xs font-semibold px-2 text-gray-500 uppercase">Completar hasta:</span>
+            <div class="flex items-center gap-2 bg-panel-50 p-1 border rounded-md shadow-sm">
+              <span class="text-xs font-semibold px-2 text-wood-700/80 uppercase">Completar hasta:</span>
               <select class="bg-transparent text-sm font-medium focus:outline-none">
                 <option value="16">16</option>
                 <option value="32">32</option>
                 <option value="64">64</option>
                 <option value="128">128</option>
               </select>
-              <button class="btn btn-indigo py-1 px-3 text-sm">Ejecutar</button>
+              <button class="inline-flex items-center gap-2 rounded-full bg-accent-500 hover:bg-accent-700 text-white px-3 py-1 text-sm">Ejecutar</button>
             </div>
             <div class="flex gap-2">
-              <button class="btn btn-gray text-xs">Excel</button>
-              <button class="btn btn-gray text-xs">CSV</button>
+              <button class="rounded-full bg-gray-100 text-gray-800 px-3 py-1 text-xs">Excel</button>
+              <button class="rounded-full bg-gray-100 text-gray-800 px-3 py-1 text-xs">CSV</button>
             </div>
             <div class="ml-auto flex items-center gap-2">
-              <label class="text-xs text-gray-500">Idioma</label>
+              <label class="text-xs text-wood-700/80">Idioma</label>
               <select class="bg-white text-sm rounded px-2 py-1 border">
                 <option value="es">Español</option>
                 <option value="en">English</option>

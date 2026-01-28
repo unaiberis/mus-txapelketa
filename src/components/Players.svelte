@@ -948,23 +948,23 @@
   });
 </script>
 
-<div class="space-y-4">
+<div class="space-y-4 bg-panel-100 text-panel-700 p-6 rounded-xl border border-wood-200 shadow-card-md">
   <!-- Toolbar moved to header; controls are now present in the site header to avoid duplication -->
 
-  <div class="bg-white p-2 rounded-lg border border-gray-200 shadow-sm">
-    <h3 class="text-sm font-bold text-gray-700 mb-2 uppercase tracking-wider">{$t('addPair')}</h3>
+  <div class="p-3 rounded-lg border border-wood-300 bg-panel-50 shadow-card-md">
+    <h3 class="text-sm font-bold mb-2 uppercase tracking-wider">{$t('addPair')}</h3>
     <div class="flex flex-wrap gap-2 items-end">
       <div class="flex flex-col gap-1">
-        <label for="pair-a" class="text-xs text-gray-500 ml-1">{$t('playerA')}</label>
+        <label for="pair-a" class="text-xs text-wood-700/80 ml-1">{$t('playerA')}</label>
         <input id="pair-a" class="input-field" placeholder="Nombre..." bind:value={pairAName} disabled={randomStageExists || showViewer} aria-label={$t('playerA')} />
       </div>
       <div class="flex flex-col gap-1">
-        <label for="pair-b" class="text-xs text-gray-500 ml-1">{$t('playerB')}</label>
+        <label for="pair-b" class="text-xs text-wood-700/80 ml-1">{$t('playerB')}</label>
         <input id="pair-b" class="input-field" placeholder="Nombre..." bind:value={pairBName} disabled={randomStageExists || showViewer} aria-label={$t('playerB')} />
       </div>
       <button 
         type="button" 
-        class="btn btn-green h-[36px] px-4 disabled:bg-gray-300" 
+        class="inline-flex items-center justify-center h-9 px-4 rounded-full bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 disabled:cursor-not-allowed" 
         on:click={addPairByNames} 
         disabled={!(pairAName.trim() && pairBName.trim()) || randomStageExists || showViewer}
       >
@@ -990,17 +990,7 @@
 
 <style lang="postcss">
   /* Clases de utilidad para mantener coherencia */
-  .btn {
-    @apply px-4 py-1 rounded-md font-medium transition-all active:scale-95 shadow-sm text-sm whitespace-nowrap;
-  }
-  .btn-sky { @apply bg-sky-600 text-white hover:bg-sky-700; }
-  .btn-indigo { @apply bg-indigo-600 text-white hover:bg-indigo-700; }
-  .btn-white { @apply bg-white border border-gray-300 text-gray-700 hover:bg-gray-50; }
-  .btn-amber { @apply bg-amber-500 text-white hover:bg-amber-600; }
-  .btn-red { @apply bg-red-600 text-white hover:bg-red-700; }
-  .btn-purple { @apply bg-purple-600 text-white hover:bg-purple-700; }
-  .btn-gray { @apply bg-gray-200 text-gray-700 hover:bg-gray-300; }
-  .btn-green { @apply bg-green-600 text-white hover:bg-green-700; }
+  /* Button utilities migrated to Tailwind utility classes; see markup for usage */
   
   .input-field {
     @apply border border-gray-300 rounded-md px-3 py-1 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition-all w-full sm:w-48;

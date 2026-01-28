@@ -6,10 +6,9 @@ const { showBack = false } = Astro.props as Props;
 const BASE = import.meta.env.BASE_URL || "/";
 ---
 
-<header
-    class="site-header fixed inset-x-0 top-0 h-14 bg-white/90 backdrop-blur border-b z-50"
->
-    <div class="max-w-full mx-auto px-4 h-full flex items-center">
+<header class="site-header fixed inset-x-0 top-0 h-20 z-50">
+    <div class="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-tapete-700 to-tapete-900 border-b-4 border-wood-700 shadow-inset-lg"></div>
+    <div class="max-w-full mx-auto px-6 h-full flex items-center relative z-10">
         {
             showBack ? (
                 <a
@@ -216,8 +215,8 @@ const BASE = import.meta.env.BASE_URL || "/";
             </div>
 
             <div class="leading-tight">
-                <div class="font-semibold text-sky-700">Mus Txapelketa</div>
-                <div class="text-xs text-slate-500">
+                <div class="font-black text-panel-50 text-lg tracking-tight">Mus Txapelketa</div>
+                <div class="text-xs text-white/90">
                     Generador de parejas y cuadro
                 </div>
             </div>
@@ -226,7 +225,7 @@ const BASE = import.meta.env.BASE_URL || "/";
 </header>
 
 <style>
-    .site-header {
-        box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
-    }
+    .site-header { position: relative; }
+    .tapete-bar { background: linear-gradient(180deg, var(--tapete-1), var(--tapete-2)); box-shadow: inset 0 -6px 12px rgba(0,0,0,0.22); border-bottom: 6px solid var(--wood1); }
+    .site-header .font-semibold { font-weight: 800; letter-spacing: 0.2px; }
 </style>

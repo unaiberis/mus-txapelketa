@@ -47,30 +47,30 @@
   }
 </script>
 
-<div class="bg-slate-50 border border-slate-200 rounded p-2">
+<div class="bg-panel-50 text-panel-700 p-3 rounded-lg border border-wood-200 shadow-card-md">
   <div class="flex items-center justify-between">
-    <h2 class="text-sm font-semibold">{$t('pairsTitle')}</h2>
-    <div class="text-sm text-slate-500">{$t('matchesCount', { count: (matchLabels && matchLabels.length > 0) ? matchLabels.length : pairs.length })}</div>
+    <h2 class="text-sm font-bold">{$t('pairsTitle')}</h2>
+    <div class="text-sm text-wood-700/80">{$t('matchesCount', { count: (matchLabels && matchLabels.length > 0) ? matchLabels.length : pairs.length })}</div>
   </div>
 
   <div class="mt-2">
     {#if matchLabels && matchLabels.length > 0}
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
         {#each matchLabels as m, i}
-          <div class="bg-white border rounded-md px-2 py-2 shadow-sm hover:shadow-md transition">
+          <div class="bg-panel-100 px-3 py-2 transition rounded-md border border-wood-100">
             <div class="flex items-center justify-between mb-2">
-              <div class="text-xxs text-slate-400">{$t('table_short', { n: i + 1 })}</div>
+              <div class="text-xxs text-wood-700/80">{$t('table_short', { n: i + 1 })}</div>
             </div>
             <div class="flex flex-col gap-1">
-              <div class="bg-slate-50 border border-slate-100 rounded px-2 py-1 text-sm font-medium truncate flex items-center gap-2">
+                  <div class="bg-panel-50 text-panel-700 rounded-md px-2 py-1 text-sm font-medium truncate flex items-center gap-2 border border-wood-100">
                 {#if extractHash(m.a)}
-                  <div class="text-xxs text-slate-400 w-10 flex-shrink-0">{extractHash(m.a)}</div>
+                  <div class="text-xxs text-wood-700/80 w-10 flex-shrink-0">{extractHash(m.a)}</div>
                 {/if}
                 <div class="truncate">{stripHash(m.a)}</div>
               </div>
-              <div class="bg-slate-50 border border-slate-100 rounded px-2 py-1 text-sm font-medium truncate flex items-center gap-2">
+              <div class="bg-panel-50 text-panel-700 rounded-md px-2 py-1 text-sm font-medium truncate flex items-center gap-2 border border-wood-100">
                 {#if extractHash(m.b)}
-                  <div class="text-xxs text-slate-400 w-10 flex-shrink-0">{extractHash(m.b)}</div>
+                  <div class="text-xxs text-wood-700/80 w-10 flex-shrink-0">{extractHash(m.b)}</div>
                 {/if}
                 <div class="truncate">{stripHash(m.b)}</div>
               </div>
