@@ -593,7 +593,7 @@
   // Safe wrapper around bracketry.createBracket that logs full errors and returns boolean success
   async function safeCreateBracket(bracketData: any, wrapperEl: HTMLElement) {
     try {
-      const { createBracket } = await import('bracketry');
+      const { createBracket } = await import('bracketry/dist/esm/index.js');
       // expose global helper so bracketry callbacks can advance matches
       // __advanceMatch accepts numeric side and will cast to 1|2 when invoking onParticipantClick
       (window as any).__advanceMatch = (mid: number, side: number) => onParticipantClick(mid, side as 1 | 2);
@@ -948,24 +948,24 @@
   });
 </script>
 
-<div class="space-y-4 bg-panel-100 text-panel-700 p-6 rounded-xl border border-wood-200 shadow-card-md">
+<div class="card-board felt-bg space-y-4 p-4">
   <!-- Toolbar moved to header; controls are now present in the site header to avoid duplication -->
 
   <div class="p-3 rounded-lg border border-wood-300 bg-panel-50 shadow-card-md">
     <h3 class="text-sm font-bold mb-2 uppercase tracking-wider">{$t('addPair')}</h3>
     <div class="flex flex-wrap gap-2 items-end">
       <div class="flex flex-col gap-1">
-        <label for="pair-a" class="text-xs text-wood-700/80 ml-1">{$t('playerA')}</label>
+        <label for="pair-a" class="text-sm text-wood-700/80 ml-1">{$t('playerA')}</label>
         <input id="pair-a" class="input-field" placeholder="Nombre..." bind:value={pairAName} disabled={randomStageExists || showViewer} aria-label={$t('playerA')} />
       </div>
       <div class="flex flex-col gap-1">
-        <label for="pair-b" class="text-xs text-wood-700/80 ml-1">{$t('playerB')}</label>
+        <label for="pair-b" class="text-sm text-wood-700/80 ml-1">{$t('playerB')}</label>
         <input id="pair-b" class="input-field" placeholder="Nombre..." bind:value={pairBName} disabled={randomStageExists || showViewer} aria-label={$t('playerB')} />
       </div>
-      <button 
-        type="button" 
-        class="inline-flex items-center justify-center h-9 px-4 rounded-full bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 disabled:cursor-not-allowed" 
-        on:click={addPairByNames} 
+      <button
+        type="button"
+        class="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+        on:click={addPairByNames}
         disabled={!(pairAName.trim() && pairBName.trim()) || randomStageExists || showViewer}
       >
         {$t('addPair')}
@@ -981,7 +981,7 @@
 
     </div>
     {#if allowViewer && showViewer}
-      <div class="w-full lg:w-2/5 min-h-[120px] bg-gray-50 overflow-hidden sticky p-0 m-0">
+      <div class="w-full lg:w-2/5 min-h-[120px] overflow-hidden sticky p-3 card-board">
         <BracketsViewer />
       </div>
     {/if}

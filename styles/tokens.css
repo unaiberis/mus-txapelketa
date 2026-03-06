@@ -1,0 +1,77 @@
+:root {
+  /* --- Core design tokens (Neo-sport Brutalism) --- */
+  --font-display: 'Display', system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-ui: 'UI', system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+
+  /* Type scale */
+  --type-display-1: 3.5rem; /* hero */
+  --type-display-2: 2.25rem;
+  --type-heading: 1.25rem;
+  --type-body: 1rem;
+  --type-caption: 0.85rem;
+
+  /* Spacing rhythm */
+  --space-xxl: 4rem;
+  --space-xl: 2rem;
+  --space-md: 1rem;
+  --space-sm: 0.5rem;
+
+  /* Palette (high-contrast dark base + neon accents) */
+  --bg-900: #04060b; /* deep field */
+  --bg-800: #0b1220;
+  --surface-100: #fffaf2; /* warm card */
+  --accent-neon: #ff5a1f; /* neon orange accent */
+  --accent-gold: #D4AF37;
+  --muted: #94a3b8;
+  --ui-ink: #0f172a;
+
+  /* Existing / legacy tokens (kept for compatibility) */
+  --card-bg: #fffaf2;
+  --felt-tint: rgba(11,106,87,0.06);
+  --wood-edge: #ddbfa6;
+  --accent: var(--accent-gold);
+  --accent-strong: #b8912a;
+  --neutral-700: #374151;
+  --border-200: #2f4f3a;
+  --score-bg: #fff8e6;
+
+  /* Elevation & shadows */
+  --shadow-soft: 0 8px 20px rgba(2,6,23,0.18);
+  --shadow-card: 0 12px 30px rgba(2,6,23,0.25);
+
+  /* Motion tokens */
+  --motion-fast: 120ms;
+  --motion-medium: 240ms;
+  --motion-ease: cubic-bezier(.2,.9,.2,1);
+
+  /* Layout tokens */
+  --container-max: 1100px;
+  --radius-card: 0.5rem;
+
+  /* Accessibility helpers */
+  --focus-ring: 3px solid rgba(59,130,246,0.32);
+}
+
+/* Dark / light mode scaffolding (switch by toggling .theme-dark on <html>) */
+:root:not(.theme-dark) {
+  --page-bg: linear-gradient(180deg,#f8fbf9,#eef7f0);
+  --text-primary: #0f172a;
+  --ui-surface: #fff;
+}
+:root.theme-dark {
+  --page-bg: linear-gradient(180deg,#04060b,#071028);
+  --text-primary: #e6eef8;
+  --ui-surface: #071026;
+  --card-bg: #071026;
+}
+
+/* Helpers */
+.container--center { max-width: var(--container-max); margin-left: auto; margin-right: auto; padding-left: 1rem; padding-right: 1rem; }
+.focus-ring { outline: var(--focus-ring); outline-offset: 2px; }
+
+/* Texture utilities (small, optimized SVG backgrounds) */
+.felt-bg { background-image: url('/textures/linen.svg'); background-size: 480px 480px; background-repeat: repeat; }
+
+/* Component helpers */
+.card-board { background: linear-gradient(180deg, rgba(255,250,245,0.98), rgba(250,244,236,0.96)); }
+.score-pill { background: var(--score-bg); border: 1px solid rgba(0,0,0,0.06); padding: 0.125rem 0.5rem; border-radius: 9999px; font-weight: 600; font-size: 0.85rem; }

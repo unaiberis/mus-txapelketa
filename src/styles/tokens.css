@@ -1,0 +1,4 @@
+/* Mirrored tokens for component-scoped imports */
+@import "../../styles/tokens.css";
+
+/* This file intentionally mirrors root tokens so Svelte components can import local path. */

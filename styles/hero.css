@@ -1,0 +1,89 @@
+/* hero.css
+   Hero section scaffolding that relies on tokens.css.
+*/
+
+@import './tokens.css';
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding: var(--space-xxl) var(--space-xl);
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-hero-bg);
+  color: var(--color-ui);
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(120deg, var(--color-hero-bg) 0%, var(--color-primary) 60%);
+  filter: saturate(1.05);
+  pointer-events: none;
+}
+
+.hero-texture {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background-image: url('/textures/hero-texture.svg');
+  background-repeat: repeat;
+  opacity: 0.06;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+.hero-inner {
+  position: relative;
+  z-index: 2;
+  max-width: min(1100px, 92%);
+  text-align: center;
+  padding: calc(var(--space-xl) / 2);
+  box-shadow: var(--elevation-soft);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+}
+
+.hero-title {
+  font-family: var(--font-display);
+  margin: 0 0 0.5rem 0;
+  color: var(--color-ui);
+  line-height: 1.02;
+  font-weight: 700;
+  font-size: clamp(var(--type-scale-xl), 6vw, var(--type-scale-xxl));
+  letter-spacing: -0.01em;
+}
+
+.hero-lead {
+  font-family: var(--font-ui);
+  margin: 0 0 1.25rem 0;
+  color: color-mix(in srgb, var(--color-ui) 92%, var(--color-primary) 8%);
+  font-size: clamp(0.95rem, 2.6vw, var(--type-scale-xl));
+  max-width: 60ch;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.hero-cta { display:flex; gap:1rem; justify-content:center; align-items:center; flex-wrap:wrap; }
+
+.hero-cta a, .hero-cta button {
+  border: 0;
+  padding: 0.6rem 1rem;
+  font-family: var(--font-ui);
+  background: var(--color-primary);
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: transform var(--motion-medium) var(--motion-spring-ease), box-shadow var(--motion-medium) var(--motion-spring-ease);
+}
+
+.reveal-fade { opacity: 0; transform: translateY(8px); transition: opacity var(--motion-medium) var(--motion-spring-ease), transform var(--motion-medium) var(--motion-spring-ease); }
+.reveal-fade.is-visible { opacity: 1; transform: none; }
+
+@keyframes floatY { 0% { transform: translateY(-6px); } 50% { transform: translateY(6px); } 100% { transform: translateY(-6px); } }
+.motion-float { animation: floatY 6s ease-in-out infinite; will-change: transform; pointer-events: none; }
+
+.hero .muted { opacity: 0.82; font-size: 0.95rem; color: color-mix(in srgb, var(--color-ui) 84%, black 4%); }

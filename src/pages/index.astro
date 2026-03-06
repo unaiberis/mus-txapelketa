@@ -1,6 +1,7 @@
 ---
 import Players from "../components/Players.svelte";
 import Header from "../components/Header.astro";
+import Hero from "../components/Hero.svelte";
 import "../styles/global.css";
 ---
 
@@ -55,9 +56,11 @@ import "../styles/global.css";
     </script>
   </head>
   <body class="bg-slate-50 text-slate-900 antialiased">
-    <Header />
+    <div class="container--center">
+      <Header />
 
-    <main class="pt-14 w-full max-w-full p-6">
+      <main class="pt-14 w-full max-w-full p-6">
+        <Hero client:load />
       <header class="mb-6 flex items-center justify-between">
         <div>
           <h1 class="text-3xl font-extrabold site-title">Mus Txapelketa</h1>
@@ -158,6 +161,7 @@ import "../styles/global.css";
       <footer class="mt-6 text-center text-xs text-slate-400">
         Mus Txapelketa
       </footer>
-    </main>
+      </main>
+    </div>
   </body>
 </html>

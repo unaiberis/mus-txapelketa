@@ -20,25 +20,25 @@
   }
 </script>
 
-<div class="min-w-[180px] bg-white border border-slate-100 rounded p-2 shadow-sm">
+<div class="round min-w-[160px] lg:min-w-[180px] w-full md:w-auto bg-white border border-slate-100 rounded p-2 shadow-sm flex-shrink-0" data-round-index={rIndex} role="region" aria-label={isFinal ? 'Final' : `Round ${rIndex + 1}`}>
   <h4 class="text-sm font-semibold mb-1 text-slate-700">{isFinal ? 'Final' : `Round ${rIndex + 1}`}</h4>
 
   {#if isOuter}
     <div class="flex flex-col justify-between h-full">
-      <div class="flex flex-col gap-2">
+      <div class="flex flex-col gap-2 overflow-x-auto" role="list">
         {#each topMatches as m}
           <Match a={m.a} b={m.b} hasNext={hasNext} />
         {/each}
       </div>
 
-      <div class="flex flex-col gap-2">
+      <div class="flex flex-col gap-2 overflow-x-auto" role="list">
         {#each bottomMatches as m}
           <Match a={m.a} b={m.b} hasNext={hasNext} />
         {/each}
       </div>
     </div>
   {:else}
-    <div class="flex flex-col gap-3">
+    <div class="flex flex-col gap-3 overflow-x-auto" role="list">
       {#each round as m, i}
         <Match a={m.a} b={m.b} hasNext={hasNext} />
       {/each}

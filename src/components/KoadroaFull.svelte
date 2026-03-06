@@ -8,7 +8,7 @@
 
   async function safeCreateBracket(bracketData: any, wrapper: HTMLElement) {
     try {
-      const { createBracket } = await import('bracketry');
+      const { createBracket } = await import('bracketry/dist/esm/index.js');
       (window as any).__advanceMatch = (mid: number, side: number) => onParticipantClick(mid, side as 1 | 2);
       createBracket(bracketData, wrapper, { onMatchSideClick: (m: any, side: number) => { (window as any).__advanceMatch?.(m.matchId, side + 1); } });
       return true;
@@ -22,17 +22,127 @@
   function attachMatchClickHandlers() {
     if (!lastManagerInstance || !lastDbInstance) return;
     if (!wrapperEl) return;
+    // Re-attach event handlers by replacing nodes (clears old listeners)
     wrapperEl.querySelectorAll('.participant').forEach((el) => el.replaceWith(el.cloneNode(true)));
+
+    // Apply handlers and visual states based on lastDbInstance matches
+    const matchesData = (lastDbInstance && lastDbInstance.data && lastDbInstance.data.match) ? lastDbInstance.data.match : [];
+
     wrapperEl.querySelectorAll('[data-match-id]').forEach((matchEl) => {
       const matchId = Number((matchEl as HTMLElement).getAttribute('data-match-id'));
-      const participantsEls = (matchEl as HTMLElement).querySelectorAll('.participant');
+      const participantsEls = Array.from((matchEl as HTMLElement).querySelectorAll('.participant')) as HTMLElement[];
+
+      // Add click handlers
       participantsEls.forEach((pEl, idx) => {
+        // make accessible/focusable
+        try { pEl.tabIndex = 0; pEl.setAttribute('role', 'button'); } catch (e) {}
+
         pEl.addEventListener('click', async (ev) => {
           ev.stopPropagation();
           await onParticipantClick(matchId, (idx + 1) as 1 | 2);
         });
+
+        pEl.addEventListener('keydown', async (ev: KeyboardEvent) => {
+          const key = ev.key;
+          if (key === 'Enter' || key === ' ') {
+            ev.preventDefault();
+            await onParticipantClick(matchId, (idx + 1) as 1 | 2);
+            return;
+          }
+          if (key === 'ArrowRight' || key === 'ArrowDown') {
+            ev.preventDefault();
+            focusNextParticipant(pEl, 1);
+            return;
+          }
+          if (key === 'ArrowLeft' || key === 'ArrowUp') {
+            ev.preventDefault();
+            focusNextParticipant(pEl, -1);
+            return;
+          }
+        });
+      });
+
+      // Apply winner/loser classes from stored match data
+      const matchDatum = matchesData.find((m: any) => Number(m.matchId) === matchId || Number(m.id) === matchId || Number(m.match_id) === matchId);
+      if (matchDatum) {
+        // Clear existing classes
+        participantsEls.forEach((p) => { p.classList.remove('winner', 'loser'); p.classList.remove('pulse'); });
+        try {
+          const op1 = matchDatum.opponent1 || matchDatum.opponent_1 || matchDatum.opponentA || matchDatum.opponentA || {};
+          const op2 = matchDatum.opponent2 || matchDatum.opponent_2 || matchDatum.opponentB || matchDatum.opponentB || {};
+          if (op1 && op1.result === 'win') {
+            if (participantsEls[0]) { participantsEls[0].classList.add('winner', 'pulse'); setTimeout(() => participantsEls[0]?.classList.remove('pulse'), 800); }
+            if (participantsEls[1]) { participantsEls[1].classList.add('loser'); }
+          } else if (op2 && op2.result === 'win') {
+            if (participantsEls[1]) { participantsEls[1].classList.add('winner', 'pulse'); setTimeout(() => participantsEls[1]?.classList.remove('pulse'), 800); }
+            if (participantsEls[0]) { participantsEls[0].classList.add('loser'); }
+          } else if (typeof op1.score === 'number' && typeof op2.score === 'number') {
+            // Compare numeric scores
+            if (op1.score > op2.score) { if (participantsEls[0]) { participantsEls[0].classList.add('winner', 'pulse'); setTimeout(() => participantsEls[0]?.classList.remove('pulse'), 800);} if (participantsEls[1]) participantsEls[1].classList.add('loser'); }
+            else if (op2.score > op1.score) { if (participantsEls[1]) { participantsEls[1].classList.add('winner', 'pulse'); setTimeout(() => participantsEls[1]?.classList.remove('pulse'), 800);} if (participantsEls[0]) participantsEls[0].classList.add('loser'); }
+          }
+          // Update or insert score badges for participants
+          try {
+            const scoreA = (typeof op1.score === 'number') ? op1.score : null;
+            const scoreB = (typeof op2.score === 'number') ? op2.score : null;
+            const scores = [scoreA, scoreB];
+            participantsEls.forEach((pEl, idx) => {
+              // find existing badge
+              let badge = pEl.querySelector('.score-badge') as HTMLElement | null;
+              if (scores[idx] !== null && scores[idx] !== undefined) {
+                if (!badge) {
+                  badge = document.createElement('span');
+                  badge.className = 'score-badge';
+                  // place badge to the right inside participant
+                  badge.style.marginLeft = '0.5rem';
+                  pEl.appendChild(badge);
+                }
+                badge.textContent = String(scores[idx]);
+              } else if (badge) {
+                badge.remove();
+              }
+            });
+          } catch (err) {
+            // Non-fatal: ignore badge rendering errors
+          }
+        } catch (err) {
+          // Ignore any unexpected structure
+          console.warn('Could not apply match visual state for', matchId, err);
+        }
+      }
+    });
+    // Animate rounds/columns with a small stagger for a reveal effect
+    try {
+      animateRounds();
+    } catch (e) {}
+  }
+
+  function animateRounds() {
+    if (!wrapperEl) return;
+    const selectors = ['.round', '.rounds > div', '.matches-column', '.round-title', '[data-round-index]'];
+    const rounds: HTMLElement[] = [];
+    selectors.forEach((sel) => {
+      wrapperEl.querySelectorAll(sel).forEach((el) => {
+        const h = el as HTMLElement;
+        if (!rounds.includes(h)) rounds.push(h);
       });
     });
+
+    rounds.forEach((rEl, i) => {
+      rEl.classList.remove('round-reveal');
+      setTimeout(() => {
+        try { rEl.classList.add('round-reveal'); } catch (e) {}
+      }, 80 * i);
+    });
+  }
+
+  function focusNextParticipant(current: HTMLElement, delta: number) {
+    if (!wrapperEl) return;
+    const all = Array.from(wrapperEl.querySelectorAll('.participant')) as HTMLElement[];
+    const idx = all.indexOf(current);
+    if (idx === -1) return;
+    const next = all[(idx + delta + all.length) % all.length];
+    try { next.focus(); } catch (e) {}
   }
 
   async function onParticipantClick(matchId: number, participantSide: 1 | 2) {
@@ -128,12 +238,15 @@
 <style>
   :global(body) { margin: 0; }
   .koadroa-full {
+    /* Break out of the centered container to occupy the full viewport width. */
     width: 100vw;
+    margin-left: calc(50% - 50vw);
     height: calc(100vh - 56px); /* account for fixed header (h-14 = 56px) */
     display: block;
     overflow: auto;
     padding: 0;
-    margin: 0;
+    margin-top: 0;
+    margin-bottom: 0;
   }
   #brackets-viewer-wrapper { width: 100%; height: 100%; }
 
@@ -160,6 +273,8 @@
   }
 </style>
 
-<div class="koadroa-full">
-  <div id="brackets-viewer-wrapper" bind:this={wrapperEl}></div>
+  <div class="card-board felt-bg">
+  <div class="koadroa-full">
+    <div id="brackets-viewer-wrapper" bind:this={wrapperEl}></div>
+  </div>
 </div>

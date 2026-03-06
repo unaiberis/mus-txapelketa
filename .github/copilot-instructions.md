@@ -12,11 +12,7 @@ Comandos de ejemplo:
 
 - PowerShell (Windows):
 
-  if (Get-NetTCPConnection -LocalPort 4321 -ErrorAction SilentlyContinue) { Write-Host "Usando http://localhost:4321" } else { npm run dev }
-
-- macOS/Linux:
-
-  if lsof -i :4321 >/dev/null 2>&1; then echo "Usando localhost:4321/mus-txapelketa"; else npm run dev; fi
+  { Write-Host "Usando http://localhost:4321" }
 
 
 Asegúrate de que la aplicación esté accesible y funcionando correctamente antes de continuar.
@@ -50,3 +46,5 @@ Errores de consola o fallos intermitentes
 Si una prueba falla, corrige el problema antes de continuar con nuevos cambios.
 
 No hagas commits hasta asegurarte de que lo que se ha pedido hacer funciona correctamente. Siempre asegurate con el mcp Playwright
+
+Ejecuta el build cada vez que hagas cambios significativos para validar que no se rompa nada.

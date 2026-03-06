@@ -1,0 +1,126 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "./tokens.css";
+
+/* --- Base font loading and typographic reset (hero tokens rely on these) --- */
+@font-face {
+  font-family: 'Display';
+  src: url('/assets/fonts/Display.woff2') format('woff2');
+  font-weight: 600 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'UI';
+  src: url('/assets/fonts/UI.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: optional;
+}
+
+/* Box sizing & base */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { font-family: var(--font-ui); font-size:16px; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+body { margin:0; line-height:1.45; }
+
+/* Basic link/focus accessibility helpers used across the site */
+a { color: var(--color-primary); }
+
+/* End base font/load block */
+
+@layer components {
+  .container--center {
+    @apply max-w-screen-md mx-auto px-4;
+  }
+
+  .card {
+    @apply bg-card-bg rounded-card p-4 border border-border-200 shadow-sm;
+  }
+
+  /* Board-game themed card (lighter, wooden edge, subtle inset) */
+  .card-board {
+    background: linear-gradient(180deg, rgba(255,250,245,0.98), rgba(250,244,236,0.96));
+    @apply rounded-card p-3 border border-wood-100 shadow-card-md;
+    box-shadow: var(--tw-shadow), inset 0 -6px 10px rgba(0,0,0,0.04);
+  }
+
+  /* Page felt background */
+  body {
+    background: radial-gradient(circle at 20% 10%, rgba(11,106,87,0.06), transparent 10%), linear-gradient(180deg,#f8fbf9,#eef7f0);
+  }
+
+  .match-row {
+    @apply flex items-center gap-4 h-12 border-b border-border-200 hover:bg-primary-50/6;
+  }
+
+  .score-badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded-pill text-sm font-medium;
+    background: linear-gradient(180deg,#fff,#f8f1d6);
+    border: 1px solid rgba(0,0,0,0.06);
+  }
+
+  .winner {
+    @apply score-badge bg-accent-400 text-neutral-900;
+  }
+
+  .loser {
+    @apply text-neutral-300 opacity-75;
+  }
+}
+
+/* Winner pulse animation used for dynamic updates */
+@keyframes pulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 rgba(212,175,55,0.0); }
+  50% { transform: scale(1.04); box-shadow: 0 6px 18px rgba(212,175,55,0.18); }
+  100% { transform: scale(1); box-shadow: 0 0 0 rgba(212,175,55,0.0); }
+}
+
+.winner.pulse {
+  animation: pulse 700ms ease-out;
+}
+
+/* Styles for bracketry's participant elements when marked winner/loser */
+:global(.participant.winner) {
+  outline: 2px solid rgba(212,175,55,0.9);
+  background: linear-gradient(180deg, rgba(212,175,55,0.08), transparent);
+}
+:global(.participant.loser) {
+  opacity: 0.7;
+}
+
+/* Focus and animation helpers for participant elements */
+:global(.participant) {
+  transition: transform 180ms ease, box-shadow 180ms ease, opacity 160ms ease;
+}
+:global(.participant:focus) {
+  outline: none;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+/* Round reveal animation for brackets */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+:global(.round-reveal) {
+  animation: fadeUp 520ms cubic-bezier(.2,.9,.2,1) both;
+}
+
+/* small helpers */
+@layer utilities {
+  .rounded-card { border-radius: 0.5rem; }
+  .rounded-pill { border-radius: 9999px; }
+}
+
+/* Focus-visible helper for keyboard users */
+.card:focus {
+  outline: 3px solid rgba(59,130,246,0.32);
+  outline-offset: 2px;
+}
+
+/* End of file */

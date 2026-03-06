@@ -7,22 +7,30 @@
     "build": "astro build",
     "preview": "astro preview",
     "deploy": "npm run build && git add dist && git commit -m \"chore: build\" || true && npx peaceiris/actions-gh-pages@v3 -b gh-pages",
-    "test": "vitest run",
+    "test": "vitest run src",
+    "test:playwright": "playwright test",
     "i18n:validate": "node ./scripts/validate-locales.js"
   },
   "dependencies": {
     "@unitetheculture/brackets-manager": "^1.4.6",
     "bracketry": "^1.1.3",
-    "svelte": "^4.0.0",
+    "svelte": "^5.53.7",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@astrojs/svelte": "^3.0.0",
-    "astro": "^3.0.0",
+    "@astrojs/svelte": "^7.2.5",
+    "astro": "^5.18.0",
     "autoprefixer": "^10.4.0",
     "postcss": "^8.4.0",
     "tailwindcss": "^3",
     "typescript": "^5.0.0",
-    "vitest": "^4.0.18"
+    "vitest": "^4.0.18",
+    "@playwright/test": "^1.58.2",
+    "playwright": "^1.58.2"
+  }
+
+  ,"vitest": {
+    "include": ["src/**/*.{test,spec}.{js,ts,mjs,mts}"],
+    "exclude": ["tests/**", "tests/**/**"]
   }
 }

@@ -1,0 +1,92 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - link "Skip to main content" [ref=e3] [cursor=pointer]:
+      - /url: "#main"
+      - text: Skip to content
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - link "M MUSeko Generador de parejas y cuadro" [ref=e7] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e8]: M
+          - generic [ref=e9]:
+            - generic [ref=e10]: MUSeko
+            - generic [ref=e11]: Generador de parejas y cuadro
+        - generic [ref=e12]:
+          - navigation "Main navigation" [ref=e13]:
+            - link "Home" [ref=e14] [cursor=pointer]:
+              - /url: /
+            - link "Koadroa" [ref=e15] [cursor=pointer]:
+              - /url: /koadroa/
+          - button "Toggle dark theme" [ref=e16] [cursor=pointer]: Theme
+          - button "Open menu" [ref=e17] [cursor=pointer]: Menu
+    - main [ref=e18]:
+      - generic [ref=e19]:
+        - generic [ref=e20]:
+          - heading "Mus Txapelketa" [level=1] [ref=e21]
+          - paragraph [ref=e22]: Generador de parejas y cuadro para torneos de mus
+        - generic [ref=e24]:
+          - generic [ref=e25]:
+            - button "Importar Jugadores" [ref=e26] [cursor=pointer]
+            - button "Limpiar Todo" [ref=e27] [cursor=pointer]
+          - generic [ref=e28]:
+            - generic [ref=e29]: "Completar hasta:"
+            - combobox [ref=e30]:
+              - option "16" [selected]
+              - option "32"
+              - option "64"
+              - option "128"
+            - button "Ejecutar" [ref=e31] [cursor=pointer]
+          - generic [ref=e32]:
+            - button "Excel" [ref=e33] [cursor=pointer]
+            - button "CSV" [ref=e34] [cursor=pointer]
+          - generic [ref=e35]:
+            - generic [ref=e36]: Idioma
+            - combobox [ref=e37]:
+              - option "Español" [selected]
+              - option "English"
+              - option "Euskera"
+        - navigation [ref=e38]:
+          - link "Ver cuadro" [ref=e39] [cursor=pointer]:
+            - /url: /koadroa/
+            - img [ref=e40]
+            - generic [ref=e44]:
+              - generic [ref=e45]: Ver cuadro
+              - generic [ref=e46]: Ir al cuadro completo
+      - generic [ref=e48]:
+        - generic [ref=e49]:
+          - heading "Añadir Pareja" [level=3] [ref=e50]
+          - generic [ref=e51]:
+            - generic [ref=e52]:
+              - generic [ref=e53]: Jugador A
+              - textbox "Jugador A" [ref=e54]:
+                - /placeholder: Nombre...
+            - generic [ref=e55]:
+              - generic [ref=e56]: Jugador B
+              - textbox "Jugador B" [ref=e57]:
+                - /placeholder: Nombre...
+            - button "Añadir Pareja" [disabled] [ref=e58]
+        - generic [ref=e62]:
+          - generic [ref=e63]:
+            - heading "Parejas" [level=2] [ref=e64]
+            - generic [ref=e65]: 0 partidos
+          - generic [ref=e67]: No hay parejas todavía.
+      - generic [ref=e68]: Mus Txapelketa
+  - generic [ref=e71]:
+    - button "Menu" [ref=e72]:
+      - img [ref=e74]
+      - generic: Menu
+    - button "Inspect" [ref=e78]:
+      - img [ref=e80]
+      - generic: Inspect
+    - button "Audit" [ref=e82]:
+      - generic [ref=e83]:
+        - img [ref=e84]
+        - img [ref=e87]
+      - generic: Audit
+    - button "Settings" [ref=e90]:
+      - img [ref=e92]
+      - generic: Settings
+```
