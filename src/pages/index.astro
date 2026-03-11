@@ -18,7 +18,7 @@ import "../styles/global.css";
         try {
           console.log(
             "Style fallback check: link hrefs ->",
-            Array.from(document.querySelectorAll("link[rel=stylesheet]")).map((l) => l.href),
+            Array.from(document.querySelectorAll("link[rel=stylesheet]")).map((l) => (l as HTMLLinkElement).href),
           );
           function hasStyle() {
             const el = document.createElement("div");

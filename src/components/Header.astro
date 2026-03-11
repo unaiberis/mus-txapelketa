@@ -40,9 +40,9 @@ const BASE = import.meta.env.BASE_URL || "/";
 <script>
   const THEME_KEY = 'mus:theme';
   const darkClass = 'theme-dark';
-  function isDarkStored(){ try { return localStorage.getItem(THEME_KEY) === 'dark'; } catch(e){ return false; } }
-  function persistDark(isDark){ try { localStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light'); } catch(e){} }
-  function apply(document, isDark){ if(isDark) document.documentElement.classList.add(darkClass); else document.documentElement.classList.remove(darkClass); }
+  function isDarkStored(): boolean { try { return localStorage.getItem(THEME_KEY) === 'dark'; } catch(e){ return false; } }
+  function persistDark(isDark: boolean){ try { localStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light'); } catch(e){} }
+  function apply(document: Document, isDark: boolean){ if(isDark) document.documentElement.classList.add(darkClass); else document.documentElement.classList.remove(darkClass); }
   const initialDark = isDarkStored() || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
   apply(document, initialDark);
   const btn = document.getElementById('theme-toggle'); if(btn) btn.addEventListener('click', function(){ const isDark = document.documentElement.classList.toggle(darkClass); persistDark(isDark); btn.setAttribute('aria-pressed', String(isDark)); });

@@ -13,8 +13,8 @@
       </div>
     {:else}
       {@const pre = bracket.slice(0, bracket.length - 1)}
-      {@const left = []}
-      {@const right = []}
+      {@const left: any[] = []}
+      {@const right: any[] = []}
       {@html ''}
       {@const _ = pre.forEach((r, i) => {
         const half = Math.ceil(r.length / 2);

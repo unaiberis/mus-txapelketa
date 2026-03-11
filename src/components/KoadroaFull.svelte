@@ -5,16 +5,17 @@
   let wrapperEl: HTMLElement | null = null;
   let lastManagerInstance: any = null;
   let lastDbInstance: any = null;
+  let lastManagerData: any = null;
 
   async function safeCreateBracket(bracketData: any, wrapper: HTMLElement) {
     try {
-      const { createBracket } = await import('bracketry/dist/esm/index.js');
+      const { createBracket } = await import('bracketry');
       (window as any).__advanceMatch = (mid: number, side: number) => onParticipantClick(mid, side as 1 | 2);
       createBracket(bracketData, wrapper, { onMatchSideClick: (m: any, side: number) => { (window as any).__advanceMatch?.(m.matchId, side + 1); } });
       return true;
     } catch (e) {
       console.error('safeCreateBracket failed', e);
-      try { wrapper.innerHTML = '<div class="render-error p-2 rounded bg-red-50 border border-red-200"><strong>Error rendering bracket:</strong> ' + (e?.message || String(e)) + '</div>'; } catch (err) { wrapper.textContent = JSON.stringify(bracketData); }
+      try { wrapper.innerHTML = '<div class="render-error p-2 rounded bg-red-50 border border-red-200"><strong>Error rendering bracket:</strong> ' + ((e as any)?.message || String(e)) + '</div>'; } catch (err) { wrapper.textContent = JSON.stringify(bracketData); }
       return false;
     }
   }
@@ -23,12 +24,12 @@
     if (!lastManagerInstance || !lastDbInstance) return;
     if (!wrapperEl) return;
     // Re-attach event handlers by replacing nodes (clears old listeners)
-    wrapperEl.querySelectorAll('.participant').forEach((el) => el.replaceWith(el.cloneNode(true)));
+    wrapperEl!.querySelectorAll('.participant').forEach((el) => el.replaceWith(el.cloneNode(true)));
 
     // Apply handlers and visual states based on lastDbInstance matches
     const matchesData = (lastDbInstance && lastDbInstance.data && lastDbInstance.data.match) ? lastDbInstance.data.match : [];
 
-    wrapperEl.querySelectorAll('[data-match-id]').forEach((matchEl) => {
+    wrapperEl!.querySelectorAll('[data-match-id]').forEach((matchEl) => {
       const matchId = Number((matchEl as HTMLElement).getAttribute('data-match-id'));
       const participantsEls = Array.from((matchEl as HTMLElement).querySelectorAll('.participant')) as HTMLElement[];
 
@@ -122,7 +123,7 @@
     const selectors = ['.round', '.rounds > div', '.matches-column', '.round-title', '[data-round-index]'];
     const rounds: HTMLElement[] = [];
     selectors.forEach((sel) => {
-      wrapperEl.querySelectorAll(sel).forEach((el) => {
+      wrapperEl!.querySelectorAll(sel).forEach((el) => {
         const h = el as HTMLElement;
         if (!rounds.includes(h)) rounds.push(h);
       });
@@ -225,7 +226,7 @@
       attachMatchClickHandlers();
     } catch (e) {
       console.error('Could not build ephemeral stage for full-screen', e);
-      wrapperEl.innerHTML = '<div class="render-error p-4">Error building stage: ' + (e?.message || String(e)) + '</div>';
+      wrapperEl!.innerHTML = '<div class="render-error p-4">Error building stage: ' + ((e as any)?.message || String(e)) + '</div>';
     }
   });
 

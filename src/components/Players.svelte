@@ -593,19 +593,19 @@
   // Safe wrapper around bracketry.createBracket that logs full errors and returns boolean success
   async function safeCreateBracket(bracketData: any, wrapperEl: HTMLElement) {
     try {
-      const { createBracket } = await import('bracketry/dist/esm/index.js');
+      const { createBracket } = await import('bracketry');
       // expose global helper so bracketry callbacks can advance matches
       // __advanceMatch accepts numeric side and will cast to 1|2 when invoking onParticipantClick
       (window as any).__advanceMatch = (mid: number, side: number) => onParticipantClick(mid, side as 1 | 2);
       createBracket(bracketData, wrapperEl, { onMatchSideClick: (m: any, side: number) => { (window as any).__advanceMatch?.(m.matchId, side + 1); } });
       return true;
     } catch (e: any) {
-      console.error('safeCreateBracket failed', e, e?.stack);
+      console.error('safeCreateBracket failed', e, (e as any)?.stack);
       // expose error for debugging in the page context
       try { (window as any).__lastBracketError = e; (window as any).__lastBracketStack = e?.stack || null; } catch (err) {}
       // Show useful error message in the wrapper to help debugging but keep it styled
       try {
-        wrapperEl.innerHTML = '<div class="render-error p-2 rounded bg-red-50 border border-red-200"><strong>Error rendering bracket:</strong><div style="white-space:pre-wrap;margin-top:8px;">' + (e?.message || String(e)) + '</div><hr style="margin:8px 0;"/><pre>' + JSON.stringify(bracketData, null, 2) + '</pre><div style="margin-top:8px;font-size:0.8rem;color:#666">Tip: puedes volver a intentar con <code>window.__renderSavedStage()</code></div></div>';
+        wrapperEl.innerHTML = '<div class="render-error p-2 rounded bg-red-50 border border-red-200"><strong>Error rendering bracket:</strong><div style="white-space:pre-wrap;margin-top:8px;">' + ((e as any)?.message || String(e)) + '</div><hr style="margin:8px 0;"/><pre>' + JSON.stringify(bracketData, null, 2) + '</pre><div style="margin-top:8px;font-size:0.8rem;color:#666">Tip: puedes volver a intentar con <code>window.__renderSavedStage()</code></div></div>';
       } catch (inner) {
         wrapperEl.innerHTML = '<pre>' + JSON.stringify(bracketData, null, 2) + '</pre>';
       }

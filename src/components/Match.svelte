@@ -53,7 +53,7 @@
 
 <style>
   .match-row:focus-visible,
-  .participant:focus-visible,
+  :global(.participant:focus-visible),
   .score-pill:focus-visible {
     outline: none;
     box-shadow: var(--focus-ring);

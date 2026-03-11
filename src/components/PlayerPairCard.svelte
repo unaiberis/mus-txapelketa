@@ -88,7 +88,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1 container--center" role="list">
           {#each pairs as [a, b], i}
             <div role="listitem">
-              <button class="card w-full bg-white border rounded-md px-2 py-1 shadow-sm flex items-center justify-between gap-3 hover:shadow-md transition container--center" type="button" on:keydown={(e) => { if (!viewOnly && (e.key === 'Enter' || e.key === ' ')) startEdit(i); }} aria-label={`Pair ${i + 1}: ${a.name} and ${b.name}`}>
+              <div class="card w-full bg-white border rounded-md px-2 py-1 shadow-sm flex items-center justify-between gap-3 hover:shadow-md transition container--center" role="button" tabindex="0" on:keydown={(e) => { if (!viewOnly && (e.key === 'Enter' || e.key === ' ')) startEdit(i); }} aria-label={`Pair ${i + 1}: ${a.name} and ${b.name}`}>
 
               {#if editingIndex === i}
                 <div class="flex items-center gap-2 w-full">
@@ -116,7 +116,7 @@
                 {/if}
               {/if}
 
-                </button>
+                </div>
               </div>
           {/each}
         </div>
