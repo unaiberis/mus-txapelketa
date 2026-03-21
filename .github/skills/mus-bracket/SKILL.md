@@ -1282,16 +1282,480 @@ Show a small **🔒 Firmado criptográficamente** badge next to the export butto
 
 ---
 
+## Pairs-Only Export
+
+Independent of the full tournament export, the user can export **just the pairs list** at any time — even before generating the bracket. This is useful to share the participant list, prepare seedings, or import pairs into another instance of the app.
+
+### When available
+
+The pairs-only export button is visible in the left panel **whenever `pairs.length >= 1`**, in both `entry` and post-generation phases. It is a separate, lighter action from the full tournament export.
+
+### Format options
+
+Pairs-only export also supports three formats via a small format picker:
+
+| Format | Content |
+|--------|---------|
+| **JSON** | `{ version: 'pairs-1', exportedAt, pairs: string[] }` — no signature (no tournament data to protect) |
+| **CSV** | One row per pair: `num, jugador1, jugador2` derived by splitting on ` / ` |
+| **Excel** | Single sheet "Parejas" with columns: Nº, Jugador 1, Jugador 2 |
+
+```typescript
+// JSON pairs export — unsigned, lightweight
+function exportPairsJSON(pairs: string[]) {
+  const data = {
+    version: 'pairs-1',
+    exportedAt: new Date().toISOString(),
+    pairs,
+  };
+  downloadBlob(
+    new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }),
+    `parejas-mus-${Date.now()}.json`
+  );
+}
+
+// CSV pairs export
+function exportPairsCSV(pairs: string[]) {
+  const rows = [
+    ['Nº', 'Jugador 1', 'Jugador 2'],
+    ...pairs.map((p, i) => {
+      const [j1, j2] = p.split(' / ');
+      return [String(i + 1), j1 ?? p, j2 ?? ''];
+    }),
+  ];
+  const csv = rows.map(r => r.map(c => `"${c.replace(/"/g, '""')}"`).join(',')).join('\n');
+  downloadBlob(new Blob([csv], { type: 'text/csv;charset=utf-8;' }), `parejas-mus-${Date.now()}.csv`);
+}
+
+// Excel pairs export
+function exportPairsXLSX(pairs: string[]) {
+  const rows = [
+    ['Nº', 'Jugador 1', 'Jugador 2'],
+    ...pairs.map((p, i) => {
+      const [j1, j2] = p.split(' / ');
+      return [i + 1, j1 ?? p, j2 ?? ''];
+    }),
+  ];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'Parejas');
+  const out = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  downloadBlob(
+    new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+    `parejas-mus-${Date.now()}.xlsx`
+  );
+}
+```
+
+### Pairs-only import
+
+Importing a pairs-only file (detected by `version === 'pairs-1'` for JSON, or by absence of `#SIG` for CSV/XLSX) **only loads the pairs list**, not a full tournament. It:
+- Merges or replaces the current pairs list (ask the user: *"¿Añadir a las parejas existentes o reemplazarlas?"*)
+- Never touches `bestOf`, `prizeConfig`, bracket state, or entropy
+
+### UI placement
+
+In the left panel, add a secondary export row below the main export controls:
+
+```
+┌──────────────────────────────────────┐
+│  [↓ Exportar torneo] [JSON ▼]  🔒   │  ← full export (signed)
+│  [↓ Solo parejas]    [CSV ▼]         │  ← lightweight, unsigned
+│  [↑ Importar]                        │
+└──────────────────────────────────────┘
+```
+
+Label the full export with the 🔒 badge; the pairs-only export has none (it's explicitly unsigned and the user should understand it's just a list).
+
+---
+
+## Internacionalización (i18n)
+
+The app supports multiple languages. The selected language is stored in React state and persisted in `localStorage` so it survives page reloads.
+
+### Supported languages (initial set)
+
+| Code | Language |
+|------|----------|
+| `es` | Español ← default |
+| `eu` | Euskara (Basque) |
+| `en` | English |
+| `fr` | Français |
+
+Add more as a flat entry in the translations object — no infrastructure changes needed.
+
+### Architecture: inline translation object
+
+No i18n library needed. Use a typed translation object directly in the component:
+
+```typescript
+type LangCode = 'es' | 'eu' | 'en' | 'fr';
+
+interface Translations {
+  // Header
+  appTitle: string;
+  // Left panel — pairs
+  player1Placeholder: string;
+  player2Placeholder: string;
+  addPair: string;
+  pairsRegistered: (n: number) => string;
+  prelimNeeded: (matches: number, pairs: number) => string;
+  directToMain: (n: number) => string;
+  minPairsWarning: string;
+  oddPairsWarning: string;
+  // Format
+  matchFormat: string;
+  bestOfLabel: string;
+  customBestOf: string;
+  invalidBestOf: string;
+  // Fees & prizes
+  feesAndPrizes: string;
+  entryFee: string;
+  prizeDistribution: string;
+  autoMode: string;
+  manualMode: string;
+  autoSplit: string;
+  firstPrize: string;
+  secondPrize: string;
+  thirdPrize: string;
+  fourthPrize: string;
+  totalPool: string;
+  distributed: string;
+  remainder: string;
+  // Entropy meter
+  entropyTitle: string;
+  entropyHint: string;
+  entropySecure: string;
+  entropyLabels: [string, string, string, string, string, string]; // 0–5 levels
+  // Tournament actions
+  createTournament: string;
+  resetTournament: string;
+  // Bracket
+  prelimPhase: string;
+  prelimDescription: (matches: number, pairs: number) => string;
+  round: (n: number) => string;
+  semiFinals: string;
+  final: string;
+  champion: string;
+  bye: string;
+  confirmResult: string;
+  invalidScore: (winsNeeded: number, bestOf: number) => string;
+  editResult: string;
+  editWarning: string;
+  // Export / Import
+  exportTournament: string;
+  exportPairsOnly: string;
+  importFile: string;
+  signedBadge: string;
+  importError: string;
+  mergeOrReplace: string;
+  mergeOption: string;
+  replaceOption: string;
+  // Podium
+  tournamentChampions: string;
+  totalDistributed: string;
+  // Errors
+  fileInvalid: string;
+  signatureInvalid: string;
+  versionIncompat: string;
+}
+
+const translations: Record<LangCode, Translations> = {
+  es: {
+    appTitle: 'Torneo de Mus',
+    player1Placeholder: 'Jugador 1',
+    player2Placeholder: 'Jugador 2',
+    addPair: 'Añadir pareja',
+    pairsRegistered: (n) => `${n} pareja${n !== 1 ? 's' : ''} registrada${n !== 1 ? 's' : ''}`,
+    prelimNeeded: (m, p) => `→ Ronda previa: ${m} partidas (${p} parejas)`,
+    directToMain: (n) => `→ ${n} parejas pasan directamente al cuadro`,
+    minPairsWarning: 'Se necesitan al menos 2 parejas',
+    oddPairsWarning: 'El número de parejas es impar — revisa la lista',
+    matchFormat: 'Formato de partida',
+    bestOfLabel: 'Al mejor de',
+    customBestOf: 'Personalizado…',
+    invalidBestOf: 'Debe ser un número impar (1, 3, 5, 7…)',
+    feesAndPrizes: '💰 Inscripción y premios',
+    entryFee: 'Cuota por pareja',
+    prizeDistribution: 'Distribución de premios',
+    autoMode: 'Automática',
+    manualMode: 'Manual',
+    autoSplit: 'Reparto automático',
+    firstPrize: '🥇 1er premio',
+    secondPrize: '🥈 2º premio',
+    thirdPrize: '🥉 3er premio',
+    fourthPrize: '🏅 4º premio',
+    totalPool: 'Bote total',
+    distributed: 'Distribuido',
+    remainder: 'Sobrante',
+    entropyTitle: '🎲 Nivel de aleatoriedad',
+    entropyHint: 'Mueve el ratón por la pantalla para un sorteo más seguro',
+    entropySecure: '🛡 Sorteo seguro',
+    entropyLabels: ['Sin aleatoriedad', 'Baja', 'Media', 'Alta', 'Muy alta', '¡Aleatoriedad máxima!'],
+    createTournament: 'Crear torneo',
+    resetTournament: 'Reiniciar torneo',
+    prelimPhase: 'FASE PREVIA',
+    prelimDescription: (m, p) => `${m} partidas • ${p} parejas se clasifican`,
+    round: (n) => `Ronda ${n}`,
+    semiFinals: 'Semifinales',
+    final: 'Final',
+    champion: 'CAMPEÓN',
+    bye: 'BYE',
+    confirmResult: 'Confirmar resultado',
+    invalidScore: (w, b) => `Resultado inválido. Al mejor de ${b}: el ganador necesita ${w} victorias.`,
+    editResult: '✏️ Editar',
+    editWarning: 'Editar este resultado borrará los resultados dependientes. ¿Continuar?',
+    exportTournament: '↓ Exportar torneo',
+    exportPairsOnly: '↓ Solo parejas',
+    importFile: '↑ Importar',
+    signedBadge: '🔒 Firmado',
+    importError: 'Error al importar',
+    mergeOrReplace: '¿Qué hacer con las parejas existentes?',
+    mergeOption: 'Añadir a las existentes',
+    replaceOption: 'Reemplazar todas',
+    tournamentChampions: '🏆 Campeones del Torneo',
+    totalDistributed: 'Total repartido',
+    fileInvalid: 'Archivo inválido — no es un formato reconocido',
+    signatureInvalid: '⚠️ Firma inválida — el archivo ha sido modificado y no puede importarse',
+    versionIncompat: 'Versión de archivo no compatible',
+  },
+
+  eu: {
+    appTitle: 'Mus Txapelketa',
+    player1Placeholder: '1. Jokalaria',
+    player2Placeholder: '2. Jokalaria',
+    addPair: 'Bikotea gehitu',
+    pairsRegistered: (n) => `${n} bikote erregistratu`,
+    prelimNeeded: (m, p) => `→ Aurreko kanporaketa: ${m} partida (${p} bikote)`,
+    directToMain: (n) => `→ ${n} bikote zuzenean txandara`,
+    minPairsWarning: 'Gutxienez 2 bikote behar dira',
+    oddPairsWarning: 'Bikote kopurua bakoitia da — egiaztatu zerrenda',
+    matchFormat: 'Partida formatua',
+    bestOfLabel: 'Onenak',
+    customBestOf: 'Pertsonalizatua…',
+    invalidBestOf: 'Zenbaki bakoiti bat izan behar da (1, 3, 5, 7…)',
+    feesAndPrizes: '💰 Kuota eta sariak',
+    entryFee: 'Bikoteko kuota',
+    prizeDistribution: 'Sarien banaketa',
+    autoMode: 'Automatikoa',
+    manualMode: 'Eskuzkoa',
+    autoSplit: 'Banaketa automatikoa',
+    firstPrize: '🥇 1. saria',
+    secondPrize: '🥈 2. saria',
+    thirdPrize: '🥉 3. saria',
+    fourthPrize: '🏅 4. saria',
+    totalPool: 'Sari-poltsa',
+    distributed: 'Banatuta',
+    remainder: 'Soberakina',
+    entropyTitle: '🎲 Ausazko maila',
+    entropyHint: 'Mugitu sagua pantailan zozketa seguruagoa izateko',
+    entropySecure: '🛡 Zozketa segurua',
+    entropyLabels: ['Ausazkorik gabe', 'Baxua', 'Ertaina', 'Altua', 'Oso altua', 'Ausazkotasun maximoa!'],
+    createTournament: 'Txapelketa sortu',
+    resetTournament: 'Berrabiarazi',
+    prelimPhase: 'AURREKO FASEA',
+    prelimDescription: (m, p) => `${m} partida • ${p} bikote sailkatzen dira`,
+    round: (n) => `${n}. txanda`,
+    semiFinals: 'Finalerdiak',
+    final: 'Finala',
+    champion: 'TXAPELDUNA',
+    bye: 'BYE',
+    confirmResult: 'Emaitza baieztatu',
+    invalidScore: (w, b) => `Emaitza baliogabea. ${b}ko onenak: irabazleak ${w} garaipen behar ditu.`,
+    editResult: '✏️ Editatu',
+    editWarning: 'Emaitza hau editatzeak ondorengo emaitzak ezabatuko ditu. Jarraitu?',
+    exportTournament: '↓ Txapelketa esportatu',
+    exportPairsOnly: '↓ Bikoteak soilik',
+    importFile: '↑ Inportatu',
+    signedBadge: '🔒 Sinatuta',
+    importError: 'Errorea inportatzerakoan',
+    mergeOrReplace: 'Zer egin lehendik dauden bikoteen?',
+    mergeOption: 'Gehitu daudenei',
+    replaceOption: 'Guztiak ordezkatu',
+    tournamentChampions: '🏆 Txapelketako Txapeldunak',
+    totalDistributed: 'Guztira banatuta',
+    fileInvalid: 'Fitxategi baliogabea — ez da ezagutzen den formatua',
+    signatureInvalid: '⚠️ Sinadura baliogabea — fitxategia aldatu da eta ezin da inportatu',
+    versionIncompat: 'Fitxategi bertsioa ez da bateragarria',
+  },
+
+  en: {
+    appTitle: 'Mus Tournament',
+    player1Placeholder: 'Player 1',
+    player2Placeholder: 'Player 2',
+    addPair: 'Add pair',
+    pairsRegistered: (n) => `${n} pair${n !== 1 ? 's' : ''} registered`,
+    prelimNeeded: (m, p) => `→ Preliminary round: ${m} matches (${p} pairs)`,
+    directToMain: (n) => `→ ${n} pairs go directly to the main bracket`,
+    minPairsWarning: 'At least 2 pairs are required',
+    oddPairsWarning: 'Odd number of pairs — please review the list',
+    matchFormat: 'Match format',
+    bestOfLabel: 'Best of',
+    customBestOf: 'Custom…',
+    invalidBestOf: 'Must be an odd number (1, 3, 5, 7…)',
+    feesAndPrizes: '💰 Entry fees & prizes',
+    entryFee: 'Entry fee per pair',
+    prizeDistribution: 'Prize distribution',
+    autoMode: 'Automatic',
+    manualMode: 'Manual',
+    autoSplit: 'Auto split',
+    firstPrize: '🥇 1st prize',
+    secondPrize: '🥈 2nd prize',
+    thirdPrize: '🥉 3rd prize',
+    fourthPrize: '🏅 4th prize',
+    totalPool: 'Prize pool',
+    distributed: 'Distributed',
+    remainder: 'Remainder',
+    entropyTitle: '🎲 Randomness level',
+    entropyHint: 'Move the mouse around the screen for a safer draw',
+    entropySecure: '🛡 Secure draw',
+    entropyLabels: ['No randomness', 'Low', 'Medium', 'High', 'Very high', 'Maximum randomness!'],
+    createTournament: 'Create tournament',
+    resetTournament: 'Reset tournament',
+    prelimPhase: 'PRELIMINARY ROUND',
+    prelimDescription: (m, p) => `${m} matches • ${p} pairs qualify`,
+    round: (n) => `Round ${n}`,
+    semiFinals: 'Semi-finals',
+    final: 'Final',
+    champion: 'CHAMPION',
+    bye: 'BYE',
+    confirmResult: 'Confirm result',
+    invalidScore: (w, b) => `Invalid result. Best of ${b}: winner needs ${w} wins.`,
+    editResult: '✏️ Edit',
+    editWarning: 'Editing this result will clear dependent results. Continue?',
+    exportTournament: '↓ Export tournament',
+    exportPairsOnly: '↓ Pairs only',
+    importFile: '↑ Import',
+    signedBadge: '🔒 Signed',
+    importError: 'Import error',
+    mergeOrReplace: 'What to do with existing pairs?',
+    mergeOption: 'Add to existing',
+    replaceOption: 'Replace all',
+    tournamentChampions: '🏆 Tournament Champions',
+    totalDistributed: 'Total distributed',
+    fileInvalid: 'Invalid file — unrecognised format',
+    signatureInvalid: '⚠️ Invalid signature — the file has been modified and cannot be imported',
+    versionIncompat: 'Incompatible file version',
+  },
+
+  fr: {
+    appTitle: 'Tournoi de Mus',
+    player1Placeholder: 'Joueur 1',
+    player2Placeholder: 'Joueur 2',
+    addPair: 'Ajouter une paire',
+    pairsRegistered: (n) => `${n} paire${n !== 1 ? 's' : ''} enregistrée${n !== 1 ? 's' : ''}`,
+    prelimNeeded: (m, p) => `→ Tour préliminaire : ${m} matchs (${p} paires)`,
+    directToMain: (n) => `→ ${n} paires passent directement au tableau`,
+    minPairsWarning: 'Au moins 2 paires sont nécessaires',
+    oddPairsWarning: 'Nombre de paires impair — vérifiez la liste',
+    matchFormat: 'Format de match',
+    bestOfLabel: 'Au meilleur de',
+    customBestOf: 'Personnalisé…',
+    invalidBestOf: 'Doit être un nombre impair (1, 3, 5, 7…)',
+    feesAndPrizes: '💰 Inscriptions et prix',
+    entryFee: 'Droit d\'inscription par paire',
+    prizeDistribution: 'Répartition des prix',
+    autoMode: 'Automatique',
+    manualMode: 'Manuel',
+    autoSplit: 'Répartition auto',
+    firstPrize: '🥇 1er prix',
+    secondPrize: '🥈 2e prix',
+    thirdPrize: '🥉 3e prix',
+    fourthPrize: '🏅 4e prix',
+    totalPool: 'Cagnotte totale',
+    distributed: 'Distribué',
+    remainder: 'Reste',
+    entropyTitle: '🎲 Niveau d\'aléatoire',
+    entropyHint: 'Bougez la souris pour un tirage plus sécurisé',
+    entropySecure: '🛡 Tirage sécurisé',
+    entropyLabels: ['Sans aléatoire', 'Faible', 'Moyen', 'Élevé', 'Très élevé', 'Aléatoire maximal !'],
+    createTournament: 'Créer le tournoi',
+    resetTournament: 'Réinitialiser',
+    prelimPhase: 'TOUR PRÉLIMINAIRE',
+    prelimDescription: (m, p) => `${m} matchs • ${p} paires se qualifient`,
+    round: (n) => `Tour ${n}`,
+    semiFinals: 'Demi-finales',
+    final: 'Finale',
+    champion: 'CHAMPION',
+    bye: 'BYE',
+    confirmResult: 'Confirmer le résultat',
+    invalidScore: (w, b) => `Résultat invalide. Au meilleur de ${b} : le gagnant doit avoir ${w} victoires.`,
+    editResult: '✏️ Modifier',
+    editWarning: 'Modifier ce résultat effacera les résultats dépendants. Continuer ?',
+    exportTournament: '↓ Exporter le tournoi',
+    exportPairsOnly: '↓ Paires seulement',
+    importFile: '↑ Importer',
+    signedBadge: '🔒 Signé',
+    importError: 'Erreur d\'importation',
+    mergeOrReplace: 'Que faire avec les paires existantes ?',
+    mergeOption: 'Ajouter aux existantes',
+    replaceOption: 'Remplacer toutes',
+    tournamentChampions: '🏆 Champions du Tournoi',
+    totalDistributed: 'Total distribué',
+    fileInvalid: 'Fichier invalide — format non reconnu',
+    signatureInvalid: '⚠️ Signature invalide — le fichier a été modifié et ne peut pas être importé',
+    versionIncompat: 'Version de fichier incompatible',
+  },
+};
+```
+
+### Usage in components
+
+```typescript
+// In TournamentApp root
+const [lang, setLang] = useState<LangCode>(() => {
+  const saved = localStorage.getItem('mus-lang');
+  return (saved as LangCode) ?? 'es';
+});
+
+const t = translations[lang];
+
+// Persist on change
+useEffect(() => { localStorage.setItem('mus-lang', lang); }, [lang]);
+
+// Pass t down via props or React context (prefer context for deep trees)
+const I18nContext = React.createContext<Translations>(translations.es);
+```
+
+### Language selector UI
+
+Place a compact language picker in the **header**, top-right corner:
+
+```
+[🌐 ES ▼]   — dropdown: Español / Euskara / English / Français
+```
+
+Use flag emoji or ISO code labels. Switching language is instant (no reload needed).
+
+### i18n in exports
+
+Exported files always use **neutral field names** in English (JSON keys, CSV headers, Excel column names) regardless of the UI language — so files are interoperable across language settings. The UI language is stored as a `lang` field in the JSON/CSV/XLSX metadata but does not affect parsing.
+
+```typescript
+// In TournamentExport:
+lang: LangCode;   // informational only — not used for import logic
+```
+
+### Extensibility
+
+To add a new language, add one entry to `translations` with the new `LangCode` and add the code to the `LangCode` union type and the language picker dropdown. No other changes needed.
+
+---
+
+
+
+---
+
 ## Key UX Rules
 
 1. **No page scroll** — everything fits in viewport. Bracket section scrolls horizontally if wide.
 2. **Bracket is revealed immediately** after clicking "Crear torneo" — including preliminary phase.
 3. **bestOf is locked** once the bracket is generated — shown as a permanent badge `🔒 Al mejor de 5` in the header.
 4. **Result entry** — each match card shows two number inputs (one per pair). Submission validates the score against `isValidScore`. Error shown inline with the expected valid range.
-5. **Score correction** — completed matches have an ✏️ button. Editing clears all downstream matches that depended on that result, requiring re-entry. A confirmation dialog warns: *"Editar este resultado borrará los resultados dependientes. ¿Continuar?"*
+5. **Score correction** — completed matches have an ✏️ button. Editing clears all downstream matches. A confirmation dialog warns the user (text from `t.editWarning`).
 6. **BYE handling** — auto-advance silently, never show BYE in final bracket if possible. No score shown on BYE matches.
 7. **Reset button** — appears after tournament is generated; resets to entry phase (keeps pairs and bestOf selection).
 8. **Seed display** — show the entropy seed as a small hex number for provenance (e.g., `#3f2a91b`).
+9. **Language** — all UI text goes through `t.*` translation keys, never hardcoded strings. Language switch is instant.
 
 ---
 
@@ -1318,16 +1782,19 @@ Show a small **🔒 Firmado criptográficamente** badge next to the export butto
 - [ ] **Fees & Prizes**: `thirdPlaceShared` option to split 3rd+4th prize equally
 - [ ] **Fees & Prizes**: Podium view shown when tournament finishes — staggered animation 4th→1st
 - [ ] **Fees & Prizes**: Prize column hidden in podium if all prizes are 0
-- [ ] **Export**: JSON/CSV/Excel all include `prizeConfig` + `podium` in signed payload
-- [ ] **Export**: Excel adds a 3rd sheet "Premios" with prize breakdown per finisher
-- [ ] **Export**: JSON export with `bestOf` + full `score` per match + HMAC-SHA256 signature
-- [ ] **Export**: CSV export — 8-column format with `score1`/`score2` columns + `#META bestOf` row
-- [ ] **Export**: Excel (.xlsx) — *Victorias P1* / *Victorias P2* columns + `bestOf` in Metadatos sheet
-- [ ] **Import**: File picker accepting `.json`, `.csv`, `.xlsx` — auto-detects format
-- [ ] **Import**: `verifyAndImport` rejects tampered files with clear Spanish error message
-- [ ] **Import**: On success, restores `bestOf` and all match scores — tournament resumes from saved point
+- [ ] **Export (full)**: JSON/CSV/Excel all include `prizeConfig` + `podium` + `lang` in signed payload
+- [ ] **Export (full)**: Excel adds sheets "Premios" + "Metadatos" with full breakdown; HMAC-SHA256 signed
+- [ ] **Export (pairs-only)**: Separate button always visible when `pairs.length >= 1`
+- [ ] **Export (pairs-only)**: Three formats (JSON `pairs-1`, CSV, Excel) — unsigned, lightweight
+- [ ] **Import**: Auto-detects full vs pairs-only from `version` field / presence of `#SIG`
+- [ ] **Import (full)**: Rejects tampered files with `t.signatureInvalid` error; restores complete state
+- [ ] **Import (pairs-only)**: Offers merge-or-replace dialog (`t.mergeOrReplace`); never touches bracket/score/prize state
 - [ ] **Crypto**: Key derived from seed via HMAC-SHA256 (Web Crypto API, no server)
 - [ ] **Crypto**: Canonical payload with sorted keys signed — not the full file
+- [ ] **i18n**: `translations` object with `es`, `eu`, `en`, `fr` entries covering ALL UI strings
+- [ ] **i18n**: Language picker in header (🌐 dropdown) — instant switch, persisted in `localStorage`
+- [ ] **i18n**: No hardcoded UI strings — all through `t.*` keys via React context
+- [ ] **i18n**: Export field names always in English regardless of UI language; `lang` stored as metadata
 - [ ] **Design**: Distinctive aesthetic direction chosen and executed (NOT generic dark dashboard)
 - [ ] **Design**: Characterful display font paired with refined body font (NOT Inter/Roboto alone)
 - [ ] **Design**: CSS variables for all colors in `@theme {}` block

@@ -28,6 +28,7 @@ import {
   type TournamentState,
 } from '../lib/tournament';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { DEFAULT_LANG, LANGUAGES, t as tr, type Lang } from '../lib/i18n';
 
 type ExportFormat = 'json' | 'csv' | 'xlsx';
 type BestOfMode = 'preset' | 'custom';
@@ -35,6 +36,7 @@ type AutoSplitPreset = '50-30-15-5' | '40-30-20-10' | '60-25-10-5' | 'custom';
 
 interface EntropyMeterProps {
   score: number;
+  lang: Lang;
 }
 
 interface MatchCardProps {
@@ -42,12 +44,14 @@ interface MatchCardProps {
   bestOf: number;
   onResult: (matchId: string, score1: number, score2: number) => void;
   onEdit: (matchId: string) => void;
+  lang: Lang;
 }
 
 interface PodiumViewProps {
   podium: Podium;
   prizeConfig: PrizeConfig;
   pairCount: number;
+  lang: Lang;
 }
 
 function currencySymbol(currency: string): string {
@@ -75,21 +79,21 @@ function presetToPercentages(preset: AutoSplitPreset): [number, number, number, 
   return [50, 30, 15, 5];
 }
 
-function EntropyMeter({ score }: EntropyMeterProps) {
+function EntropyMeter({ score, lang }: EntropyMeterProps) {
   const clamped = Math.max(0, Math.min(100, score));
 
   const label =
     clamped >= 100
-      ? 'Máxima - ¡Perfecto!'
+      ? tr(lang, 'entropy.labels.max')
       : clamped >= 80
-        ? 'Muy alta'
+        ? tr(lang, 'entropy.labels.veryHigh')
         : clamped >= 60
-          ? 'Alta'
+          ? tr(lang, 'entropy.labels.high')
           : clamped >= 40
-            ? 'Media'
+            ? tr(lang, 'entropy.labels.medium')
             : clamped >= 20
-              ? 'Baja'
-              : 'Sin aleatoriedad';
+              ? tr(lang, 'entropy.labels.low')
+              : tr(lang, 'entropy.labels.none');
 
   const barColor =
     clamped >= 100
@@ -107,7 +111,7 @@ function EntropyMeter({ score }: EntropyMeterProps) {
   return (
     <div className="entropy-meter">
       <div className="entropy-header flex items-center justify-between gap-2">
-        <span className="entropy-title">Nivel de aleatoriedad</span>
+        <span className="entropy-title">{tr(lang, 'entropy.title')}</span>
         <span className="entropy-pct">{clamped}%</span>
       </div>
       <div className="entropy-track" aria-hidden="true">
@@ -129,14 +133,14 @@ function EntropyMeter({ score }: EntropyMeterProps) {
       </div>
       <p className="entropy-label">{label}</p>
       {clamped < 60 && (
-        <p className="entropy-hint">Mueve el ratón y pulsa teclas para un sorteo más seguro.</p>
+        <p className="entropy-hint">{tr(lang, 'entropy.hintKeyboard')}</p>
       )}
-      {clamped >= 80 && <p className="entropy-secure">🛡 Sorteo seguro</p>}
+      {clamped >= 80 && <p className="entropy-secure">{tr(lang, 'entropy.hint')}</p>}
     </div>
   );
 }
 
-function MatchCard({ match, bestOf, onResult, onEdit }: MatchCardProps) {
+function MatchCard({ match, bestOf, onResult, onEdit, lang }: MatchCardProps) {
   const winsNeeded = Math.ceil(bestOf / 2);
   const isBye = (match.pair1 && !match.pair2) || (!match.pair1 && match.pair2);
   const isDone = Boolean(match.winner && match.score);
@@ -163,11 +167,11 @@ function MatchCard({ match, bestOf, onResult, onEdit }: MatchCardProps) {
     const parsed2 = Number.parseInt(score2, 10);
 
     if (Number.isNaN(parsed1) || Number.isNaN(parsed2)) {
-      setError('Debes introducir dos números.');
+      setError(tr(lang, 'match.error.nan'));
       return;
     }
     if (!isValidScore(parsed1, parsed2, bestOf)) {
-      setError(`Marcador inválido para mejor de ${bestOf}. Debe ganar a ${winsNeeded}.`);
+      setError(tr(lang, 'match.error.invalidScore', { bestOf, winsNeeded } as any));
       return;
     }
 
@@ -175,7 +179,7 @@ function MatchCard({ match, bestOf, onResult, onEdit }: MatchCardProps) {
       onResult(match.id, parsed1, parsed2);
       setError('');
     } catch {
-      setError('No se pudo registrar el resultado.');
+      setError(tr(lang, 'match.error.registerFail'));
     }
   };
 
@@ -183,7 +187,7 @@ function MatchCard({ match, bestOf, onResult, onEdit }: MatchCardProps) {
     <article className={cardClass}>
       <div className="mb-2 flex items-center justify-between gap-2">
         <span className="text-xs uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
-          {match.isPrelim ? 'Previa' : `Ronda ${match.round}`}
+          {match.isPrelim ? tr(lang, 'match.prelimLabel') : tr(lang, 'match.roundLabel', { round: match.round } as any)}
         </span>
         <span
           className="rounded px-2 py-0.5 text-[0.7rem]"
@@ -193,13 +197,13 @@ function MatchCard({ match, bestOf, onResult, onEdit }: MatchCardProps) {
             color: 'var(--color-accent)',
           }}
         >
-          BO{bestOf}
+          {tr(lang, 'match.boBadge', { bestOf } as any)}
         </span>
       </div>
 
       {isLockedNoParticipants && (
         <div className="rounded border border-dashed p-3 text-center text-sm" style={{ borderColor: 'var(--color-border)' }}>
-          Pendiente de clasificados...
+          {tr(lang, 'match.pending')}
         </div>
       )}
 
@@ -208,9 +212,9 @@ function MatchCard({ match, bestOf, onResult, onEdit }: MatchCardProps) {
           <div className="rounded px-2 py-1 text-sm" style={{ background: 'var(--color-surface2)' }}>
             {match.pair1 ?? match.pair2}
           </div>
-          <div className="vs-label">BYE</div>
+          <div className="vs-label">{tr(lang, 'bye')}</div>
           <div className="rounded px-2 py-1 text-xs" style={{ background: 'var(--color-border)' }}>
-            Pasa automáticamente a la siguiente ronda.
+            {tr(lang, 'match.byeInfo')}
           </div>
         </div>
       )}
@@ -223,19 +227,19 @@ function MatchCard({ match, bestOf, onResult, onEdit }: MatchCardProps) {
               <strong>{match.score?.score1}</strong>
             </div>
           </div>
-          <div className="vs-label">VS</div>
+              <div className="vs-label">{tr(lang, 'match.vs')}</div>
           <div className={match.winner === match.pair2 ? 'winner' : 'loser'}>
             <div className="flex items-center justify-between gap-2">
               <span className="truncate">{match.pair2}</span>
               <strong>{match.score?.score2}</strong>
             </div>
           </div>
-          <button
+              <button
             type="button"
             className="edit-button"
             onClick={() => onEdit(match.id)}
-            aria-label="Editar resultado"
-            title="Editar resultado"
+                aria-label={tr(lang, 'match.editAria')}
+                title={tr(lang, 'match.editAria')}
           >
             ✏️
           </button>
@@ -247,31 +251,31 @@ function MatchCard({ match, bestOf, onResult, onEdit }: MatchCardProps) {
           <div className="rounded px-2 py-1 text-sm" style={{ background: 'var(--color-surface2)' }}>
             {match.pair1}
           </div>
-          <div className="vs-label">VS</div>
+          <div className="vs-label">{tr(lang, 'match.vs')}</div>
           <div className="rounded px-2 py-1 text-sm" style={{ background: 'var(--color-surface2)' }}>
             {match.pair2}
           </div>
           <div className="flex items-center justify-between gap-2">
-            <input
+                <input
               type="number"
               min={0}
               max={winsNeeded}
               className="score-input"
               value={score1}
               onChange={(e) => setScore1(e.target.value)}
-              placeholder="0"
+                  placeholder={tr(lang, 'match.placeholderScore')}
             />
             <span className="text-xs uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
               -
             </span>
-            <input
+                <input
               type="number"
               min={0}
               max={winsNeeded}
               className="score-input"
               value={score2}
               onChange={(e) => setScore2(e.target.value)}
-              placeholder="0"
+                  placeholder={tr(lang, 'match.placeholderScore')}
             />
             <button
               type="button"
@@ -279,7 +283,7 @@ function MatchCard({ match, bestOf, onResult, onEdit }: MatchCardProps) {
               style={{ borderColor: 'var(--color-accent)', color: 'var(--color-accent)' }}
               onClick={submitScore}
             >
-              Confirmar
+                  {tr(lang, 'button.confirm')}
             </button>
           </div>
           {error && <p className="score-error">{error}</p>}
@@ -289,7 +293,7 @@ function MatchCard({ match, bestOf, onResult, onEdit }: MatchCardProps) {
   );
 }
 
-function PodiumView({ podium, prizeConfig, pairCount }: PodiumViewProps) {
+function PodiumView({ podium, prizeConfig, pairCount, lang }: PodiumViewProps) {
   const pool = prizePool(prizeConfig.entryFee, pairCount);
   const rows: Array<{
     key: 'fourth' | 'third' | 'second' | 'first';
@@ -301,7 +305,7 @@ function PodiumView({ podium, prizeConfig, pairCount }: PodiumViewProps) {
   }> = [
     {
       key: 'fourth',
-      label: '4º puesto',
+      label: tr(lang, 'podium.labels.fourth'),
       name: podium.fourth,
       prize: prizeConfig.prizes[3],
       className: 'podium-row podium-row--fourth',
@@ -309,7 +313,7 @@ function PodiumView({ podium, prizeConfig, pairCount }: PodiumViewProps) {
     },
     {
       key: 'third',
-      label: prizeConfig.thirdPlaceShared ? '3º/4º compartido' : '3º puesto',
+      label: prizeConfig.thirdPlaceShared ? tr(lang, 'podium.labels.thirdShared') : tr(lang, 'podium.labels.third'),
       name: podium.third,
       prize: prizeConfig.prizes[2],
       className: 'podium-row podium-row--third',
@@ -317,7 +321,7 @@ function PodiumView({ podium, prizeConfig, pairCount }: PodiumViewProps) {
     },
     {
       key: 'second',
-      label: '2º puesto',
+      label: tr(lang, 'podium.labels.second'),
       name: podium.second,
       prize: prizeConfig.prizes[1],
       className: 'podium-row podium-row--second',
@@ -325,7 +329,7 @@ function PodiumView({ podium, prizeConfig, pairCount }: PodiumViewProps) {
     },
     {
       key: 'first',
-      label: 'Campeón',
+      label: tr(lang, 'podium.labels.first'),
       name: podium.first,
       prize: prizeConfig.prizes[0],
       className: 'podium-row podium-row--first',
@@ -337,10 +341,10 @@ function PodiumView({ podium, prizeConfig, pairCount }: PodiumViewProps) {
     <section className="relative z-10 mx-auto max-w-3xl">
       <div className="mb-6 text-center">
         <h2 className="text-4xl uppercase tracking-widest" style={{ fontFamily: 'var(--font-display)', color: 'var(--color-accent)' }}>
-          Torneo finalizado
+          {tr(lang, 'podium.title')}
         </h2>
         <p className="mt-2 text-sm" style={{ color: 'var(--color-text-muted)' }}>
-          Bote total: {pool} {currencySymbol(prizeConfig.currency)}
+          {tr(lang, 'podium.pool', { pool, currency: currencySymbol(prizeConfig.currency) } as any)}
         </p>
       </div>
 
@@ -370,11 +374,14 @@ function PodiumView({ podium, prizeConfig, pairCount }: PodiumViewProps) {
                     </p>
                   </div>
                 </div>
-                {row.prize > 0 && (
-                  <p className="text-xl" style={{ fontFamily: 'var(--font-display)', color: 'var(--color-accent)' }}>
+                <div className="flex items-center justify-between gap-2">
+                  <h2 className="text-sm uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
+                    {tr(lang, 'fees.title')}
+                  </h2>
+                  <div>
                     {row.prize} {currencySymbol(prizeConfig.currency)}
-                  </p>
-                )}
+                  </div>
+                </div>
               </div>
             </div>
           ))}
@@ -432,17 +439,46 @@ function collectMatchesFromXlsxRows(
   const prelim: Match[] = [];
   const roundsByRound = new Map<number, Match[]>();
 
+  const alt = (keys: string[]) => {
+    return (r: Record<string, unknown>) => {
+      for (const k of keys) {
+        if (k in r && r[k] != null) return String(r[k]).trim();
+      }
+      // fallback: try case-insensitive match
+      const lower = Object.keys(r).reduce<Record<string, string>>((acc, p) => {
+        acc[p.toLowerCase()] = String(r[p] ?? '').trim();
+        return acc;
+      }, {});
+      for (const k of keys) {
+        const lk = k.toLowerCase();
+        if (lk in lower && lower[lk]) return lower[lk];
+      }
+      return '';
+    };
+  };
+
+  const phaseGetter = alt([
+    'Fase', 'fase', 'Fasea', tr('es', 'export.csvHeaders.phase'), tr('en', 'export.csvHeaders.phase'), tr('fr', 'export.csvHeaders.phase'), tr('eu', 'export.csvHeaders.phase'),
+  ]);
+  const roundGetter = alt(['Ronda', 'ronda', 'Txanda', tr('es', 'export.csvHeaders.round'), tr('en', 'export.csvHeaders.round'), tr('fr', 'export.csvHeaders.round'), tr('eu', 'export.csvHeaders.round')]);
+  const matchGetter = alt(['Partida', 'partida', tr('es', 'export.csvHeaders.match'), tr('en', 'export.csvHeaders.match'), tr('fr', 'export.csvHeaders.match'), tr('eu', 'export.csvHeaders.match')]);
+  const pair1Getter = alt(['Pareja 1', 'pareja1', 'Bikotea 1', tr('es', 'export.csvHeaders.pair1'), tr('en', 'export.csvHeaders.pair1'), tr('fr', 'export.csvHeaders.pair1'), tr('eu', 'export.csvHeaders.pair1')]);
+  const pair2Getter = alt(['Pareja 2', 'pareja2', 'Bikotea 2', tr('es', 'export.csvHeaders.pair2'), tr('en', 'export.csvHeaders.pair2'), tr('fr', 'export.csvHeaders.pair2'), tr('eu', 'export.csvHeaders.pair2')]);
+  const s1Getter = alt(['Victorias P1', 'victorias p1', 'Victorias P1', tr('es', 'export.csvHeaders.victories1'), tr('en', 'export.csvHeaders.victories1'), tr('fr', 'export.csvHeaders.victories1'), tr('eu', 'export.csvHeaders.victories1')]);
+  const s2Getter = alt(['Victorias P2', 'victorias p2', tr('es', 'export.csvHeaders.victories2'), tr('en', 'export.csvHeaders.victories2'), tr('fr', 'export.csvHeaders.victories2'), tr('eu', 'export.csvHeaders.victories2')]);
+  const winnerGetter = alt(['Ganador', 'ganador', 'Irabazlea', tr('es', 'export.csvHeaders.winner'), tr('en', 'export.csvHeaders.winner'), tr('fr', 'export.csvHeaders.winner'), tr('eu', 'export.csvHeaders.winner')]);
+
   for (const row of rows) {
-    const phaseRaw = String(row.Fase ?? row.fase ?? '').trim();
+    const phaseRaw = phaseGetter(row);
     if (!phaseRaw) continue;
 
-    const roundNum = Number.parseInt(String(row.Ronda ?? row.ronda ?? '0'), 10);
-    const matchNum = Number.parseInt(String(row.Partida ?? row.partida ?? '1'), 10) - 1;
-    const pair1Raw = String(row['Pareja 1'] ?? row.pareja1 ?? 'BYE').trim();
-    const pair2Raw = String(row['Pareja 2'] ?? row.pareja2 ?? 'BYE').trim();
-    const s1Raw = String(row['Victorias P1'] ?? row.score1 ?? '').trim();
-    const s2Raw = String(row['Victorias P2'] ?? row.score2 ?? '').trim();
-    const winnerRaw = String(row.Ganador ?? row.ganador ?? '').trim();
+    const roundNum = Number.parseInt(String(roundGetter(row) || '0'), 10);
+    const matchNum = Number.parseInt(String(matchGetter(row) || '1'), 10) - 1;
+    const pair1Raw = String(pair1Getter(row) || 'BYE').trim();
+    const pair2Raw = String(pair2Getter(row) || 'BYE').trim();
+    const s1Raw = String(s1Getter(row) || '').trim();
+    const s2Raw = String(s2Getter(row) || '').trim();
+    const winnerRaw = String(winnerGetter(row) || '').trim();
 
     const score1 = s1Raw === '' ? undefined : Number.parseInt(s1Raw, 10);
     const score2 = s2Raw === '' ? undefined : Number.parseInt(s2Raw, 10);
@@ -554,6 +590,15 @@ function autoAdvanceByesInState(initial: TournamentState): TournamentState {
 }
 
 export default function TournamentApp() {
+  const [lang, setLang] = useState<import('../lib/i18n').Lang>(() => {
+    try {
+      const stored = typeof window !== 'undefined' ? window.localStorage.getItem('museko:lang') : null;
+      if (stored && ['es', 'en', 'fr', 'eu'].includes(stored)) return stored as any;
+    } catch (e) {
+      // noop
+    }
+    return DEFAULT_LANG;
+  });
   const entropyRef = useRef<EntropyEvent[]>([]);
   const [entropyScore, setEntropyScore] = useState(0);
   const lastKeyTsRef = useRef(0);
@@ -604,6 +649,11 @@ export default function TournamentApp() {
   }, [bestOf, bestOfMode, customBestOf]);
 
   useEffect(() => {
+    try {
+      if (typeof window !== 'undefined') window.localStorage.setItem('museko:lang', lang);
+    } catch (e) {
+      // ignore
+    }
     const handleKeydown = (e: KeyboardEvent) => {
       const now = Date.now();
       entropyRef.current.push({
@@ -652,13 +702,13 @@ export default function TournamentApp() {
     const name2 = input2.trim();
 
     if (!name1 || !name2) {
-      setPairError('Debes introducir los dos nombres de la pareja.');
+      setPairError(tr(lang, 'pairs.error.emptyNames'));
       return;
     }
 
     const pairName = `${name1} / ${name2}`;
     if (pairs.includes(pairName)) {
-      setPairError('Esa pareja ya está registrada.');
+      setPairError(tr(lang, 'pairs.error.duplicate'));
       return;
     }
 
@@ -707,7 +757,7 @@ export default function TournamentApp() {
   const createTournament = useCallback(() => {
     setFormatError('');
     if (pairs.length < 2) {
-      setPairError('Necesitas al menos 2 parejas para crear el torneo.');
+      setPairError(tr(lang, 'create.needPairs'));
       return;
     }
 
@@ -715,7 +765,7 @@ export default function TournamentApp() {
     const seed = deriveSeed(entropyRef.current);
 
     if (!isValidBestOf(actualBestOf)) {
-      setFormatError('El formato personalizado debe ser impar y mayor que 0.');
+                  setFormatError(tr(lang, 'format.invalidCustom'));
       return;
     }
 
@@ -740,7 +790,7 @@ export default function TournamentApp() {
   const handleEdit = useCallback(
     (matchId: string) => {
       if (!tournament) return;
-      if (!window.confirm('Editar este resultado borrará los resultados dependientes. ¿Continuar?')) return;
+      if (!window.confirm(tr(lang, 'match.confirmEdit'))) return;
       const newState = clearDownstream(tournament, matchId);
       setTournament(newState);
     },
@@ -768,7 +818,16 @@ export default function TournamentApp() {
     const wb = XLSX.utils.book_new();
 
     const matchRows: Array<Array<string | number>> = [
-      ['Fase', 'Ronda', 'Partida', 'Pareja 1', 'Pareja 2', 'Victorias P1', 'Victorias P2', 'Ganador'],
+      [
+        tr(lang, 'export.csvHeaders.phase'),
+        tr(lang, 'export.csvHeaders.round'),
+        tr(lang, 'export.csvHeaders.match'),
+        tr(lang, 'export.csvHeaders.pair1'),
+        tr(lang, 'export.csvHeaders.pair2'),
+        tr(lang, 'export.csvHeaders.victories1'),
+        tr(lang, 'export.csvHeaders.victories2'),
+        tr(lang, 'export.csvHeaders.winner'),
+      ],
       ...signed.prelim.map((m, i) => [
         'Previa',
         0,
@@ -792,7 +851,7 @@ export default function TournamentApp() {
         ])
       ),
     ];
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(matchRows), 'Partidas');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(matchRows), tr(lang, 'export.xlsx.matches'));
 
     const metaRows: Array<[string, string | number]> = [
       ['Campo', 'Valor'],
@@ -807,18 +866,18 @@ export default function TournamentApp() {
       ['podium', JSON.stringify(signed.podium ?? null)],
       ['signature', signed.signature],
     ];
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(metaRows), 'Metadatos');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(metaRows), tr(lang, 'export.xlsx.meta'));
 
     const prizeRows: Array<[string, string | number]> = [
-      ['Campo', 'Valor'],
-      ['Cuota por pareja', `${signed.prizeConfig.entryFee} ${currencySymbol(signed.prizeConfig.currency)}`],
-      ['Bote total', `${prizePool(signed.prizeConfig.entryFee, signed.pairs.length)} ${currencySymbol(signed.prizeConfig.currency)}`],
-      ['1er premio', `${signed.prizeConfig.prizes[0]} ${currencySymbol(signed.prizeConfig.currency)}`],
-      ['2º premio', `${signed.prizeConfig.prizes[1]} ${currencySymbol(signed.prizeConfig.currency)}`],
-      ['3er premio', `${signed.prizeConfig.prizes[2]} ${currencySymbol(signed.prizeConfig.currency)}`],
-      ['4º premio', `${signed.prizeConfig.prizes[3]} ${currencySymbol(signed.prizeConfig.currency)}`],
+      [tr(lang, 'export.sheet.field'), tr(lang, 'export.sheet.value')],
+      [tr(lang, 'fees.entryFee'), `${signed.prizeConfig.entryFee} ${currencySymbol(signed.prizeConfig.currency)}`],
+      [tr(lang, 'fees.pool'), `${prizePool(signed.prizeConfig.entryFee, signed.pairs.length)} ${currencySymbol(signed.prizeConfig.currency)}`],
+      [tr(lang, 'export.prize.first'), `${signed.prizeConfig.prizes[0]} ${currencySymbol(signed.prizeConfig.currency)}`],
+      [tr(lang, 'export.prize.second'), `${signed.prizeConfig.prizes[1]} ${currencySymbol(signed.prizeConfig.currency)}`],
+      [tr(lang, 'export.prize.third'), `${signed.prizeConfig.prizes[2]} ${currencySymbol(signed.prizeConfig.currency)}`],
+      [tr(lang, 'export.prize.fourth'), `${signed.prizeConfig.prizes[3]} ${currencySymbol(signed.prizeConfig.currency)}`],
     ];
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(prizeRows), 'Premios');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(prizeRows), tr(lang, 'export.xlsx.prizes'));
 
     const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     downloadBlob(
@@ -841,18 +900,19 @@ export default function TournamentApp() {
           const buffer = await file.arrayBuffer();
           const wb = XLSX.read(buffer);
 
-          const metaSheet = wb.Sheets.Metadatos;
-          const matchSheet = wb.Sheets.Partidas;
+          const metaSheet = wb.Sheets.Metadata || wb.Sheets.Metadatos || wb.Sheets.Meta || wb.Sheets.Metadatuak || wb.Sheets['Metadonnées'];
+          const matchSheet = wb.Sheets.Matches || wb.Sheets.Partidas || wb.Sheets.Matchs || wb.Sheets.Partidak;
           if (!metaSheet || !matchSheet) {
-            throw new Error('Faltan hojas obligatorias: "Metadatos" o "Partidas".');
+            throw new Error(tr(lang, 'import.missingSheets'));
           }
 
           const metaRows = XLSX.utils.sheet_to_json<Array<string | number>>(metaSheet, { header: 1 });
           const meta: Record<string, string> = {};
+          const headerNames = new Set([ 'Campo', 'Field', 'Champ', 'Eremua', tr(lang, 'export.sheet.field') ]);
           for (const row of metaRows) {
             const field = row[0];
             const value = row[1];
-            if (!field || String(field) === 'Campo') continue;
+            if (!field || headerNames.has(String(field))) continue;
             meta[String(field)] = String(value ?? '');
           }
 
@@ -889,7 +949,7 @@ export default function TournamentApp() {
             sigBytes,
             new TextEncoder().encode(canonical)
           );
-          if (!valid) throw new Error('Firma inválida. El archivo XLSX fue alterado.');
+          if (!valid) throw new Error(tr(lang, 'import.invalidSignature.xlsx'));
 
           state = buildStateFromVerifiedExport({ ...payload, signature });
         } else if (file.name.endsWith('.csv')) {
@@ -932,7 +992,7 @@ export default function TournamentApp() {
         setCustomBestOf([3, 5, 7, 9].includes(withByes.bestOf) ? '' : String(withByes.bestOf));
         setPrizeConfig(withByes.prizeConfig);
       } catch (err: unknown) {
-        setImportError(err instanceof Error ? err.message : 'Error al importar archivo.');
+        setImportError(err instanceof Error ? err.message : tr(lang, 'error.importFile'));
       }
 
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -941,14 +1001,14 @@ export default function TournamentApp() {
   );
 
   const resetTournament = useCallback(() => {
-    if (!window.confirm('¿Reiniciar el torneo? Se perderán todos los resultados.')) return;
+    if (!window.confirm(tr(lang, 'confirmReset'))) return;
     setTournament(null);
-  }, []);
+  }, [lang]);
 
   return (
     <div className="flex h-full min-h-0 flex-col">
       <header
-        className="app-header h-14 flex items-center px-6 border-b"
+            className="app-header h-14 flex items-center px-6 border-b"
         style={{ borderColor: 'var(--color-border)' }}
       >
         <h1
@@ -959,22 +1019,45 @@ export default function TournamentApp() {
             letterSpacing: '0.1em',
           }}
         >
-          TORNEO DE MUS
+              {tr(lang, 'header.title')}
         </h1>
         <div className="ml-auto flex items-center gap-4">
           {tournament && (
             <>
               <span className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
-                Seed: #{tournament.seed.toString(16)}
+                {tr(lang, 'seed')}: #{tournament.seed.toString(16)}
               </span>
               <span
                 className="text-sm px-2 py-1 rounded"
                 style={{ background: 'var(--color-surface2)', color: 'var(--color-accent)' }}
               >
-                🔒 Al mejor de {tournament.bestOf}
+                {tr(lang, 'bestOfBadge', { bestOf: tournament.bestOf })}
               </span>
             </>
           )}
+          <div className="ml-2 flex items-center gap-2">
+            <label className="sr-only">{tr(lang, 'ui.language')}</label>
+            <select
+              aria-label={tr(lang, 'ui.language')}
+              data-testid="header-lang-select"
+              className="form-input text-sm"
+              value={lang}
+              onChange={(e) => setLang(e.target.value as any)}
+            >
+              {LANGUAGES.map((l) => (
+                <option key={l.code} value={l.code}>{l.label}</option>
+              ))}
+            </select>
+            <label className="sr-only">{tr(lang, 'importLabel')}</label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              data-testid="header-import"
+              className="form-input" 
+              onChange={handleImport}
+              accept=".json,.csv,.xlsx"
+            />
+          </div>
         </div>
       </header>
 
@@ -983,30 +1066,22 @@ export default function TournamentApp() {
           className="left-panel w-80 flex-shrink-0 overflow-y-auto p-4 border-r"
           style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
         >
-          <section className="mb-5 space-y-2">
-            <h2 className="text-sm uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
-              Importar
-            </h2>
-            <input
-              ref={fileInputRef}
-              type="file"
-              className="form-input"
-              onChange={handleImport}
-              accept=".json,.csv,.xlsx"
-            />
-            {importError && <p className="score-error">{importError}</p>}
-          </section>
+          {importError && (
+            <section className="mb-5">
+              <p className="score-error">{importError}</p>
+            </section>
+          )}
 
           {!tournament && (
             <section className="mb-5 space-y-2">
               <h2 className="text-sm uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
-                Añadir pareja
+                {tr(lang, 'addPair.title')}
               </h2>
               <input
                 ref={input1Ref}
                 type="text"
                 className="form-input"
-                placeholder="Jugador 1"
+                placeholder={tr(lang, 'addPair.placeholder1')}
                 value={input1}
                 onChange={(e) => setInput1(e.target.value)}
                 onKeyDown={(e) => {
@@ -1016,7 +1091,7 @@ export default function TournamentApp() {
               <input
                 type="text"
                 className="form-input"
-                placeholder="Jugador 2"
+                placeholder={tr(lang, 'addPair.placeholder2')}
                 value={input2}
                 onChange={(e) => setInput2(e.target.value)}
                 onKeyDown={(e) => {
@@ -1024,7 +1099,7 @@ export default function TournamentApp() {
                 }}
               />
               <button type="button" className="btn-primary w-full" onClick={addPair}>
-                Añadir pareja
+                {tr(lang, 'addPair.addButton')}
               </button>
               {pairError && <p className="score-error">{pairError}</p>}
             </section>
@@ -1033,9 +1108,9 @@ export default function TournamentApp() {
           <section className="mb-5 space-y-2">
             <div className="flex items-center justify-between gap-2">
               <h2 className="text-sm uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
-                Parejas ({pairs.length})
-              </h2>
-              {pairs.length > 0 && !tournament && (
+                  {tr(lang, 'pairs.title')} ({pairs.length})
+                </h2>
+                {pairs.length > 0 && !tournament && (
                 <button
                   type="button"
                   className="text-xs uppercase tracking-widest"
@@ -1045,14 +1120,14 @@ export default function TournamentApp() {
                     setPairError('');
                   }}
                 >
-                  Vaciar
+                  {tr(lang, 'pairs.clear')}
                 </button>
               )}
             </div>
             <div className="max-h-44 overflow-y-auto pr-1">
               {pairs.length === 0 ? (
                 <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
-                  Aún no hay parejas inscritas.
+                  {tr(lang, 'pairs.empty')}
                 </p>
               ) : (
                 pairs.map((pair, idx) => (
@@ -1065,7 +1140,7 @@ export default function TournamentApp() {
                         className="text-xs uppercase tracking-widest"
                         style={{ color: '#ef4444' }}
                       >
-                        Quitar
+                        {tr(lang, 'pairs.remove')}
                       </button>
                     )}
                   </div>
@@ -1082,7 +1157,7 @@ export default function TournamentApp() {
               onClick={() => setShowPrizes((prev) => !prev)}
             >
               <span className="text-sm uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
-                Cuotas y premios
+                {tr(lang, 'fees.title')}
               </span>
               <span>{showPrizes ? '−' : '+'}</span>
             </button>
@@ -1091,7 +1166,7 @@ export default function TournamentApp() {
               <div className="mt-3 space-y-3 rounded border p-3" style={{ borderColor: 'var(--color-border)' }}>
                 <label className="block space-y-1">
                   <span className="text-xs uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
-                    Cuota por pareja
+                    {tr(lang, 'fees.entryFee')}
                   </span>
                   <input
                     type="number"
@@ -1112,7 +1187,7 @@ export default function TournamentApp() {
                   />
                 </label>
 
-                <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     className="rounded border px-2 py-1 text-xs uppercase tracking-widest"
@@ -1123,7 +1198,7 @@ export default function TournamentApp() {
                     disabled={Boolean(tournament)}
                     onClick={() => setPrizeMode('auto')}
                   >
-                    Auto
+                    {tr(lang, 'fees.auto')}
                   </button>
                   <button
                     type="button"
@@ -1135,14 +1210,14 @@ export default function TournamentApp() {
                     disabled={Boolean(tournament)}
                     onClick={() => setPrizeMode('manual')}
                   >
-                    Manual
+                    {tr(lang, 'fees.manual')}
                   </button>
                 </div>
 
                 {prizeConfig.prizeMode === 'auto' && (
                   <label className="block space-y-1">
                     <span className="text-xs uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
-                      Reparto automático
+                      {tr(lang, 'fees.autoSplit')}
                     </span>
                     <select
                       className="form-input"
@@ -1201,12 +1276,12 @@ export default function TournamentApp() {
                       setPrizeConfig((prev) => ({ ...prev, thirdPlaceShared: e.target.checked }));
                     }}
                   />
-                  3º puesto compartido
+                  {tr(lang, 'prizes.thirdPlaceShared')}
                 </label>
 
                 <label className="block space-y-1">
                   <span className="text-xs uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
-                    Moneda
+                    {tr(lang, 'fees.currency')}
                   </span>
                   <select
                     className="form-input"
@@ -1225,8 +1300,7 @@ export default function TournamentApp() {
 
                 <div className="rounded border px-3 py-2 text-sm" style={{ borderColor: 'var(--color-border)' }}>
                   <p style={{ color: 'var(--color-text-muted)' }}>
-                    Bote total: <strong style={{ color: 'var(--color-text)' }}>{poolAmount}</strong>{' '}
-                    {currencySymbol(prizeConfig.currency)}
+                    {tr(lang, 'fees.pool', { pool: poolAmount, currency: currencySymbol(prizeConfig.currency) } as any)}
                   </p>
                 </div>
               </div>
@@ -1235,7 +1309,7 @@ export default function TournamentApp() {
 
           <section className="mb-5 space-y-2">
             <h2 className="text-sm uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
-              Formato de partida
+              {tr(lang, 'format.title')}
             </h2>
             <select
               className="form-input"
@@ -1251,11 +1325,11 @@ export default function TournamentApp() {
                 setBestOf(Number.parseInt(e.target.value, 10));
               }}
             >
-              <option value="3">Al mejor de 3</option>
-              <option value="5">Al mejor de 5</option>
-              <option value="7">Al mejor de 7</option>
-              <option value="9">Al mejor de 9</option>
-              <option value="custom">Personalizado</option>
+              <option value="3">{tr(lang, 'format.options.3')}</option>
+              <option value="5">{tr(lang, 'format.options.5')}</option>
+              <option value="7">{tr(lang, 'format.options.7')}</option>
+              <option value="9">{tr(lang, 'format.options.9')}</option>
+              <option value="custom">{tr(lang, 'format.options.custom')}</option>
             </select>
 
             {bestOfMode === 'custom' && (
@@ -1273,39 +1347,39 @@ export default function TournamentApp() {
                     return;
                   }
                   const parsed = Number.parseInt(e.target.value, 10);
-                  setFormatError(isValidBestOf(parsed) ? '' : 'Debe ser un número impar mayor que 0.');
+                  setFormatError(isValidBestOf(parsed) ? '' : tr(lang, 'format.invalidCustom'));
                 }}
-                placeholder="Ejemplo: 11"
+                placeholder={tr(lang, 'format.customPlaceholder')}
               />
             )}
 
             {formatError && <p className="score-error">{formatError}</p>}
           </section>
 
-          {!tournament && <EntropyMeter score={entropyScore} />}
+          {!tournament && <EntropyMeter score={entropyScore} lang={lang} />}
 
           {!tournament && (
             <button type="button" className="btn-primary w-full" onClick={createTournament}>
-              Crear torneo
+              {tr(lang, 'create.label')}
             </button>
           )}
 
           {tournament && (
             <section className="mt-5 space-y-3">
               <h2 className="text-sm uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
-                Exportar
+                {tr(lang, 'export.title')}
               </h2>
               <select
                 className="form-input"
                 value={exportFormat}
                 onChange={(e) => setExportFormat(e.target.value as ExportFormat)}
               >
-                <option value="json">JSON firmado</option>
-                <option value="csv">CSV firmado</option>
-                <option value="xlsx">XLSX</option>
+                <option value="json">{tr(lang, 'export.option.json')}</option>
+                <option value="csv">{tr(lang, 'export.option.csv')}</option>
+                <option value="xlsx">{tr(lang, 'export.option.xlsx')}</option>
               </select>
               <button type="button" className="btn-primary w-full" onClick={handleExport}>
-                Exportar torneo
+                {tr(lang, 'export.exportButton')}
               </button>
               <button
                 type="button"
@@ -1313,7 +1387,7 @@ export default function TournamentApp() {
                 style={{ borderColor: '#ef4444', color: '#ef4444' }}
                 onClick={resetTournament}
               >
-                Reiniciar torneo
+                {tr(lang, 'export.reset')}
               </button>
             </section>
           )}
@@ -1323,50 +1397,48 @@ export default function TournamentApp() {
           {!tournament ? (
             <section className="relative z-10 mx-auto max-w-3xl rounded border p-6" style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}>
               <h2 className="text-3xl uppercase tracking-widest" style={{ fontFamily: 'var(--font-display)', color: 'var(--color-accent)' }}>
-                Configura tu torneo
+                {tr(lang, 'setup.title')}
               </h2>
               <p className="mt-3 text-sm leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
-                Añade parejas en el panel izquierdo, define premios y formato, y después crea el cuadro.
-                El emparejamiento se realiza con una semilla basada en entropía de tus interacciones.
+                {tr(lang, 'setup.description')}
               </p>
               <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2">
                 <div className="rounded border p-3" style={{ borderColor: 'var(--color-border)' }}>
                   <p className="text-xs uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
-                    Ronda previa
+                    {tr(lang, 'prelim.card.prelimRound')}
                   </p>
                   <p className="text-lg">{calcPrelim.prelimMatches} partidas</p>
                 </div>
                 <div className="rounded border p-3" style={{ borderColor: 'var(--color-border)' }}>
                   <p className="text-xs uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
-                    Cuadro objetivo
+                    {tr(lang, 'prelim.card.target')}
                   </p>
                   <p className="text-lg">{calcPrelim.target} parejas</p>
                 </div>
                 <div className="rounded border p-3" style={{ borderColor: 'var(--color-border)' }}>
                   <p className="text-xs uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
-                    Pasan directas
+                    {tr(lang, 'prelim.card.byes')}
                   </p>
                   <p className="text-lg">{calcPrelim.byeCount}</p>
                 </div>
                 <div className="rounded border p-3" style={{ borderColor: 'var(--color-border)' }}>
                   <p className="text-xs uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
-                    Juegan previa
+                    {tr(lang, 'prelim.card.playPrelim')}
                   </p>
                   <p className="text-lg">{calcPrelim.prelimPairs}</p>
                 </div>
               </div>
             </section>
           ) : tournament.phase === 'finished' && tournament.podium ? (
-            <PodiumView podium={tournament.podium} prizeConfig={tournament.prizeConfig} pairCount={tournament.pairs.length} />
+            <PodiumView podium={tournament.podium} prizeConfig={tournament.prizeConfig} pairCount={tournament.pairs.length} lang={lang} />
           ) : (
             <section className="relative z-10 space-y-6">
               <div className="rounded border p-4" style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}>
                 <h2 className="text-sm uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
-                  Resumen del cuadro
+                  {tr(lang, 'summary.title')}
                 </h2>
                 <p className="mt-2 text-sm" style={{ color: 'var(--color-text-muted)' }}>
-                  Parejas: {tournament.pairs.length} | Formato: mejor de {tournament.bestOf} | Semilla: #
-                  {tournament.seed.toString(16)}
+                  {tr(lang, 'summary.line', { pairs: tournament.pairs.length, bestOf: tournament.bestOf, seed: tournament.seed.toString(16) } as any)}
                 </p>
               </div>
 
@@ -1376,7 +1448,7 @@ export default function TournamentApp() {
                     className="text-xl uppercase tracking-widest"
                     style={{ fontFamily: 'var(--font-display)', color: 'var(--color-accent)' }}
                   >
-                    Fase previa ({tournament.prelim.length} partidas)
+                    {tr(lang, 'phase.prelimTitle', { count: tournament.prelim.length } as any)}
                   </h3>
                   <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
                     {tournament.prelim.map((m) => (
@@ -1386,6 +1458,7 @@ export default function TournamentApp() {
                         bestOf={tournament.bestOf}
                         onResult={handleResult}
                         onEdit={handleEdit}
+                        lang={lang}
                       />
                     ))}
                   </div>
@@ -1397,22 +1470,22 @@ export default function TournamentApp() {
                   className="text-xl uppercase tracking-widest"
                   style={{ fontFamily: 'var(--font-display)', color: 'var(--color-accent)' }}
                 >
-                  Cuadro principal
+                  {tr(lang, 'bracket.title')}
                 </h3>
                 <div className="overflow-x-auto pb-4">
                   <div className="flex min-w-max items-start gap-8">
-                    {tournament.rounds.map((round, rIdx) => (
+                        {tournament.rounds.map((round, rIdx) => (
                       <div
                         key={`round-${rIdx}`}
                         className="flex flex-col justify-around"
                         style={{ gap: `${Math.pow(2, rIdx) * 2}rem` }}
                       >
-                        <h4 className="mb-1 text-center text-xs uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
-                          Round {rIdx + 1}
+                            <h4 className="mb-1 text-center text-xs uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
+                          {tr(lang, 'round.header', { n: rIdx + 1 } as any)}
                         </h4>
                         {round.map((m) => (
                           <div key={m.id} className="relative">
-                            <MatchCard match={m} bestOf={tournament.bestOf} onResult={handleResult} onEdit={handleEdit} />
+                            <MatchCard match={m} bestOf={tournament.bestOf} onResult={handleResult} onEdit={handleEdit} lang={lang} />
                             {rIdx < tournament.rounds.length - 1 && (
                               <div
                                 className="bracket-line-h"
