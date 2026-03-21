@@ -1,0 +1,36 @@
+{
+  "name": "museko-torneuna",
+  "type": "module",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "lint": "eslint . --ext .ts,.tsx,.astro",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "astro": "^5.0.0",
+    "@astrojs/react": "^4.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "@tailwindcss/vite": "^4.0.0",
+    "tailwindcss": "^4.0.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0",
+    "@testing-library/react": "^16.0.0",
+    "@testing-library/jest-dom": "^6.0.0",
+    "jsdom": "^25.0.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-astro": "^1.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint-plugin-react": "^7.37.0",
+    "eslint-plugin-react-hooks": "^5.0.0"
+  }
+}
