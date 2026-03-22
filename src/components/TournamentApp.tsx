@@ -29,6 +29,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DEFAULT_LANG, LANGUAGES, t as tr, type Lang } from '../lib/i18n';
 import EntropyMeter from './EntropyMeter';
 import BracketView from './BracketView';
+import AllRoundsView from './AllRoundsView';
 import useEntropy from '../hooks/useEntropy';
 import { currencySymbol, percentToPresetKey, presetToPercentages, type AutoSplitPreset } from '../lib/format';
 import PodiumView from './PodiumView';
@@ -280,6 +281,9 @@ function TournamentAppInner() {
   const [showPrizes, setShowPrizes] = useState(false);
 
   const [tournament, setTournament] = useState<TournamentState | null>(null);
+  const [viewMode, setViewMode] = useState<'bracket' | 'rounds'>('bracket');
+  const [viewFilter, setViewFilter] = useState<'all' | 'prelim' | number>('all');
+  const [cardsPerColumn, setCardsPerColumn] = useState<number>(4);
 
   const [importError, setImportError] = useState<string | null>(null);
   const [exportFormat, setExportFormat] = useState<ExportFormat>('json');
@@ -1082,7 +1086,7 @@ function TournamentAppInner() {
             <section className="relative z-10 space-y-6">
 
 
-              {tournament.prelim.length > 0 && (
+              {tournament.prelim.length > 0 && viewMode === 'bracket' && (
                 <PrelimGrid
                   matches={tournament.prelim}
                   bestOf={tournament.bestOf}
@@ -1092,6 +1096,7 @@ function TournamentAppInner() {
                   lang={lang}
                 />
               )}
+
               <div className="space-y-3">
                 <h3
                   className="text-xl uppercase tracking-widest"
@@ -1099,9 +1104,66 @@ function TournamentAppInner() {
                 >
                   {tr(lang, 'bracket.title')}
                 </h3>
-                <div className="overflow-x-auto pb-4">
-                  <BracketView rounds={tournament.rounds} bestOf={tournament.bestOf} allPairs={tournament.pairs} onResult={handleResult} onEdit={handleEdit} lang={lang} />
+
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm text-muted">Vista:</label>
+                    <select className="form-input" value={viewMode} onChange={(e) => setViewMode(e.target.value as 'bracket' | 'rounds')}>
+                      <option value="bracket">{tr(lang, 'bracket.view.bracket') || 'Bracket'}</option>
+                      <option value="rounds">{tr(lang, 'bracket.view.rounds') || 'Todas las partidas por ronda'}</option>
+                    </select>
+                  </div>
+
+                  {viewMode === 'rounds' && (
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm text-muted">Mostrar:</label>
+                      <select
+                        className="form-input"
+                        value={typeof viewFilter === 'number' ? String(viewFilter) : viewFilter}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          if (v === 'all' || v === 'prelim') setViewFilter(v as any);
+                          else setViewFilter(Number.parseInt(v, 10));
+                        }}
+                      >
+                        <option value="all">{tr(lang, 'ui.all') || 'Todas'}</option>
+                        {tournament.prelim.length > 0 && <option value="prelim">{tr(lang, 'phase.prelimShort') || 'Preliminares'}</option>}
+                        {tournament.rounds.map((_, i) => (
+                          <option key={i} value={String(i + 1)}>{tr(lang, 'round.header', { n: i + 1 })}</option>
+                        ))}
+                      </select>
+
+                      <label className="text-sm text-muted">Cards/col:</label>
+                      <input
+                        type="number"
+                        min={1}
+                        max={20}
+                        className="form-input"
+                        style={{ width: 76 }}
+                        value={cardsPerColumn}
+                        onChange={(e) => setCardsPerColumn(Math.max(1, Number.parseInt(e.target.value || '1', 10)))}
+                      />
+                    </div>
+                  )}
                 </div>
+
+                {viewMode === 'rounds' ? (
+                  <AllRoundsView
+                    prelim={tournament.prelim}
+                    rounds={tournament.rounds}
+                    bestOf={tournament.bestOf}
+                    allPairs={tournament.pairs}
+                    onResult={handleResult}
+                    onEdit={handleEdit}
+                    lang={lang}
+                    filter={viewFilter}
+                    cardsPerColumn={cardsPerColumn}
+                  />
+                ) : (
+                  <div className="overflow-x-auto pb-4">
+                    <BracketView rounds={tournament.rounds} bestOf={tournament.bestOf} allPairs={tournament.pairs} onResult={handleResult} onEdit={handleEdit} lang={lang} />
+                  </div>
+                )}
               </div>
             </section>
           )}
