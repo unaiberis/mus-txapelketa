@@ -10,8 +10,8 @@
   async function safeCreateBracket(bracketData: any, wrapper: HTMLElement) {
     try {
       const { createBracket } = await import('bracketry');
-      (window as any).__advanceMatch = (mid: number, side: number) => onParticipantClick(mid, side as 1 | 2);
-      createBracket(bracketData, wrapper, { onMatchSideClick: (m: any, side: number) => { (window as any).__advanceMatch?.(m.matchId, side + 1); } });
+      window.__advanceMatch = (mid, side) => onParticipantClick(mid, side);
+      createBracket(bracketData, wrapper, { onMatchSideClick: (m, side) => { window.__advanceMatch?.(m.matchId, side + 1); } });
       return true;
     } catch (e) {
       console.error('safeCreateBracket failed', e);
@@ -31,7 +31,7 @@
 
     wrapperEl!.querySelectorAll('[data-match-id]').forEach((matchEl) => {
       const matchId = Number((matchEl as HTMLElement).getAttribute('data-match-id'));
-      const participantsEls = Array.from((matchEl as HTMLElement).querySelectorAll('.participant')) as HTMLElement[];
+      const participantsEls = Array.from(matchEl.querySelectorAll('.participant'));
 
       // Add click handlers
       participantsEls.forEach((pEl, idx) => {
@@ -40,14 +40,14 @@
 
         pEl.addEventListener('click', async (ev) => {
           ev.stopPropagation();
-          await onParticipantClick(matchId, (idx + 1) as 1 | 2);
+          await onParticipantClick(matchId, idx + 1);
         });
 
-        pEl.addEventListener('keydown', async (ev: KeyboardEvent) => {
+        pEl.addEventListener('keydown', async (ev) => {
           const key = ev.key;
           if (key === 'Enter' || key === ' ') {
             ev.preventDefault();
-            await onParticipantClick(matchId, (idx + 1) as 1 | 2);
+            await onParticipantClick(matchId, idx + 1);
             return;
           }
           if (key === 'ArrowRight' || key === 'ArrowDown') {
