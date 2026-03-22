@@ -31,7 +31,7 @@ export default function PodiumView({ podium, prizeConfig, pairCount, lang }: Pod
     },
     {
       key: 'third',
-      label: prizeConfig.thirdPlaceShared ? tr(lang, 'podium.labels.thirdShared') : tr(lang, 'podium.labels.third'),
+      label: tr(lang, 'podium.labels.third'),
       name: podium.third,
       prize: prizeConfig.prizes[2],
       className: 'podium-row podium-row--third',

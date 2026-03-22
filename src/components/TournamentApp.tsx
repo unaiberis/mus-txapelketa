@@ -34,12 +34,22 @@ import { currencySymbol, percentToPresetKey, presetToPercentages, type AutoSplit
 import PodiumView from './PodiumView';
 // LeftPanelMock removed — not used
 import PrelimGrid from './PrelimGrid';
+import ToastProvider from './ToastProvider';
+import useToast from '../hooks/useToast';
 
 type ExportFormat = 'json' | 'csv' | 'xlsx';
 type BestOfMode = 'preset' | 'custom';
 
 function isByeMatch(match: Match): boolean {
   return Boolean((match.pair1 && !match.pair2) || (!match.pair1 && match.pair2));
+}
+
+export default function TournamentApp() {
+  return (
+    <ToastProvider>
+      <TournamentAppInner />
+    </ToastProvider>
+  );
 }
 
 
@@ -244,7 +254,7 @@ function autoAdvanceByesInState(initial: TournamentState): TournamentState {
   return state;
 }
 
-export default function TournamentApp() {
+function TournamentAppInner() {
   const [lang, setLang] = useState<import('../lib/i18n').Lang>(DEFAULT_LANG);
 
   // Read persisted language only on the client after hydration to avoid SSR mismatch
@@ -258,6 +268,7 @@ export default function TournamentApp() {
     }
   }, []);
   const { score: entropyScore, finalize: finalizeEntropy, lockedSeed } = useEntropy();
+  const toast = useToast();
 
   const [pairs, setPairs] = useState<string[]>([]);
   const [input1, setInput1] = useState('');
@@ -407,11 +418,18 @@ export default function TournamentApp() {
       try {
         const newState = registerResult(tournament, matchId, score1, score2);
         setTournament(autoAdvanceByesInState(newState));
-      } catch {
-        // MatchCard shows local error state for invalid submit paths.
+      } catch (err: unknown) {
+        const code = (err as any)?.code ?? (err instanceof Error ? err.message : undefined);
+        let msg = 'Resultado inválido';
+        if (code) {
+          const bestOf = tournament.bestOf;
+          const winsNeeded = Math.ceil(bestOf / 2);
+          msg = tr(lang, `match.error.${code}`, { bestOf, winsNeeded });
+        }
+        toast?.showError(msg);
       }
     },
-    [tournament]
+    [tournament, toast, lang]
   );
 
   const handleEdit = useCallback(
@@ -911,17 +929,7 @@ export default function TournamentApp() {
                   ))}
                 </div>
 
-                <label className="flex items-center gap-2 text-sm" style={{ color: 'var(--color-text-muted)' }}>
-                  <input
-                    type="checkbox"
-                    checked={prizeConfig.thirdPlaceShared}
-                    disabled={Boolean(tournament)}
-                    onChange={(e) => {
-                      setPrizeConfig((prev) => ({ ...prev, thirdPlaceShared: e.target.checked }));
-                    }}
-                  />
-                  {tr(lang, 'prizes.thirdPlaceShared')}
-                </label>
+                
 
                 <label className="block space-y-1">
                   <span className="text-xs uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>

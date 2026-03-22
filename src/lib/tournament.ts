@@ -31,7 +31,6 @@ export interface PrizeConfig {
 	prizes: [number, number, number, number];
 	prizeMode: 'manual' | 'auto';
 	autoSplit: [number, number, number, number];
-	thirdPlaceShared: boolean;
 }
 
 export interface Podium {
@@ -74,7 +73,6 @@ export const defaultPrizeConfig: PrizeConfig = {
 	prizes: [0, 0, 0, 0],
 	prizeMode: 'manual',
 	autoSplit: [50, 30, 15, 5],
-	thirdPlaceShared: false,
 };
 
 export function mulberry32(seed: number): () => number {
@@ -194,6 +192,49 @@ export function isValidScore(score1: number, score2: number, bestOf: number): bo
 		minScore < winsNeeded &&
 		score1 + score2 <= bestOf
 	);
+}
+
+export type ScoreValidation = {
+	valid: boolean;
+	code?:
+		| 'INVALID_INPUT'
+		| 'BESTOF_INVALID'
+		| 'WINNER_WRONG'
+		| 'LOSER_TOO_HIGH'
+		| 'TOTAL_EXCEEDS'
+		| 'TIE_INVALID';
+};
+
+export function validateScore(score1: number, score2: number, bestOf: number): ScoreValidation {
+	if (!isValidBestOf(bestOf)) {
+		return { valid: false, code: 'BESTOF_INVALID' };
+	}
+
+	if (!Number.isInteger(score1) || !Number.isInteger(score2) || score1 < 0 || score2 < 0) {
+		return { valid: false, code: 'INVALID_INPUT' };
+	}
+
+	const winsNeeded = Math.ceil(bestOf / 2);
+	const maxScore = Math.max(score1, score2);
+	const minScore = Math.min(score1, score2);
+
+	if (score1 === score2) {
+		return { valid: false, code: 'TIE_INVALID' };
+	}
+
+	if (score1 + score2 > bestOf) {
+		return { valid: false, code: 'TOTAL_EXCEEDS' };
+	}
+
+	if (maxScore !== winsNeeded) {
+		return { valid: false, code: 'WINNER_WRONG' };
+	}
+
+	if (minScore >= winsNeeded) {
+		return { valid: false, code: 'LOSER_TOO_HIGH' };
+	}
+
+	return { valid: true };
 }
 
 export function computeAutoPrizes(
@@ -382,8 +423,11 @@ export function registerResult(
 	score1: number,
 	score2: number
 ): TournamentState {
-	if (!isValidScore(score1, score2, state.bestOf)) {
-		throw new Error('Resultado invalido');
+	const validation = validateScore(score1, score2, state.bestOf);
+	if (!validation.valid) {
+		const err: any = new Error(validation.code || 'Resultado invalido');
+		if (validation.code) err.code = validation.code;
+		throw err;
 	}
 
 	const match = findMatch(state, matchId);

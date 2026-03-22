@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { isValidScore, type Match } from '../lib/tournament';
+import { isValidScore, validateScore, type Match } from '../lib/tournament';
 import { t as tr, type Lang } from '../lib/i18n';
+import useToast from '../hooks/useToast';
 
 export const BRACKET_CARD_H = 88; // px – fixed height kept constant for correct bracket alignment
 export const BRACKET_CARD_W = 216; // px – fixed width
@@ -32,6 +33,7 @@ export default function BracketCard({
   const [s1, setS1] = useState('');
   const [s2, setS2] = useState('');
   const [err, setErr] = useState('');
+  const toast = useToast();
 
   useEffect(() => {
     setS1(match.score ? String(match.score.score1) : '');
@@ -46,8 +48,12 @@ export default function BracketCard({
       setErr('—');
       return;
     }
-    if (!isValidScore(p1, p2, bestOf)) {
+    const validation = validateScore(p1, p2, bestOf);
+    if (!validation.valid) {
       setErr(`!${winsNeeded}`);
+      const key = validation.code ?? 'invalidScore';
+      const msg = tr(lang, `match.error.${key}`, { bestOf, winsNeeded });
+      toast?.showError(msg);
       return;
     }
     onResult(match.id, p1, p2);
