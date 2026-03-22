@@ -12,15 +12,15 @@ interface AllRoundsViewProps {
   onEdit: (matchId: string) => void;
   lang: Lang;
   filter?: 'all' | 'prelim' | number;
-  cardsPerColumn?: number;
+  numColumns?: number;
 }
 
-function splitToColumns<T>(items: T[], perCol: number): T[][] {
-  if (perCol <= 0) return [items];
-  const count = Math.ceil(items.length / perCol) || 1;
-  const cols: T[][] = Array.from({ length: count }, () => []);
-  items.forEach((item, i) => cols[Math.floor(i / perCol)].push(item));
-  return cols;
+function splitToColumns<T>(items: T[], numCols: number): T[][] {
+  const n = Math.max(1, numCols);
+  const perCol = Math.ceil(items.length / n);
+  const result: T[][] = Array.from({ length: n }, () => []);
+  items.forEach((item, i) => result[Math.floor(i / perCol)].push(item));
+  return result.filter((c) => c.length > 0);
 }
 
 function roundLabel(rIdx: number, total: number, lang: Lang): string {
@@ -39,7 +39,7 @@ export default function AllRoundsView({
   onEdit,
   lang,
   filter = 'all',
-  cardsPerColumn = 5,
+  numColumns = 4,
 }: AllRoundsViewProps) {
   const sections: Array<{ key: string; title: string; matches: Match[]; isFinal?: boolean }> = [];
 
@@ -80,7 +80,9 @@ export default function AllRoundsView({
         const done = matches.filter((m) => m.winner).length;
         const total = matches.length;
         const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-        const cols = splitToColumns(matches, cardsPerColumn);
+        const cols = splitToColumns(matches, numColumns);
+
+        const numColsEffective = Math.min(numColumns, cols.length || 1);
 
         return (
           <section
@@ -132,9 +134,16 @@ export default function AllRoundsView({
             </div>
 
             {/* ── Card columns ───────────────────────────────────────── */}
-            <div className="flex flex-wrap items-start gap-2">
+            <div
+              className="grid"
+              style={{
+                gridTemplateColumns: `repeat(${numColsEffective}, minmax(0, 1fr))`,
+                gap: '8px',
+                alignItems: 'start',
+              }}
+            >
               {cols.map((col, ci) => (
-                <div key={ci} className="flex flex-col gap-2" style={{ width: BRACKET_CARD_W, flexShrink: 0 }}>
+                <div key={ci} className="flex flex-col gap-2" style={{ width: '100%' }}>
                   {col.map((m) => (
                     <BracketCard
                       key={m.id}
@@ -144,6 +153,7 @@ export default function AllRoundsView({
                       onEdit={onEdit}
                       lang={lang}
                       allPairs={allPairs}
+                      style={{ width: '100%' }}
                     />
                   ))}
                 </div>

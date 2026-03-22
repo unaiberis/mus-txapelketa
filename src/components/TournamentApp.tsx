@@ -174,7 +174,7 @@ function autoAdvanceByesInState(initial: TournamentState): TournamentState {
 
     for (let i = 0; i < state.prelim.length; i++) {
       const m = state.prelim[i];
-        if (!isByeMatch(m) || m.winner) continue;
+      if (!isByeMatch(m) || m.winner) continue;
       m.winner = m.pair1 ?? m.pair2 ?? undefined;
       m.score = undefined;
 
@@ -187,7 +187,7 @@ function autoAdvanceByesInState(initial: TournamentState): TournamentState {
         if (target) {
           try {
             console.debug('[TournamentApp] auto-advance bye -> target', { prelimId: m.id, target: m.targetMatchId, slot: m.targetSlot, winner });
-          } catch (err) {}
+          } catch (err) { }
           (target as any)[m.targetSlot] = winner;
           changed = true;
           continue;
@@ -283,7 +283,7 @@ function TournamentAppInner() {
   const [tournament, setTournament] = useState<TournamentState | null>(null);
   const [viewMode, setViewMode] = useState<'bracket' | 'rounds'>('bracket');
   const [viewFilter, setViewFilter] = useState<'all' | 'prelim' | number>('all');
-  const [cardsPerColumn, setCardsPerColumn] = useState<number>(4);
+  const [numColumns, setNumColumns] = useState<number>(4);
 
   const [importError, setImportError] = useState<string | null>(null);
   const [exportFormat, setExportFormat] = useState<ExportFormat>('json');
@@ -932,7 +932,7 @@ function TournamentAppInner() {
                   ))}
                 </div>
 
-                
+
 
                 <label className="block space-y-1">
                   <span className="text-xs uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
@@ -1086,17 +1086,6 @@ function TournamentAppInner() {
             <section className="relative z-10 space-y-6">
 
 
-              {tournament.prelim.length > 0 && viewMode === 'bracket' && (
-                <PrelimGrid
-                  matches={tournament.prelim}
-                  bestOf={tournament.bestOf}
-                  allPairs={tournament.pairs}
-                  onResult={handleResult}
-                  onEdit={handleEdit}
-                  lang={lang}
-                />
-              )}
-
               <div className="space-y-3">
                 <h3
                   className="text-xl uppercase tracking-widest"
@@ -1104,50 +1093,92 @@ function TournamentAppInner() {
                 >
                   {tr(lang, 'bracket.title')}
                 </h3>
-
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <label className="text-sm text-muted">Vista:</label>
                     <select className="form-input" value={viewMode} onChange={(e) => setViewMode(e.target.value as 'bracket' | 'rounds')}>
                       <option value="bracket">{tr(lang, 'bracket.view.bracket') || 'Bracket'}</option>
-                      <option value="rounds">{tr(lang, 'bracket.view.rounds') || 'Todas las partidas por ronda'}</option>
+                      <option value="rounds">{tr(lang, 'bracket.view.rounds') || 'Todas las partidas'}</option>
                     </select>
                   </div>
 
                   {viewMode === 'rounds' && (
-                    <div className="flex items-center gap-2">
-                      <label className="text-sm text-muted">Mostrar:</label>
-                      <select
-                        className="form-input"
-                        value={typeof viewFilter === 'number' ? String(viewFilter) : viewFilter}
-                        onChange={(e) => {
-                          const v = e.target.value;
-                          if (v === 'all' || v === 'prelim') setViewFilter(v as any);
-                          else setViewFilter(Number.parseInt(v, 10));
-                        }}
-                      >
-                        <option value="all">{tr(lang, 'ui.all') || 'Todas'}</option>
-                        {tournament.prelim.length > 0 && <option value="prelim">{tr(lang, 'phase.prelimShort') || 'Preliminares'}</option>}
-                        {tournament.rounds.map((_, i) => (
-                          <option key={i} value={String(i + 1)}>{tr(lang, 'round.header', { n: i + 1 })}</option>
-                        ))}
-                      </select>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
+                        <label className="text-sm text-muted">Mostrar:</label>
+                        <select
+                          className="form-input"
+                          value={typeof viewFilter === 'number' ? String(viewFilter) : viewFilter}
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            if (v === 'all' || v === 'prelim') setViewFilter(v as any);
+                            else setViewFilter(Number.parseInt(v, 10));
+                          }}
+                        >
+                          <option value="all">{tr(lang, 'ui.all') || 'Todas'}</option>
+                          {tournament.prelim.length > 0 && <option value="prelim">{tr(lang, 'phase.prelimShort') || 'Preliminares'}</option>}
+                          {tournament.rounds.map((round, i) => {
+                            const total = tournament.rounds.length;
+                            const idx = i + 1;
+                            let label = `Ronda ${idx}`;
+                            if (idx === total) label = tr(lang, 'round.final') || 'Final';
+                            else if (idx === total - 1) label = tr(lang, 'round.semifinal') || 'Semifinal';
+                            else if (idx === total - 2) label = tr(lang, 'round.quarter') || 'Cuartos';
+                            return (
+                              <option key={i} value={String(idx)}>{label}</option>
+                            );
+                          })}
+                        </select>
+                      </div>
 
-                      <label className="text-sm text-muted">Cards/col:</label>
-                      <input
-                        type="number"
-                        min={1}
-                        max={20}
-                        className="form-input"
-                        style={{ width: 76 }}
-                        value={cardsPerColumn}
-                        onChange={(e) => setCardsPerColumn(Math.max(1, Number.parseInt(e.target.value || '1', 10)))}
-                      />
+                      <span className="text-sm text-muted">|</span>
+
+                      <div className="flex items-center gap-2">
+                        <label className="text-sm text-muted">Columnas:</label>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            className="rounded border px-2 py-1"
+                            onClick={() => setNumColumns((n) => Math.max(1, n - 1))}
+                            aria-label="Disminuir columnas"
+                          >
+                            −
+                          </button>
+                          <div className="px-3">{numColumns}</div>
+                          <button
+                            type="button"
+                            className="rounded border px-2 py-1"
+                            onClick={() => setNumColumns((n) => Math.min(16, n + 1))}
+                            aria-label="Aumentar columnas"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
 
-                {viewMode === 'rounds' ? (
+                {viewMode === 'bracket' && (
+                  <>
+                    {tournament.prelim.length > 0 && (
+                      <PrelimGrid
+                        matches={tournament.prelim}
+                        bestOf={tournament.bestOf}
+                        allPairs={tournament.pairs}
+                        onResult={handleResult}
+                        onEdit={handleEdit}
+                        lang={lang}
+                      />
+                    )}
+
+                    <div className="overflow-x-auto pb-4">
+                      <BracketView rounds={tournament.rounds} bestOf={tournament.bestOf} allPairs={tournament.pairs} onResult={handleResult} onEdit={handleEdit} lang={lang} />
+                    </div>
+                  </>
+                )}
+
+                {viewMode === 'rounds' && (
                   <AllRoundsView
                     prelim={tournament.prelim}
                     rounds={tournament.rounds}
@@ -1157,12 +1188,8 @@ function TournamentAppInner() {
                     onEdit={handleEdit}
                     lang={lang}
                     filter={viewFilter}
-                    cardsPerColumn={cardsPerColumn}
+                    numColumns={numColumns}
                   />
-                ) : (
-                  <div className="overflow-x-auto pb-4">
-                    <BracketView rounds={tournament.rounds} bestOf={tournament.bestOf} allPairs={tournament.pairs} onResult={handleResult} onEdit={handleEdit} lang={lang} />
-                  </div>
                 )}
               </div>
             </section>
