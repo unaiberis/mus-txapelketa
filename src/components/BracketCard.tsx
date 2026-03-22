@@ -76,6 +76,8 @@ interface BracketCardProps {
   onEdit: (matchId: string) => void;
   lang: Lang;
   allPairs?: string[];
+  className?: string;
+  style?: React.CSSProperties;
 }
 
 export default function BracketCard({
@@ -85,6 +87,8 @@ export default function BracketCard({
   onEdit,
   lang,
   allPairs,
+  className,
+  style,
 }: BracketCardProps) {
   const winsNeeded = Math.ceil(bestOf / 2);
   const isBye = Boolean(
@@ -202,7 +206,7 @@ export default function BracketCard({
   /* ── Pending ─────────────────────────────────────────────────────────── */
   if (isPending) {
     return (
-      <div className="bcard bcard--pending">
+      <div className={`bcard bcard--pending ${className ?? ''}`} style={style}>
         <div
           style={{
             display: 'flex',
@@ -225,7 +229,7 @@ export default function BracketCard({
   if (isBye) {
     const byePair = match.pair1 ?? match.pair2;
     return (
-      <div className="bcard bcard--bye">
+      <div className={`bcard bcard--bye ${className ?? ''}`} style={style}>
         <PairRow name={byePair} isWinner />
         <Divider />
         <div
@@ -250,7 +254,7 @@ export default function BracketCard({
   /* ── Done ────────────────────────────────────────────────────────────── */
   if (isDone) {
     return (
-      <div className="bcard bcard--done">
+      <div className={`bcard bcard--done ${className ?? ''}`} style={style}>
         <PairRow
           name={match.pair1}
           isWinner={match.winner === match.pair1}
@@ -324,7 +328,7 @@ export default function BracketCard({
   );
 
   return (
-    <div className="bcard bcard--active">
+    <div className={`bcard bcard--active ${className ?? ''}`} style={style}>
       <PairRow
         name={match.pair1}
         right={<ScoreInput value={s1} onChange={setS1} />}
