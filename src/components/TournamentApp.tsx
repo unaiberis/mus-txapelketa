@@ -3,7 +3,7 @@ import {
   clearDownstream,
   computeAutoPrizes,
   defaultPrizeConfig,
-  
+
   deriveSigningKey,
   detectPodium,
   downloadBlob,
@@ -33,9 +33,9 @@ import EntropyMeter from './EntropyMeter';
 import BracketView from './BracketView';
 import useEntropy from '../hooks/useEntropy';
 import { currencySymbol, percentToPresetKey, presetToPercentages, type AutoSplitPreset } from '../lib/format';
-import MatchCard from './MatchCard';
 import PodiumView from './PodiumView';
 import LeftPanelMock from './LeftPanelMock';
+import PrelimGrid from './PrelimGrid';
 
 type ExportFormat = 'json' | 'csv' | 'xlsx';
 type BestOfMode = 'preset' | 'custom';
@@ -171,7 +171,7 @@ function collectMatchesFromXlsxRows(
 function autoAdvanceByesInState(initial: TournamentState): TournamentState {
   const state = cloneTournamentState(initial);
 
-  for (let changed = true; changed; ) {
+  for (let changed = true; changed;) {
     changed = false;
 
     for (let i = 0; i < state.prelim.length; i++) {
@@ -387,7 +387,7 @@ export default function TournamentApp() {
     const seed = finalizeEntropy();
 
     if (!isValidBestOf(actualBestOf)) {
-                  setFormatError(tr(lang, 'format.invalidCustom'));
+      setFormatError(tr(lang, 'format.invalidCustom'));
       return;
     }
 
@@ -530,7 +530,7 @@ export default function TournamentApp() {
 
           const metaRows = XLSX.utils.sheet_to_json<Array<string | number>>(metaSheet, { header: 1 });
           const meta: Record<string, string> = {};
-          const headerNames = new Set([ 'Campo', 'Field', 'Champ', 'Eremua', tr(lang, 'export.sheet.field') ]);
+          const headerNames = new Set(['Campo', 'Field', 'Champ', 'Eremua', tr(lang, 'export.sheet.field')]);
           for (const row of metaRows) {
             const field = row[0];
             const value = row[1];
@@ -630,7 +630,7 @@ export default function TournamentApp() {
   return (
     <div className="flex h-full min-h-0 flex-col">
       <header
-            className="app-header h-14 flex items-center px-6 border-b"
+        className="app-header h-14 flex items-center px-6 border-b"
         style={{ borderColor: 'var(--color-border)' }}
       >
         <h1
@@ -641,7 +641,7 @@ export default function TournamentApp() {
             letterSpacing: '0.1em',
           }}
         >
-              {tr(lang, 'header.title')}
+          {tr(lang, 'header.title')}
         </h1>
         <div className="ml-auto flex items-center gap-4">
           {tournament && (
@@ -675,7 +675,7 @@ export default function TournamentApp() {
               ref={fileInputRef}
               type="file"
               data-testid="header-import"
-              className="form-input" 
+              className="form-input"
               onChange={handleImport}
               accept=".json,.csv,.xlsx"
             />
@@ -730,35 +730,35 @@ export default function TournamentApp() {
           <section className="mb-5 space-y-2">
             <div className="flex items-center justify-between gap-2">
               <h2 className="text-sm uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
-                  {tr(lang, 'pairs.title')} ({pairs.length})
-                </h2>
-                <div className="flex items-center gap-2">
-                  {pairs.length > 0 && !tournament && (
-                    <button
-                      type="button"
-                      className="text-xs uppercase tracking-widest"
-                      style={{ color: 'var(--color-text-muted)' }}
-                      onClick={() => {
-                        setPairs([]);
-                        setPairError('');
-                      }}
-                    >
-                      {tr(lang, 'pairs.clear')}
-                    </button>
-                  )}
+                {tr(lang, 'pairs.title')} ({pairs.length})
+              </h2>
+              <div className="flex items-center gap-2">
+                {pairs.length > 0 && !tournament && (
+                  <button
+                    type="button"
+                    className="text-xs uppercase tracking-widest"
+                    style={{ color: 'var(--color-text-muted)' }}
+                    onClick={() => {
+                      setPairs([]);
+                      setPairError('');
+                    }}
+                  >
+                    {tr(lang, 'pairs.clear')}
+                  </button>
+                )}
 
-                  {!tournament && (
-                    <button
-                      type="button"
-                      className="text-xs uppercase tracking-widest"
-                      style={{ color: 'var(--color-accent)' }}
-                      onClick={generate80Pairs}
-                      data-testid="generate-80-pairs"
-                    >
-                      Generar 80 parejas
-                    </button>
-                  )}
-                </div>
+                {!tournament && (
+                  <button
+                    type="button"
+                    className="text-xs uppercase tracking-widest"
+                    style={{ color: 'var(--color-accent)' }}
+                    onClick={generate80Pairs}
+                    data-testid="generate-80-pairs"
+                  >
+                    Generar 80 parejas
+                  </button>
+                )}
+              </div>
             </div>
             <div className="max-h-44 overflow-y-auto pr-1">
               {pairs.length === 0 ? (
@@ -826,7 +826,7 @@ export default function TournamentApp() {
                   />
                 </label>
 
-                  <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     className="rounded border px-2 py-1 text-xs uppercase tracking-widest"
@@ -1072,32 +1072,18 @@ export default function TournamentApp() {
             <PodiumView podium={tournament.podium} prizeConfig={tournament.prizeConfig} pairCount={tournament.pairs.length} lang={lang} />
           ) : (
             <section className="relative z-10 space-y-6">
-              
+
 
               {tournament.prelim.length > 0 && (
-                <div className="space-y-3">
-                  <h3
-                    className="text-xl uppercase tracking-widest"
-                    style={{ fontFamily: 'var(--font-display)', color: 'var(--color-accent)' }}
-                  >
-                    {tr(lang, 'phase.prelimTitle', { count: tournament.prelim.length } as any)}
-                  </h3>
-                  <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
-                    {tournament.prelim.map((m) => (
-                      <MatchCard
-                        key={m.id}
-                        match={m}
-                        bestOf={tournament.bestOf}
-                        onResult={handleResult}
-                        onEdit={handleEdit}
-                        lang={lang}
-                        allPairs={tournament.pairs}
-                      />
-                    ))}
-                  </div>
-                </div>
+                <PrelimGrid
+                  matches={tournament.prelim}
+                  bestOf={tournament.bestOf}
+                  allPairs={tournament.pairs}
+                  onResult={handleResult}
+                  onEdit={handleEdit}
+                  lang={lang}
+                />
               )}
-
               <div className="space-y-3">
                 <h3
                   className="text-xl uppercase tracking-widest"
