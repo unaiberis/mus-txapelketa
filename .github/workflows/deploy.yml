@@ -45,6 +45,8 @@ jobs:
           cp "$css_file" dist/astro/style.css
           echo "Rewriting asset references in dist/index.html to use /mus-txapelketa/astro/style.css (project base)"
           sed -i -E 's#/mus-txapelketa/(_?astro)/index\.[a-f0-9]+\.css#/mus-txapelketa/astro/style.css#g' dist/index.html || true
+          # Also rewrite other root-relative asset references to include repo base
+          sed -i -E 's#(href|src)="/_astro/#\1="/mus-txapelketa/_astro/#g' dist/index.html || true
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
