@@ -15,7 +15,7 @@
       return true;
     } catch (e) {
       console.error('safeCreateBracket failed', e);
-      try { wrapper.innerHTML = '<div class="render-error p-2 rounded bg-red-50 border border-red-200"><strong>Error rendering bracket:</strong> ' + ((e as any)?.message || String(e)) + '</div>'; } catch (err) { wrapper.textContent = JSON.stringify(bracketData); }
+      try { wrapper.innerHTML = '<div class="render-error p-2 rounded bg-red-50 border border-red-200"><strong>Error rendering bracket:</strong> ' + ((e && e.message) || String(e)) + '</div>'; } catch (err) { wrapper.textContent = JSON.stringify(bracketData); }
       return false;
     }
   }
@@ -29,7 +29,7 @@
     // Apply handlers and visual states based on lastDbInstance matches
     const matchesData = (lastDbInstance && lastDbInstance.data && lastDbInstance.data.match) ? lastDbInstance.data.match : [];
 
-    wrapperEl!.querySelectorAll('[data-match-id]').forEach((matchEl) => {
+    wrapperEl.querySelectorAll('[data-match-id]').forEach((matchEl) => {
       const matchId = Number(matchEl.getAttribute('data-match-id'));
       const participantsEls = Array.from(matchEl.querySelectorAll('.participant'));
 
@@ -64,7 +64,7 @@
       });
 
       // Apply winner/loser classes from stored match data
-      const matchDatum = matchesData.find((m: any) => Number(m.matchId) === matchId || Number(m.id) === matchId || Number(m.match_id) === matchId);
+      const matchDatum = matchesData.find((m) => Number(m.matchId) === matchId || Number(m.id) === matchId || Number(m.match_id) === matchId);
       if (matchDatum) {
         // Clear existing classes
         participantsEls.forEach((p) => { p.classList.remove('winner', 'loser'); p.classList.remove('pulse'); });
@@ -89,7 +89,7 @@
             const scores = [scoreA, scoreB];
             participantsEls.forEach((pEl, idx) => {
               // find existing badge
-              let badge = pEl.querySelector('.score-badge') as HTMLElement | null;
+              let badge = pEl.querySelector('.score-badge');
               if (scores[idx] !== null && scores[idx] !== undefined) {
                 if (!badge) {
                   badge = document.createElement('span');
@@ -121,10 +121,10 @@
   function animateRounds() {
     if (!wrapperEl) return;
     const selectors = ['.round', '.rounds > div', '.matches-column', '.round-title', '[data-round-index]'];
-    const rounds: HTMLElement[] = [];
+    const rounds = [];
     selectors.forEach((sel) => {
-      wrapperEl!.querySelectorAll(sel).forEach((el) => {
-        const h = el as HTMLElement;
+      wrapperEl.querySelectorAll(sel).forEach((el) => {
+        const h = el;
         if (!rounds.includes(h)) rounds.push(h);
       });
     });
@@ -137,9 +137,9 @@
     });
   }
 
-  function focusNextParticipant(current: HTMLElement, delta: number) {
+  function focusNextParticipant(current, delta) {
     if (!wrapperEl) return;
-    const all = Array.from(wrapperEl.querySelectorAll('.participant')) as HTMLElement[];
+    const all = Array.from(wrapperEl.querySelectorAll('.participant'));
     const idx = all.indexOf(current);
     if (idx === -1) return;
     const next = all[(idx + delta + all.length) % all.length];
@@ -152,7 +152,7 @@
       return;
     }
     try {
-      const payload: any = { id: matchId };
+      const payload = { id: matchId };
       if (participantSide === 1) {
         payload.opponent1 = { score: 1, result: 'win' };
         payload.opponent2 = { score: 0 };
