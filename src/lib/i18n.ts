@@ -67,7 +67,7 @@ const DICT: Record<Lang, Dict> = {
         setup: { title: 'Configura tu torneo', description: 'Añade parejas en el panel izquierdo, define premios y formato, y después crea el cuadro. El emparejamiento se realiza con una semilla basada en entropía de tus interacciones.' },
         create: { label: 'Crear torneo', needPairs: 'Necesitas al menos 2 parejas para crear el torneo.' },
         prelim: { card: { prelimRound: 'Ronda previa', target: 'Cuadro objetivo', byes: 'Pasan directas', playPrelim: 'Juegan previa', matchesCount: '{count} partidas', pairsCount: '{count} parejas' } },
-        summary: { title: 'Resumen del cuadro', line: 'Parejas: {pairs} | Formato: mejor de {bestOf} | Semilla: #{seed}' },
+        
         phase: { prelimTitle: 'Fase previa ({count} partidas)' },
         bracket: { title: 'Cuadro principal' },
         round: { header: 'Ronda {n}' },
@@ -128,7 +128,7 @@ const DICT: Record<Lang, Dict> = {
         setup: { title: 'Set up your tournament', description: 'Add pairs in the left panel, set prizes and format, then create the bracket. Pairings are generated from a seed derived from your interaction entropy.' },
         create: { label: 'Create tournament', needPairs: 'You need at least 2 pairs to create the tournament.' },
         prelim: { card: { prelimRound: 'Preliminary round', target: 'Target bracket', byes: 'Byes', playPrelim: 'Play prelim', matchesCount: '{count} matches', pairsCount: '{count} pairs' } },
-        summary: { title: 'Bracket summary', line: 'Pairs: {pairs} | Format: best of {bestOf} | Seed: #{seed}' },
+        
         phase: { prelimTitle: 'Preliminary phase ({count} matches)' },
         bracket: { title: 'Main bracket' },
         round: { header: 'Round {n}' },
@@ -168,7 +168,7 @@ const DICT: Record<Lang, Dict> = {
         setup: { title: 'Configurez votre tournoi', description: 'Ajoutez des paires dans le panneau de gauche, définissez les prix et le format, puis créez le tableau. Les appariements sont générés à partir d’une graine dérivée de l’entropie de vos interactions.' },
         create: { label: 'Créer le tournoi', needPairs: 'Vous devez avoir au moins 2 paires pour créer le tournoi.' },
         prelim: { card: { prelimRound: 'Phase préliminaire', target: 'Tableau cible', byes: 'Qualifiés directs', playPrelim: 'Jouent la préliminaire', matchesCount: '{count} matchs', pairsCount: '{count} paires' } },
-        summary: { title: 'Résumé du tableau', line: 'Paires : {pairs} | Format : meilleur de {bestOf} | Graine : #{seed}' },
+        
         phase: { prelimTitle: 'Phase préliminaire ({count} matchs)' },
         bracket: { title: 'Tableau principal' },
         round: { header: 'Tour {n}' },
@@ -241,7 +241,7 @@ const DICT: Record<Lang, Dict> = {
             createButton: 'Sortu txapelketa'
         },
         prelim: { card: { prelimRound: 'Aurrebaldintza', target: 'Helburu koadroa', byes: 'Zuzen pasatzen dira', playPrelim: 'Aurrebaldintzan jokatzen dute', matchesCount: '{count} partida', pairsCount: '{count} bikote' } },
-        summary: { title: 'Koadroaren laburpena', line: 'Bikoteak: {pairs} | Formatua: {bestOf} onena | Hazia: #{seed}' },
+        
         phase: { prelimTitle: 'Aurrebaldintza fasea ({count} partida)' },
         bracket: { title: 'Koadro nagusia' },
         round: { header: 'Txanda {n}' },
@@ -317,9 +317,7 @@ export const I18N_KEYS = [
     'prelim.card.target',
     'prelim.card.byes',
     'prelim.card.playPrelim',
-
-    'summary.title',
-    'summary.line',
+    
     'phase.prelimTitle',
     'bracket.title',
     'round.header',

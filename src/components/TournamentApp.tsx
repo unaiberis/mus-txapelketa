@@ -1072,14 +1072,7 @@ export default function TournamentApp() {
             <PodiumView podium={tournament.podium} prizeConfig={tournament.prizeConfig} pairCount={tournament.pairs.length} lang={lang} />
           ) : (
             <section className="relative z-10 space-y-6">
-              <div className="rounded border p-4" style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}>
-                <h2 className="text-sm uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
-                  {tr(lang, 'summary.title')}
-                </h2>
-                <p className="mt-2 text-sm" style={{ color: 'var(--color-text-muted)' }}>
-                  {tr(lang, 'summary.line', { pairs: tournament.pairs.length, bestOf: tournament.bestOf, seed: tournament.seed.toString(16) } as any)}
-                </p>
-              </div>
+              
 
               {tournament.prelim.length > 0 && (
                 <div className="space-y-3">
