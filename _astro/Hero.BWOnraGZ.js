@@ -1,1 +1,0 @@
-import"./legacy.Cn3Hkh8b.js";import{p as e}from"./props.Dt-g7Vjr.js";import"./runtime.CTISHgMB.js";function n(a,t){e(t,"title",8,"Your event, beautifully bracketed"),e(t,"lead",8,"Create, share and run tournaments with a tiny footprint — accessible, responsive, and delightful."),e(t,"ctas",24,()=>[{label:"Get started",href:"/koadroa",variant:"primary"}])}export{n as default};
