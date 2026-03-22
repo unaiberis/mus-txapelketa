@@ -1,4 +1,3 @@
-import React from 'react';
 import BracketCard from './BracketCard';
 import { type Match } from '../lib/tournament';
 import { t as tr, type Lang } from '../lib/i18n';
@@ -85,7 +84,7 @@ export default function PrelimGrid({
 
       <div className="prelim-header">
         <span className="prelim-title">
-          {tr(lang, 'phase.prelimTitle', { count: total } as any)}
+          {tr(lang, 'phase.prelimTitle', { count: total })}
         </span>
         <div className="prelim-progress-track">
           <div className="prelim-progress-bar" style={{ width: `${pct}%` }} />
