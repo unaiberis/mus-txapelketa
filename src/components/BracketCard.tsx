@@ -32,32 +32,31 @@ export default function BracketCard({
 
   const [s1, setS1] = useState('');
   const [s2, setS2] = useState('');
-  const [err, setErr] = useState('');
   const toast = useToast();
 
   useEffect(() => {
     setS1(match.score ? String(match.score.score1) : '');
     setS2(match.score ? String(match.score.score2) : '');
-    setErr('');
   }, [match.id, match.score]);
 
   const submit = () => {
     const p1 = Number.parseInt(s1, 10);
     const p2 = Number.parseInt(s2, 10);
     if (Number.isNaN(p1) || Number.isNaN(p2)) {
-      setErr('—');
+      const msg = tr(lang, 'match.error.nan');
+      toast?.showError(msg);
       return;
     }
+
     const validation = validateScore(p1, p2, bestOf);
     if (!validation.valid) {
-      setErr(`!${winsNeeded}`);
       const key = validation.code ?? 'invalidScore';
       const msg = tr(lang, `match.error.${key}`, { bestOf, winsNeeded });
       toast?.showError(msg);
       return;
     }
+
     onResult(match.id, p1, p2);
-    setErr('');
   };
 
   const seed = (name: string | null) => {
@@ -277,19 +276,7 @@ export default function BracketCard({
       <button type="button" className="bcard-submit" onClick={submit}>
         ✓
       </button>
-      {err && (
-        <span
-          style={{
-            position: 'absolute',
-            bottom: 2,
-            left: 6,
-            fontSize: '0.58rem',
-            color: '#ef4444',
-          }}
-        >
-          {err}
-        </span>
-      )}
+      {/* Errors are shown via toast; no inline error badge rendered */}
     </div>
   );
 }
