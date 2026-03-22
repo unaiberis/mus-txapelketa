@@ -16,6 +16,11 @@ export interface Match {
 	winner?: string;
 	round: number;
 	isPrelim: boolean;
+	// Optional mapping for prelim matches: where the winner should be placed in R1
+	targetMatchId?: string;
+	targetSlot?: 'pair1' | 'pair2';
+	// Whether this match was created as an initial BYE (one participant, no opponent)
+	initialBye?: boolean;
 }
 
 export type Phase = 'entry' | 'generated' | 'inProgress' | 'finished';
@@ -230,7 +235,7 @@ export function generateBracket(
 	}
 
 	const r1Size = info.prelimMatches > 0 ? info.target / 2 : n;
-	const numRounds = Math.max(1, Math.log2(r1Size));
+	const numRounds = Math.max(1, Math.floor(Math.log2(r1Size)));
 
 	const r1Participants: (string | null)[] = [];
 	for (const p of byePairs) {
@@ -250,8 +255,23 @@ export function generateBracket(
 			pair2: p2,
 			round: 1,
 			isPrelim: false,
+			initialBye: Boolean((p1 && !p2) || (!p1 && p2)),
 		};
 		r1.push(match);
+	}
+
+	// Map prelim matches to explicit empty slots in R1 (stable mapping)
+	const emptySlots: { matchId: string; slot: 'pair1' | 'pair2' }[] = [];
+	for (let i = 0; i < r1.length; i++) {
+		if (r1[i].pair1 === null) emptySlots.push({ matchId: r1[i].id, slot: 'pair1' });
+		if (r1[i].pair2 === null) emptySlots.push({ matchId: r1[i].id, slot: 'pair2' });
+	}
+	for (let i = 0; i < prelim.length; i++) {
+		const slot = emptySlots[i];
+		if (slot) {
+			prelim[i].targetMatchId = slot.matchId;
+			prelim[i].targetSlot = slot.slot;
+		}
 	}
 
 	const rounds: Match[][] = [r1];
@@ -314,23 +334,31 @@ function findNextMatchSlot(
 ): { matchId: string; slot: 'pair1' | 'pair2' } | null {
 	if (matchId.startsWith('prelim-')) {
 		const prelimIdx = parseInt(matchId.split('-')[1], 10);
-		const r1 = state.rounds[0] ?? [];
-		let nullCount = 0;
-		for (let i = 0; i < r1.length; i++) {
-			if (r1[i].pair1 === null) {
-				if (nullCount === prelimIdx) {
-					return { matchId: r1[i].id, slot: 'pair1' };
-				}
-				nullCount++;
+		const prelimMatch = state.prelim.find((p) => p.id === matchId);
+		if (prelimMatch && prelimMatch.targetMatchId && prelimMatch.targetSlot) {
+			try {
+				console.debug('[tournament] using prelim mapping', {
+					matchId,
+					prelimIdx,
+					targetMatchId: prelimMatch.targetMatchId,
+					targetSlot: prelimMatch.targetSlot,
+				});
+			} catch (err) {
+				// noop
 			}
-			if (r1[i].pair2 === null) {
-				if (nullCount === prelimIdx) {
-					return { matchId: r1[i].id, slot: 'pair2' };
-				}
-				nullCount++;
-			}
+			return { matchId: prelimMatch.targetMatchId, slot: prelimMatch.targetSlot };
 		}
-		return null;
+
+		// Fallback: compute empty slots dynamically if mapping not present
+		const r1 = state.rounds[0] ?? [];
+		const emptySlots: { matchId: string; slot: 'pair1' | 'pair2' }[] = [];
+		for (let i = 0; i < r1.length; i++) {
+			if (r1[i].pair1 === null) emptySlots.push({ matchId: r1[i].id, slot: 'pair1' });
+			if (r1[i].pair2 === null) emptySlots.push({ matchId: r1[i].id, slot: 'pair2' });
+		}
+
+		if (prelimIdx < 0 || prelimIdx >= emptySlots.length) return null;
+		return emptySlots[prelimIdx];
 	}
 
 	const parts = matchId.match(/^r(\d+)-(\d+)$/);
@@ -370,8 +398,15 @@ export function registerResult(
 
 	const nextSlot = findNextMatchSlot(newState, matchId);
 	if (nextSlot) {
+		try {
+			console.debug('[tournament] advancing winner', { matchId, winner, nextSlot });
+		} catch (err) {}
 		const slotUpdate: Partial<Match> = { [nextSlot.slot]: winner };
 		newState = updateMatchInState(newState, nextSlot.matchId, slotUpdate);
+	} else {
+		try {
+			console.debug('[tournament] no next slot found for', { matchId, winner });
+		} catch (err) {}
 	}
 
 	const podium = detectPodium(newState);

@@ -163,12 +163,27 @@ function autoAdvanceByesInState(initial: TournamentState): TournamentState {
 
     for (let i = 0; i < state.prelim.length; i++) {
       const m = state.prelim[i];
-      if (!isByeMatch(m) || m.winner) continue;
+        if (!isByeMatch(m) || m.winner) continue;
       m.winner = m.pair1 ?? m.pair2 ?? undefined;
       m.score = undefined;
 
       const winner = m.winner;
       if (!winner) continue;
+
+      // If the prelim match has an explicit target mapping, use it.
+      if (m.targetMatchId && m.targetSlot) {
+        const target = findMatch(state, m.targetMatchId);
+        if (target) {
+          try {
+            console.debug('[TournamentApp] auto-advance bye -> target', { prelimId: m.id, target: m.targetMatchId, slot: m.targetSlot, winner });
+          } catch (err) {}
+          (target as any)[m.targetSlot] = winner;
+          changed = true;
+          continue;
+        }
+      }
+
+      // Fallback: place into the N-th empty slot (legacy behaviour)
       let nullSlotIndex = 0;
       for (let r1Idx = 0; r1Idx < state.rounds[0].length; r1Idx++) {
         const candidate = state.rounds[0][r1Idx];
@@ -193,7 +208,8 @@ function autoAdvanceByesInState(initial: TournamentState): TournamentState {
     for (let r = 0; r < state.rounds.length; r++) {
       for (let mIdx = 0; mIdx < state.rounds[r].length; mIdx++) {
         const match = state.rounds[r][mIdx];
-        if (!isByeMatch(match) || match.winner) continue;
+        // Only auto-advance matches that were initial BYEs (created at bracket generation)
+        if (!isByeMatch(match) || match.winner || !match.initialBye) continue;
 
         const winner = match.pair1 ?? match.pair2;
         if (!winner) continue;
@@ -207,6 +223,8 @@ function autoAdvanceByesInState(initial: TournamentState): TournamentState {
           const next = state.rounds[r + 1][nextMatchIdx];
           if (next && next[slot] == null) {
             next[slot] = winner;
+            // mark the next match as an auto-BYE so propagation continues correctly
+            next.initialBye = true;
           }
         }
 
