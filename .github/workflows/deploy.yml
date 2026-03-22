@@ -26,6 +26,11 @@ jobs:
           # Remove package-lock and node_modules to avoid npm optional deps bug
           rm -rf node_modules package-lock.json || true
           npm install --legacy-peer-deps
+      - name: Rebuild native modules
+        run: |
+          set -e
+          # Ensure native optional bindings are compiled for the current runner
+          npm rebuild --build-from-source || npm rebuild || true
       - run: npm run build
       - name: Create stable CSS and update index references
         run: |
