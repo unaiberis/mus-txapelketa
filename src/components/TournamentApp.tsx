@@ -11,14 +11,12 @@ import {
   generateBracket,
   generateRandomPairs,
   isValidBestOf,
-  isValidScore,
   parseCSVImport,
   preliminaryInfo,
   prizePool,
   registerResult,
   signExport,
   verifyAndImport,
-  type EntropyEvent,
   type Match,
   type MatchScore,
   type Phase,
@@ -34,7 +32,7 @@ import BracketView from './BracketView';
 import useEntropy from '../hooks/useEntropy';
 import { currencySymbol, percentToPresetKey, presetToPercentages, type AutoSplitPreset } from '../lib/format';
 import PodiumView from './PodiumView';
-import LeftPanelMock from './LeftPanelMock';
+// LeftPanelMock removed — not used
 import PrelimGrid from './PrelimGrid';
 
 type ExportFormat = 'json' | 'csv' | 'xlsx';
@@ -44,17 +42,6 @@ function isByeMatch(match: Match): boolean {
   return Boolean((match.pair1 && !match.pair2) || (!match.pair1 && match.pair2));
 }
 
-function roundIndexFromId(matchId: string): number | null {
-  const parsed = /^r(\d+)-\d+$/.exec(matchId);
-  if (!parsed) return null;
-  return Number.parseInt(parsed[1], 10) - 1;
-}
-
-function matchIndexFromId(matchId: string): number | null {
-  const parsed = /^r\d+-(\d+)$/.exec(matchId);
-  if (!parsed) return null;
-  return Number.parseInt(parsed[1], 10);
-}
 
 function cloneTournamentState(state: TournamentState): TournamentState {
   return {
@@ -247,8 +234,8 @@ export default function TournamentApp() {
     try {
       if (typeof window === 'undefined') return;
       const stored = window.localStorage.getItem('museko:lang');
-      if (stored && ['es', 'en', 'fr', 'eu'].includes(stored)) setLang(stored as any);
-    } catch (e) {
+      if (stored && ['es', 'en', 'fr', 'eu'].includes(stored)) setLang(stored as Lang);
+    } catch {
       // noop
     }
   }, []);
@@ -301,7 +288,7 @@ export default function TournamentApp() {
   useEffect(() => {
     try {
       if (typeof window !== 'undefined') window.localStorage.setItem('museko:lang', lang);
-    } catch (e) {
+    } catch {
       // ignore
     }
   }, [lang]);
@@ -327,7 +314,7 @@ export default function TournamentApp() {
     setInput1('');
     setInput2('');
     input1Ref.current?.focus();
-  }, [input1, input2, pairs, tournament]);
+  }, [input1, input2, pairs, tournament, lang]);
 
   const generate80Pairs = useCallback(() => {
     if (tournament) return;
@@ -339,7 +326,7 @@ export default function TournamentApp() {
     const seed = finalizeEntropy();
     const gen = generateRandomPairs(70, seed);
     setPairs(gen);
-  }, [tournament, pairs, lang]);
+  }, [tournament, pairs, lang, finalizeEntropy]);
 
   const removePair = useCallback(
     (idx: number) => {
@@ -394,7 +381,7 @@ export default function TournamentApp() {
     const state = generateBracket(pairs, seed, actualBestOf, prizeConfig);
     const withByes = autoAdvanceByesInState(state);
     setTournament(withByes);
-  }, [actualBestOf, pairs, prizeConfig]);
+  }, [actualBestOf, pairs, prizeConfig, finalizeEntropy, lang]);
 
   const handleResult = useCallback(
     (matchId: string, score1: number, score2: number) => {
@@ -416,7 +403,7 @@ export default function TournamentApp() {
       const newState = clearDownstream(tournament, matchId);
       setTournament(newState);
     },
-    [tournament]
+    [tournament, lang]
   );
 
   const handleExport = useCallback(async () => {
@@ -506,7 +493,7 @@ export default function TournamentApp() {
       new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
       `torneo-mus-${Date.now()}.xlsx`
     );
-  }, [exportFormat, tournament]);
+  }, [exportFormat, tournament, lang]);
 
   const handleImport = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -619,7 +606,7 @@ export default function TournamentApp() {
 
       if (fileInputRef.current) fileInputRef.current.value = '';
     },
-    []
+    [lang]
   );
 
   const resetTournament = useCallback(() => {
@@ -664,7 +651,7 @@ export default function TournamentApp() {
               data-testid="header-lang-select"
               className="form-input text-sm"
               value={lang}
-              onChange={(e) => setLang(e.target.value as any)}
+              onChange={(e) => setLang(e.target.value as Lang)}
             >
               {LANGUAGES.map((l) => (
                 <option key={l.code} value={l.code}>{l.label}</option>
@@ -939,7 +926,7 @@ export default function TournamentApp() {
 
                 <div className="rounded border px-3 py-2 text-sm" style={{ borderColor: 'var(--color-border)' }}>
                   <p style={{ color: 'var(--color-text-muted)' }}>
-                    {tr(lang, 'fees.pool', { pool: poolAmount, currency: currencySymbol(prizeConfig.currency) } as any)}
+                    {tr(lang, 'fees.pool', { pool: poolAmount, currency: currencySymbol(prizeConfig.currency) })}
                   </p>
                 </div>
               </div>
@@ -1046,13 +1033,13 @@ export default function TournamentApp() {
                   <p className="text-xs uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
                     {tr(lang, 'prelim.card.prelimRound')}
                   </p>
-                  <p className="text-lg">{tr(lang, 'prelim.card.matchesCount', { count: calcPrelim.prelimMatches } as any)}</p>
+                  <p className="text-lg">{tr(lang, 'prelim.card.matchesCount', { count: calcPrelim.prelimMatches })}</p>
                 </div>
                 <div className="rounded border p-3" style={{ borderColor: 'var(--color-border)' }}>
                   <p className="text-xs uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
                     {tr(lang, 'prelim.card.target')}
                   </p>
-                  <p className="text-lg">{tr(lang, 'prelim.card.pairsCount', { count: calcPrelim.target } as any)}</p>
+                  <p className="text-lg">{tr(lang, 'prelim.card.pairsCount', { count: calcPrelim.target })}</p>
                 </div>
                 <div className="rounded border p-3" style={{ borderColor: 'var(--color-border)' }}>
                   <p className="text-xs uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
