@@ -1,13 +1,13 @@
-<script lang="ts">
+<script>
   import { onMount, onDestroy } from 'svelte';
   import { buildBracketryData } from '../lib/bracketryUtils';
 
-  let wrapperEl: HTMLElement | null = null;
-  let lastManagerInstance: any = null;
-  let lastDbInstance: any = null;
-  let lastManagerData: any = null;
+  let wrapperEl = null;
+  let lastManagerInstance = null;
+  let lastDbInstance = null;
+  let lastManagerData = null;
 
-  async function safeCreateBracket(bracketData: any, wrapper: HTMLElement) {
+  async function safeCreateBracket(bracketData, wrapper) {
     try {
       const { createBracket } = await import('bracketry');
       window.__advanceMatch = (mid, side) => onParticipantClick(mid, side);
@@ -24,13 +24,13 @@
     if (!lastManagerInstance || !lastDbInstance) return;
     if (!wrapperEl) return;
     // Re-attach event handlers by replacing nodes (clears old listeners)
-    wrapperEl!.querySelectorAll('.participant').forEach((el) => el.replaceWith(el.cloneNode(true)));
+    wrapperEl.querySelectorAll('.participant').forEach((el) => el.replaceWith(el.cloneNode(true)));
 
     // Apply handlers and visual states based on lastDbInstance matches
     const matchesData = (lastDbInstance && lastDbInstance.data && lastDbInstance.data.match) ? lastDbInstance.data.match : [];
 
     wrapperEl!.querySelectorAll('[data-match-id]').forEach((matchEl) => {
-      const matchId = Number((matchEl as HTMLElement).getAttribute('data-match-id'));
+      const matchId = Number(matchEl.getAttribute('data-match-id'));
       const participantsEls = Array.from(matchEl.querySelectorAll('.participant'));
 
       // Add click handlers
@@ -146,7 +146,7 @@
     try { next.focus(); } catch (e) {}
   }
 
-  async function onParticipantClick(matchId: number, participantSide: 1 | 2) {
+  async function onParticipantClick(matchId, participantSide) {
     if (!lastManagerInstance || !lastDbInstance) {
       console.warn('Manager not available');
       return;
