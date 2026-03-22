@@ -1,10 +1,73 @@
 import React, { useEffect, useState } from 'react';
-import { isValidScore, validateScore, type Match } from '../lib/tournament';
+import { isValidScore, type Match } from '../lib/tournament';
 import { t as tr, type Lang } from '../lib/i18n';
-import useToast from '../hooks/useToast';
 
 export const BRACKET_CARD_H = 88; // px – fixed height kept constant for correct bracket alignment
 export const BRACKET_CARD_W = 216; // px – fixed width
+
+/* ── Self-contained styles (injected once) ───────────────────────────────── */
+const STYLE_ID = 'bracket-card-styles';
+const BCARD_CSS = `
+.bcard {
+  width: ${BRACKET_CARD_W}px;
+  height: ${BRACKET_CARD_H}px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  padding: 5px 7px;
+  position: relative;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-accent);
+  border-radius: 6px;
+  transition: box-shadow 0.15s, border-left-color 0.15s;
+  overflow: hidden;
+}
+.bcard:hover { box-shadow: 0 2px 14px var(--color-accent-glow); }
+.bcard--pending { border-left-color: var(--color-border); opacity: 0.5; }
+.bcard--bye     { border-left-color: rgba(255,255,255,0.12); opacity: 0.7; }
+.bcard--done    { border-left-color: var(--color-accent); }
+.bcard--active  { border-left-color: rgba(230,242,239,0.5); }
+
+.bcard-edit {
+  position: absolute; bottom: 3px; right: 4px;
+  background: transparent; border: none; cursor: pointer;
+  font-size: 0.65rem; opacity: 0; transition: opacity 0.15s;
+  padding: 0; line-height: 1;
+}
+.bcard:hover .bcard-edit { opacity: 0.65; }
+.bcard-edit:hover { opacity: 1 !important; }
+
+.bcard-input {
+  width: 2rem; text-align: center;
+  background: var(--color-bg); border: 1px solid var(--color-border);
+  border-radius: 3px; color: var(--color-text);
+  font-family: var(--font-display); font-size: 0.9rem;
+  padding: 1px 3px; flex-shrink: 0; outline: none;
+}
+.bcard-input:focus { border-color: var(--color-accent); box-shadow: 0 0 0 2px var(--color-accent-glow); }
+.bcard-input::-webkit-inner-spin-button,
+.bcard-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+.bcard-submit {
+  position: absolute; bottom: 4px; right: 5px;
+  width: 18px; height: 18px;
+  background: var(--color-accent); color: var(--color-bg);
+  border: none; border-radius: 3px;
+  font-size: 0.65rem; font-weight: 700; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0; line-height: 1; transition: filter 0.15s;
+}
+.bcard-submit:hover { filter: brightness(1.2); }
+`;
+
+if (typeof document !== 'undefined' && !document.getElementById(STYLE_ID)) {
+  const el = document.createElement('style');
+  el.id = STYLE_ID;
+  el.textContent = BCARD_CSS;
+  document.head.appendChild(el);
+}
 
 interface BracketCardProps {
   match: Match;
@@ -32,31 +95,27 @@ export default function BracketCard({
 
   const [s1, setS1] = useState('');
   const [s2, setS2] = useState('');
-  const toast = useToast();
+  const [err, setErr] = useState('');
 
   useEffect(() => {
     setS1(match.score ? String(match.score.score1) : '');
     setS2(match.score ? String(match.score.score2) : '');
+    setErr('');
   }, [match.id, match.score]);
 
   const submit = () => {
     const p1 = Number.parseInt(s1, 10);
     const p2 = Number.parseInt(s2, 10);
     if (Number.isNaN(p1) || Number.isNaN(p2)) {
-      const msg = tr(lang, 'match.error.nan');
-      toast?.showError(msg);
+      setErr('—');
       return;
     }
-
-    const validation = validateScore(p1, p2, bestOf);
-    if (!validation.valid) {
-      const key = validation.code ?? 'invalidScore';
-      const msg = tr(lang, `match.error.${key}`, { bestOf, winsNeeded });
-      toast?.showError(msg);
+    if (!isValidScore(p1, p2, bestOf)) {
+      setErr(`!${winsNeeded}`);
       return;
     }
-
     onResult(match.id, p1, p2);
+    setErr('');
   };
 
   const seed = (name: string | null) => {
@@ -67,11 +126,13 @@ export default function BracketCard({
 
   const PairRow = ({
     name,
+    score,
     isWinner,
     isLoser,
     right,
   }: {
     name: string | null;
+    score?: number;
     isWinner?: boolean;
     isLoser?: boolean;
     right?: React.ReactNode;
@@ -276,7 +337,19 @@ export default function BracketCard({
       <button type="button" className="bcard-submit" onClick={submit}>
         ✓
       </button>
-      {/* Errors are shown via toast; no inline error badge rendered */}
+      {err && (
+        <span
+          style={{
+            position: 'absolute',
+            bottom: 2,
+            left: 6,
+            fontSize: '0.58rem',
+            color: '#ef4444',
+          }}
+        >
+          {err}
+        </span>
+      )}
     </div>
   );
 }
