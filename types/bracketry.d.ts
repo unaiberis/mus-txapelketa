@@ -1,31 +1,31 @@
 declare module 'bracketry/dist/esm/index.js' {
-  const content: any;
+  const content: unknown;
   export = content;
 }
 
 declare module 'bracketry/dist/esm/index' {
-  const content: any;
+  const content: unknown;
   export = content;
 }
 
 declare module 'bracketry/dist/esm' {
-  const content: any;
+  const content: unknown;
   export = content;
 }
 
 declare module 'bracketry' {
-  const content: any;
+  const content: unknown;
   export = content;
 }
 
 export {};
 
 declare module 'bracketry/*' {
-  const content: any;
+  const content: unknown;
   export = content;
 }
 
 declare module 'bracketry/**' {
-  const content: any;
+  const content: unknown;
   export = content;
 }

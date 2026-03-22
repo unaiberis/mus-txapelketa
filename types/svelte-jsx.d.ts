@@ -1,10 +1,10 @@
 declare namespace svelte {
   namespace JSX {
     interface HTMLAttributes<T> {
-      [key: string]: any;
+      [key: string]: unknown;
     }
     interface IntrinsicElements {
-      [elemName: string]: any;
+      [elemName: string]: unknown;
     }
   }
 }

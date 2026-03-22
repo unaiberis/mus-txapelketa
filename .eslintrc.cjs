@@ -1,4 +1,23 @@
 module.exports = {
+  root: true,
+  extends: [
+    'eslint:recommended',
+    'plugin:@typescript-eslint/recommended',
+    'plugin:react/recommended',
+    'plugin:astro/recommended',
+  ],
+  parser: '@typescript-eslint/parser',
+  plugins: ['@typescript-eslint', 'react'],
+  rules: {
+    '@typescript-eslint/no-explicit-any': 'error',
+  },
+  settings: {
+    react: {
+      version: 'detect',
+    },
+  },
+};
+module.exports = {
   env: {
     browser: true,
     es2022: true,

@@ -1,7 +1,6 @@
 ---
 import Header from '../components/Header.astro';
 import "../styles/global.css";
-import KoadroaFull from '../components/KoadroaFull.svelte';
 ---
 
 <html lang="eu">
@@ -16,8 +15,8 @@ import KoadroaFull from '../components/KoadroaFull.svelte';
       <Header showBack={true} />
 
       <main class="pt-14 w-full max-w-full p-0 h-screen m-0">
-        <section id="koadroa-island" class="p-0 m-0 h-full">
-          <KoadroaFull client:idle />
+        <section id="koadroa-island" class="p-0 m-0 h-full flex items-center justify-center">
+          <div class="p-8 text-center text-slate-600">El visor del cuadro ha sido eliminado en esta versión.</div>
         </section>
       </main>
     </div>
