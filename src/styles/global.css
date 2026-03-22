@@ -175,6 +175,9 @@ main::after {
   position: relative;
   z-index: 10;
 }
+/* Explicit layout helpers for Designer */
+.left-panel { width: 20rem; flex-shrink: 0; }
+.right-panel { flex: 1 1 auto; }
 .pair-list-item {
   border: 1px solid var(--color-border);
   background: var(--color-surface2);

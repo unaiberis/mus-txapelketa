@@ -29,15 +29,7 @@ import {
 } from '../lib/tournament';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DEFAULT_LANG, LANGUAGES, t as tr, type Lang } from '../lib/i18n';
-
-type ExportFormat = 'json' | 'csv' | 'xlsx';
-type BestOfMode = 'preset' | 'custom';
-type AutoSplitPreset = '50-30-15-5' | '40-30-20-10' | '60-25-10-5' | 'custom';
-
-interface EntropyMeterProps {
-  score: number;
-  lang: Lang;
-}
+import EntropyMeter from './EntropyMeter';
 
 interface MatchCardProps {
   match: Match;
@@ -79,64 +71,58 @@ function presetToPercentages(preset: AutoSplitPreset): [number, number, number, 
   return [50, 30, 15, 5];
 }
 
-function EntropyMeter({ score, lang }: EntropyMeterProps) {
-  const clamped = Math.max(0, Math.min(100, score));
+type ExportFormat = 'json' | 'csv' | 'xlsx';
+type BestOfMode = 'preset' | 'custom';
+type AutoSplitPreset = '50-30-15-5' | '40-30-20-10' | '60-25-10-5' | 'custom';
 
-  const label =
-    clamped >= 100
-      ? tr(lang, 'entropy.labels.max')
-      : clamped >= 80
-        ? tr(lang, 'entropy.labels.veryHigh')
-        : clamped >= 60
-          ? tr(lang, 'entropy.labels.high')
-          : clamped >= 40
-            ? tr(lang, 'entropy.labels.medium')
-            : clamped >= 20
-              ? tr(lang, 'entropy.labels.low')
-              : tr(lang, 'entropy.labels.none');
-
-  const barColor =
-    clamped >= 100
-      ? '#10b981'
-      : clamped >= 80
-        ? '#22c55e'
-        : clamped >= 60
-          ? '#84cc16'
-          : clamped >= 40
-            ? '#eab308'
-            : clamped >= 20
-              ? '#f97316'
-              : '#ef4444';
-
+// Presentational left-panel mock for Designer (Basque labels)
+export function LeftPanelMock() {
+  const lang: Lang = 'eu';
   return (
-    <div className="entropy-meter">
-      <div className="entropy-header flex items-center justify-between gap-2">
-        <span className="entropy-title">{tr(lang, 'entropy.title')}</span>
-        <span className="entropy-pct">{clamped}%</span>
-      </div>
-      <div className="entropy-track" aria-hidden="true">
-        <div
-          className="entropy-bar"
-          style={{
-            width: `${clamped}%`,
-            backgroundColor: barColor,
-            boxShadow: clamped >= 80 ? `0 0 8px ${barColor}` : 'none',
-            animation: clamped >= 100 ? 'pulse-glow 1s ease-in-out infinite' : 'none',
-            backgroundImage:
-              clamped >= 100
-                ? 'linear-gradient(100deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.35) 50%, rgba(255,255,255,0) 100%)'
-                : 'none',
-            backgroundSize: clamped >= 100 ? '200% 100%' : undefined,
-            backgroundPosition: clamped >= 100 ? 'center' : undefined,
-          }}
-        />
-      </div>
-      <p className="entropy-label">{label}</p>
-      {clamped < 60 && (
-        <p className="entropy-hint">{tr(lang, 'entropy.hintKeyboard')}</p>
-      )}
-      {clamped >= 80 && <p className="entropy-secure">{tr(lang, 'entropy.hint')}</p>}
-    </div>
+    <aside className="left-panel" style={{ width: '20rem', padding: '16px' }}>
+      <section className="mb-6">
+        <h2 className="text-sm uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
+          {tr(lang, 'left.pairEntryHeader')}
+        </h2>
+        <div className="space-y-2 mt-2">
+          <input className="form-input" placeholder={tr(lang, 'addPair.placeholder1')} />
+          <input className="form-input" placeholder={tr(lang, 'addPair.placeholder2')} />
+          <button className="btn-primary w-full">{tr(lang, 'left.createButton')}</button>
+        </div>
+      </section>
+
+      <section className="mb-6">
+        <h3 className="text-xs uppercase" style={{ color: 'var(--color-text-muted)' }}>{tr(lang, 'left.prizesLabel')}</h3>
+        <div className="mt-2">
+          <input className="form-input" placeholder="Sarrera kuota" />
+        </div>
+      </section>
+
+      <section className="mb-6">
+        <h3 className="text-xs uppercase" style={{ color: 'var(--color-text-muted)' }}>{tr(lang, 'left.bestOfLabel')}</h3>
+        <div className="mt-2">
+          <select className="form-input">
+            <option>3</option>
+            <option selected>5</option>
+            <option>7</option>
+          </select>
+        </div>
+      </section>
+
+      <section className="mb-6">
+        <div className="entropy-meter" style={{ marginBottom: 12 }}>
+          <div className="entropy-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span className="entropy-title">{tr(lang, 'entropy.title')}</span>
+            <span className="entropy-pct">0%</span>
+          </div>
+          <div className="entropy-track" aria-hidden="true">
+            <div className="entropy-bar" style={{ width: '0%' }} />
+          </div>
+          <p className="entropy-label">{tr(lang, 'entropy.labels.none')}</p>
+        </div>
+      </section>
+
+    </aside>
   );
 }
 
@@ -1356,7 +1342,7 @@ export default function TournamentApp() {
             {formatError && <p className="score-error">{formatError}</p>}
           </section>
 
-          {!tournament && <EntropyMeter score={entropyScore} lang={lang} />}
+          <EntropyMeter score={entropyScore} seed={tournament?.seed} lang={lang} />
 
           {!tournament && (
             <button type="button" className="btn-primary w-full" onClick={createTournament}>
@@ -1407,13 +1393,13 @@ export default function TournamentApp() {
                   <p className="text-xs uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
                     {tr(lang, 'prelim.card.prelimRound')}
                   </p>
-                  <p className="text-lg">{calcPrelim.prelimMatches} partidas</p>
+                  <p className="text-lg">{tr(lang, 'prelim.card.matchesCount', { count: calcPrelim.prelimMatches } as any)}</p>
                 </div>
                 <div className="rounded border p-3" style={{ borderColor: 'var(--color-border)' }}>
                   <p className="text-xs uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
                     {tr(lang, 'prelim.card.target')}
                   </p>
-                  <p className="text-lg">{calcPrelim.target} parejas</p>
+                  <p className="text-lg">{tr(lang, 'prelim.card.pairsCount', { count: calcPrelim.target } as any)}</p>
                 </div>
                 <div className="rounded border p-3" style={{ borderColor: 'var(--color-border)' }}>
                   <p className="text-xs uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
