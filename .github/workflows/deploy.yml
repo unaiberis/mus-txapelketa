@@ -20,7 +20,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '18'
-      - run: npm ci --no-optional
+      - name: Clean install (avoid optional-deps npm bug)
+        run: |
+          set -e
+          # Remove package-lock and node_modules to avoid npm optional deps bug
+          rm -rf node_modules package-lock.json || true
+          npm install --legacy-peer-deps
       - run: npm run build
       - name: Create stable CSS and update index references
         run: |
