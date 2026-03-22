@@ -136,6 +136,21 @@ export function deriveSeed(events: EntropyEvent[]): number {
 	return Math.abs(hash ^ ((now * 1000) | 0));
 }
 
+export function generateRandomPairs(count: number, seed?: number): string[] {
+	const s = typeof seed === 'number' ? seed : Date.now();
+	const rand = mulberry32(s);
+	const totalPlayers = count * 2;
+	const players: string[] = Array.from({ length: totalPlayers }, (_, i) => `Jugador ${i + 1}`);
+	const shuffled = shuffle(players, rand);
+	const pairs: string[] = [];
+	for (let i = 0; i < shuffled.length; i += 2) {
+		const p1 = shuffled[i] ?? `Jugador ${i + 1}`;
+		const p2 = shuffled[i + 1] ?? `Jugador ${i + 2}`;
+		pairs.push(`${p1} / ${p2}`);
+	}
+	return pairs;
+}
+
 export function nextPow2(n: number): number {
 	let p = 1;
 	while (p < n) p <<= 1;

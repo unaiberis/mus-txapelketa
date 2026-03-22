@@ -61,6 +61,9 @@ const DICT: Record<Lang, Dict> = {
         prizes: { thirdPlaceShared: '3º puesto compartido' },
         
         button: { confirm: 'Confirmar' },
+        ui: { language: 'Idioma' },
+        generate: { confirmReplace: 'Reemplazar parejas existentes con 80 parejas aleatorias?' },
+        left: { pairEntryHeader: 'Añadir parejas', prizesLabel: 'Premios', bestOfLabel: 'Formato', createButton: 'Crear torneo' },
         setup: { title: 'Configura tu torneo', description: 'Añade parejas en el panel izquierdo, define premios y formato, y después crea el cuadro. El emparejamiento se realiza con una semilla basada en entropía de tus interacciones.' },
         create: { label: 'Crear torneo', needPairs: 'Necesitas al menos 2 parejas para crear el torneo.' },
         prelim: { card: { prelimRound: 'Ronda previa', target: 'Cuadro objetivo', byes: 'Pasan directas', playPrelim: 'Juegan previa', matchesCount: '{count} partidas', pairsCount: '{count} parejas' } },
@@ -119,6 +122,9 @@ const DICT: Record<Lang, Dict> = {
         prizes: { thirdPlaceShared: '3rd place shared' },
         
         button: { confirm: 'Confirm' },
+        ui: { language: 'Language' },
+        generate: { confirmReplace: 'Replace existing pairs with 80 random pairs?' },
+        left: { pairEntryHeader: 'Add pairs', prizesLabel: 'Prizes', bestOfLabel: 'Format', createButton: 'Create tournament' },
         setup: { title: 'Set up your tournament', description: 'Add pairs in the left panel, set prizes and format, then create the bracket. Pairings are generated from a seed derived from your interaction entropy.' },
         create: { label: 'Create tournament', needPairs: 'You need at least 2 pairs to create the tournament.' },
         prelim: { card: { prelimRound: 'Preliminary round', target: 'Target bracket', byes: 'Byes', playPrelim: 'Play prelim', matchesCount: '{count} matches', pairsCount: '{count} pairs' } },
@@ -156,6 +162,9 @@ const DICT: Record<Lang, Dict> = {
         prizes: { thirdPlaceShared: '3ᵉ place partagé' },
         
         button: { confirm: 'Confirmer' },
+        ui: { language: 'Langue' },
+        generate: { confirmReplace: 'Remplacer les paires existantes par 80 paires aléatoires ?' },
+        left: { pairEntryHeader: 'Ajouter des paires', prizesLabel: 'Prix', bestOfLabel: 'Format', createButton: 'Créer le tournoi' },
         setup: { title: 'Configurez votre tournoi', description: 'Ajoutez des paires dans le panneau de gauche, définissez les prix et le format, puis créez le tableau. Les appariements sont générés à partir d’une graine dérivée de l’entropie de vos interactions.' },
         create: { label: 'Créer le tournoi', needPairs: 'Vous devez avoir au moins 2 paires pour créer le tournoi.' },
         prelim: { card: { prelimRound: 'Phase préliminaire', target: 'Tableau cible', byes: 'Qualifiés directs', playPrelim: 'Jouent la préliminaire', matchesCount: '{count} matchs', pairsCount: '{count} paires' } },
@@ -220,6 +229,9 @@ const DICT: Record<Lang, Dict> = {
         prizes: { thirdPlaceShared: '3. postua partekatuta' },
         
         button: { confirm: 'Onartu' },
+        ui: { language: 'Hizkuntza' },
+        generate: { confirmReplace: 'Orain dauden bikoteak 80 bikote ausazkinengatik ordezkatu?' },
+        
         setup: { title: 'Zure txapelketa konfiguratu', description: 'Ezkerreko panelean bikoteak gehitu, sariak eta formatua ezarri, eta ondoren koadroa sortu. Kuadroa zure interakzioen entropiatik eratorritako hazitik sortzen da.' },
         create: { label: 'Sortu txapelketa', needPairs: 'Gutxienez 2 bikote behar dituzu txapelketa sortzeko.' },
         left: {
