@@ -516,7 +516,6 @@ function TournamentAppInner() {
     const prizeRows: Array<[string, string | number]> = [
       [tr(lang, 'export.sheet.field'), tr(lang, 'export.sheet.value')],
       [tr(lang, 'fees.entryFee'), `${signed.prizeConfig.entryFee} ${currencySymbol(signed.prizeConfig.currency)}`],
-      [tr(lang, 'fees.pool'), `${prizePool(signed.prizeConfig.entryFee, signed.pairs.length)} ${currencySymbol(signed.prizeConfig.currency)}`],
       [tr(lang, 'export.prize.first'), `${signed.prizeConfig.prizes[0]} ${currencySymbol(signed.prizeConfig.currency)}`],
       [tr(lang, 'export.prize.second'), `${signed.prizeConfig.prizes[1]} ${currencySymbol(signed.prizeConfig.currency)}`],
       [tr(lang, 'export.prize.third'), `${signed.prizeConfig.prizes[2]} ${currencySymbol(signed.prizeConfig.currency)}`],
@@ -950,11 +949,7 @@ function TournamentAppInner() {
                   </select>
                 </label>
 
-                <div className="rounded border px-3 py-2 text-sm" style={{ borderColor: 'var(--color-border)' }}>
-                  <p style={{ color: 'var(--color-text-muted)' }}>
-                    {tr(lang, 'fees.pool', { pool: poolAmount, currency: currencySymbol(prizeConfig.currency) })}
-                  </p>
-                </div>
+                {/* Removed fees.pool display as requested */}
               </div>
             )}
           </section>
