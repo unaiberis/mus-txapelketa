@@ -9,9 +9,10 @@ interface MatchCardProps {
   onResult: (matchId: string, s1: number, s2: number) => void;
   onEdit: (matchId: string) => void;
   lang: Lang;
+  allPairs?: string[];
 }
 
-export default function MatchCard({ match, bestOf, onResult, onEdit, lang }: MatchCardProps) {
+export default function MatchCard({ match, bestOf, onResult, onEdit, lang, allPairs }: MatchCardProps) {
   const winsNeeded = Math.ceil(bestOf / 2);
   const isBye = (match.pair1 && !match.pair2) || (!match.pair1 && match.pair2);
   const isDone = Boolean(match.winner && match.score);
@@ -27,11 +28,18 @@ export default function MatchCard({ match, bestOf, onResult, onEdit, lang }: Mat
     setError('');
   }, [match.id, match.score]);
 
-  const cardClass = isBye
-    ? 'match-card match-card--bye'
-    : isDone
-    ? 'match-card match-card--done'
-    : 'match-card match-card--active';
+  const cardClass = 'card ' + (isBye ? 'match-card match-card--bye' : isDone ? 'match-card match-card--done' : 'match-card match-card--active');
+
+  const renderPair = (pairName: string | null) => {
+    if (!pairName) return null;
+    const idx = allPairs?.indexOf(pairName) ?? -1;
+    return (
+      <div className="flex items-center gap-2">
+        {idx >= 0 && <span className="text-xs text-muted">#{idx + 1}</span>}
+        <span className="truncate" title={pairName}>{pairName}</span>
+      </div>
+    );
+  };
 
   const submitScore = () => {
     const parsed1 = Number.parseInt(score1, 10);
@@ -60,16 +68,7 @@ export default function MatchCard({ match, bestOf, onResult, onEdit, lang }: Mat
         <span className="text-xs uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
           {match.isPrelim ? tr(lang, 'match.prelimLabel') : tr(lang, 'match.roundLabel', { round: match.round } as any)}
         </span>
-        <span
-          className="rounded px-2 py-0.5 text-[0.7rem]"
-          style={{
-            background: 'var(--color-surface2)',
-            border: '1px solid var(--color-border)',
-            color: 'var(--color-accent)',
-          }}
-        >
-          {tr(lang, 'match.boBadge', { bestOf } as any)}
-        </span>
+        <span className="badge badge--small badge--green">{tr(lang, 'match.boBadge', { bestOf } as any)}</span>
       </div>
 
       {isLockedNoParticipants && (
@@ -81,7 +80,7 @@ export default function MatchCard({ match, bestOf, onResult, onEdit, lang }: Mat
       {isBye && (
         <div className="space-y-2">
           <div className="rounded px-2 py-1 text-sm" style={{ background: 'var(--color-surface2)' }}>
-            {match.pair1 ?? match.pair2}
+            {renderPair(match.pair1 ?? match.pair2)}
           </div>
           <div className="vs-label">{tr(lang, 'bye')}</div>
           <div className="rounded px-2 py-1 text-xs" style={{ background: 'var(--color-border)' }}>
@@ -94,14 +93,14 @@ export default function MatchCard({ match, bestOf, onResult, onEdit, lang }: Mat
         <div className="space-y-2">
           <div className={match.winner === match.pair1 ? 'winner' : 'loser'}>
             <div className="flex items-center justify-between gap-2">
-              <span className="truncate">{match.pair1}</span>
+              {renderPair(match.pair1)}
               <strong>{match.score?.score1}</strong>
             </div>
           </div>
           <div className="vs-label">{tr(lang, 'match.vs')}</div>
           <div className={match.winner === match.pair2 ? 'winner' : 'loser'}>
             <div className="flex items-center justify-between gap-2">
-              <span className="truncate">{match.pair2}</span>
+              {renderPair(match.pair2)}
               <strong>{match.score?.score2}</strong>
             </div>
           </div>
@@ -119,9 +118,9 @@ export default function MatchCard({ match, bestOf, onResult, onEdit, lang }: Mat
 
       {!isBye && match.pair1 && match.pair2 && !isDone && (
         <div className="space-y-3">
-          <div className="rounded px-2 py-1 text-sm" style={{ background: 'var(--color-surface2)' }}>{match.pair1}</div>
+          <div className="rounded px-2 py-1 text-sm" style={{ background: 'var(--color-surface2)' }}>{renderPair(match.pair1)}</div>
           <div className="vs-label">{tr(lang, 'match.vs')}</div>
-          <div className="rounded px-2 py-1 text-sm" style={{ background: 'var(--color-surface2)' }}>{match.pair2}</div>
+          <div className="rounded px-2 py-1 text-sm" style={{ background: 'var(--color-surface2)' }}>{renderPair(match.pair2)}</div>
           <div className="flex items-center justify-between gap-2">
             <input
               type="number"

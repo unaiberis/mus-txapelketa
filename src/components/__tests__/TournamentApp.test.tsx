@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import TournamentApp from '../TournamentApp';
 import * as tourLib from '../../lib/tournament';
+import * as entropyLib from '../../lib/entropy';
 import { DEFAULT_LANG, t } from '../../lib/i18n';
 
 describe('TournamentApp', () => {
@@ -24,7 +25,7 @@ describe('TournamentApp', () => {
     // force Basque language
     window.localStorage.setItem('museko:lang', 'eu');
 
-    const spy = vi.spyOn(tourLib, 'deriveSeed');
+    const spy = vi.spyOn(entropyLib, 'deriveSeed');
     spy.mockReturnValue(0x1234);
 
     render(<TournamentApp />);
@@ -51,8 +52,7 @@ describe('TournamentApp', () => {
     // Create tournament - deriveSeed should be invoked
     const createBtn = screen.getByRole('button', { name: t('eu', 'create.label') });
     fireEvent.click(createBtn);
-
-    expect(spy).toHaveBeenCalled();
+      expect(spy).toHaveBeenCalled();
     spy.mockRestore();
   });
 });

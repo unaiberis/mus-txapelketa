@@ -19,7 +19,7 @@ export default function EntropyMeter({ score, seed, lang = 'es' }: EntropyMeterP
           <span className="entropy-pct">{t(lang, 'seed')}: #{short} 🔒</span>
         </div>
         <div className="entropy-track" aria-hidden>
-          <div className="entropy-bar" style={{ width: '100%', backgroundColor: '#94a3b8' }} />
+          <div className="entropy-bar" style={{ width: '100%', backgroundColor: '#94a3b8' }} data-score={100} />
         </div>
         <p className="entropy-label">{t(lang, 'entropy.labels.none')}</p>
       </div>
@@ -61,6 +61,7 @@ export default function EntropyMeter({ score, seed, lang = 'es' }: EntropyMeterP
       <div className="entropy-track" aria-hidden>
         <div
           className="entropy-bar"
+          data-score={clamped}
           style={{
             width: `${clamped}%`,
             backgroundColor: barColor,

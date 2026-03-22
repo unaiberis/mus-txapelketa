@@ -2,14 +2,14 @@ import {
   canonicalize,
   clearDownstream,
   computeAutoPrizes,
-  computeEntropyScore,
   defaultPrizeConfig,
-  deriveSeed,
+  
   deriveSigningKey,
   detectPodium,
   downloadBlob,
   exportCSVString,
   generateBracket,
+  generateRandomPairs,
   isValidBestOf,
   isValidScore,
   parseCSVImport,
@@ -30,6 +30,8 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DEFAULT_LANG, LANGUAGES, t as tr, type Lang } from '../lib/i18n';
 import EntropyMeter from './EntropyMeter';
+import BracketView from './BracketView';
+import useEntropy from '../hooks/useEntropy';
 import { currencySymbol, percentToPresetKey, presetToPercentages, type AutoSplitPreset } from '../lib/format';
 import MatchCard from './MatchCard';
 import PodiumView from './PodiumView';
@@ -238,19 +240,19 @@ function autoAdvanceByesInState(initial: TournamentState): TournamentState {
 }
 
 export default function TournamentApp() {
-  const [lang, setLang] = useState<import('../lib/i18n').Lang>(() => {
+  const [lang, setLang] = useState<import('../lib/i18n').Lang>(DEFAULT_LANG);
+
+  // Read persisted language only on the client after hydration to avoid SSR mismatch
+  useEffect(() => {
     try {
-      const stored = typeof window !== 'undefined' ? window.localStorage.getItem('museko:lang') : null;
-      if (stored && ['es', 'en', 'fr', 'eu'].includes(stored)) return stored as any;
+      if (typeof window === 'undefined') return;
+      const stored = window.localStorage.getItem('museko:lang');
+      if (stored && ['es', 'en', 'fr', 'eu'].includes(stored)) setLang(stored as any);
     } catch (e) {
       // noop
     }
-    return DEFAULT_LANG;
-  });
-  const entropyRef = useRef<EntropyEvent[]>([]);
-  const [entropyScore, setEntropyScore] = useState(0);
-  const lastKeyTsRef = useRef(0);
-  const lastMouseTsRef = useRef(0);
+  }, []);
+  const { score: entropyScore, finalize: finalizeEntropy, lockedSeed } = useEntropy();
 
   const [pairs, setPairs] = useState<string[]>([]);
   const [input1, setInput1] = useState('');
@@ -302,46 +304,7 @@ export default function TournamentApp() {
     } catch (e) {
       // ignore
     }
-    const handleKeydown = (e: KeyboardEvent) => {
-      const now = Date.now();
-      entropyRef.current.push({
-        t: 'k',
-        key: e.key,
-        ts: now,
-        dt: now - lastKeyTsRef.current,
-      });
-      lastKeyTsRef.current = now;
-      setEntropyScore(computeEntropyScore(entropyRef.current));
-    };
-
-    const handleMousemove = (e: MouseEvent) => {
-      const now = Date.now();
-      if (now - lastMouseTsRef.current < 50) return;
-      lastMouseTsRef.current = now;
-      entropyRef.current.push({
-        t: 'm',
-        x: e.clientX,
-        y: e.clientY,
-        ts: now,
-      });
-      setEntropyScore(computeEntropyScore(entropyRef.current));
-    };
-
-    const handleClick = (e: MouseEvent) => {
-      entropyRef.current.push({ t: 'c', x: e.clientX, y: e.clientY, ts: Date.now() });
-      setEntropyScore(computeEntropyScore(entropyRef.current));
-    };
-
-    document.addEventListener('keydown', handleKeydown);
-    document.addEventListener('mousemove', handleMousemove);
-    document.addEventListener('click', handleClick);
-
-    return () => {
-      document.removeEventListener('keydown', handleKeydown);
-      document.removeEventListener('mousemove', handleMousemove);
-      document.removeEventListener('click', handleClick);
-    };
-  }, []);
+  }, [lang]);
 
   const addPair = useCallback(() => {
     if (tournament) return;
@@ -365,6 +328,18 @@ export default function TournamentApp() {
     setInput2('');
     input1Ref.current?.focus();
   }, [input1, input2, pairs, tournament]);
+
+  const generate80Pairs = useCallback(() => {
+    if (tournament) return;
+    if (pairs.length > 0) {
+      const confirmMsg = tr(lang, 'generate.confirmReplace') || 'Reemplazar parejas existentes con 80 parejas aleatorias?';
+      if (!window.confirm(confirmMsg)) return;
+    }
+
+    const seed = finalizeEntropy();
+    const gen = generateRandomPairs(70, seed);
+    setPairs(gen);
+  }, [tournament, pairs, lang]);
 
   const removePair = useCallback(
     (idx: number) => {
@@ -409,8 +384,7 @@ export default function TournamentApp() {
       return;
     }
 
-    entropyRef.current.push({ t: 'c', x: 0, y: 0, ts: Date.now(), last: true });
-    const seed = deriveSeed(entropyRef.current);
+    const seed = finalizeEntropy();
 
     if (!isValidBestOf(actualBestOf)) {
                   setFormatError(tr(lang, 'format.invalidCustom'));
@@ -758,19 +732,33 @@ export default function TournamentApp() {
               <h2 className="text-sm uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
                   {tr(lang, 'pairs.title')} ({pairs.length})
                 </h2>
-                {pairs.length > 0 && !tournament && (
-                <button
-                  type="button"
-                  className="text-xs uppercase tracking-widest"
-                  style={{ color: 'var(--color-text-muted)' }}
-                  onClick={() => {
-                    setPairs([]);
-                    setPairError('');
-                  }}
-                >
-                  {tr(lang, 'pairs.clear')}
-                </button>
-              )}
+                <div className="flex items-center gap-2">
+                  {pairs.length > 0 && !tournament && (
+                    <button
+                      type="button"
+                      className="text-xs uppercase tracking-widest"
+                      style={{ color: 'var(--color-text-muted)' }}
+                      onClick={() => {
+                        setPairs([]);
+                        setPairError('');
+                      }}
+                    >
+                      {tr(lang, 'pairs.clear')}
+                    </button>
+                  )}
+
+                  {!tournament && (
+                    <button
+                      type="button"
+                      className="text-xs uppercase tracking-widest"
+                      style={{ color: 'var(--color-accent)' }}
+                      onClick={generate80Pairs}
+                      data-testid="generate-80-pairs"
+                    >
+                      Generar 80 parejas
+                    </button>
+                  )}
+                </div>
             </div>
             <div className="max-h-44 overflow-y-auto pr-1">
               {pairs.length === 0 ? (
@@ -779,8 +767,11 @@ export default function TournamentApp() {
                 </p>
               ) : (
                 pairs.map((pair, idx) => (
-                  <div key={pair} className="pair-list-item flex items-center justify-between gap-2">
-                    <span className="truncate text-sm">{pair}</span>
+                  <div key={`${pair}-${idx}`} className="pair-list-item flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted">#{idx + 1}</span>
+                      <span className="truncate text-sm">{pair}</span>
+                    </div>
                     {!tournament && (
                       <button
                         type="button"
@@ -1004,7 +995,7 @@ export default function TournamentApp() {
             {formatError && <p className="score-error">{formatError}</p>}
           </section>
 
-          <EntropyMeter score={entropyScore} seed={tournament?.seed} lang={lang} />
+          <EntropyMeter score={entropyScore} seed={tournament?.seed ?? lockedSeed ?? undefined} lang={lang} />
 
           {!tournament && (
             <button type="button" className="btn-primary w-full" onClick={createTournament}>
@@ -1107,6 +1098,7 @@ export default function TournamentApp() {
                         onResult={handleResult}
                         onEdit={handleEdit}
                         lang={lang}
+                        allPairs={tournament.pairs}
                       />
                     ))}
                   </div>
@@ -1121,45 +1113,7 @@ export default function TournamentApp() {
                   {tr(lang, 'bracket.title')}
                 </h3>
                 <div className="overflow-x-auto pb-4">
-                  <div className="flex min-w-max items-start gap-8">
-                        {tournament.rounds.map((round, rIdx) => (
-                      <div
-                        key={`round-${rIdx}`}
-                        className="flex flex-col justify-around"
-                        style={{ gap: `${Math.pow(2, rIdx) * 2}rem` }}
-                      >
-                            <h4 className="mb-1 text-center text-xs uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
-                          {tr(lang, 'round.header', { n: rIdx + 1 } as any)}
-                        </h4>
-                        {round.map((m) => (
-                          <div key={m.id} className="relative">
-                            <MatchCard match={m} bestOf={tournament.bestOf} onResult={handleResult} onEdit={handleEdit} lang={lang} />
-                            {rIdx < tournament.rounds.length - 1 && (
-                              <div
-                                className="bracket-line-h"
-                                style={{
-                                  left: '100%',
-                                  width: '2rem',
-                                  animationDelay: `${(roundIndexFromId(m.id) ?? rIdx) * 0.12}s`,
-                                }}
-                              />
-                            )}
-                            {rIdx < tournament.rounds.length - 1 && matchIndexFromId(m.id) !== null && matchIndexFromId(m.id)! % 2 === 0 && (
-                              <div
-                                className="bracket-line-v"
-                                style={{
-                                  right: '-2rem',
-                                  top: '50%',
-                                  height: `${Math.pow(2, rIdx) * 2}rem`,
-                                  animationDelay: `${rIdx * 0.12}s`,
-                                }}
-                              />
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
+                  <BracketView rounds={tournament.rounds} bestOf={tournament.bestOf} allPairs={tournament.pairs} onResult={handleResult} onEdit={handleEdit} lang={lang} />
                 </div>
               </div>
             </section>

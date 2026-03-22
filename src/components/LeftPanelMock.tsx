@@ -4,7 +4,7 @@ import { t as tr, type Lang } from '../lib/i18n';
 export default function LeftPanelMock() {
   const lang: Lang = 'eu';
   return (
-    <aside className="left-panel" style={{ width: '20rem', padding: '16px' }}>
+    <aside className="left-panel card">
       <section className="mb-6">
         <h2 className="text-sm uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
           {tr(lang, 'left.pairEntryHeader')}
@@ -35,13 +35,13 @@ export default function LeftPanelMock() {
       </section>
 
       <section className="mb-6">
-        <div className="entropy-meter" style={{ marginBottom: 12 }}>
+        <div className="entropy-meter card">
           <div className="entropy-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span className="entropy-title">{tr(lang, 'entropy.title')}</span>
             <span className="entropy-pct">0%</span>
           </div>
           <div className="entropy-track" aria-hidden="true">
-            <div className="entropy-bar" style={{ width: '0%' }} />
+            <div className="entropy-bar" style={{ width: '0%' }} data-score={0} />
           </div>
           <p className="entropy-label">{tr(lang, 'entropy.labels.none')}</p>
         </div>

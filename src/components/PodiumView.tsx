@@ -72,10 +72,9 @@ export default function PodiumView({ podium, prizeConfig, pairCount, lang }: Pod
           .map((row, idx) => (
             <div
               key={row.key}
-              className={`${row.className} rounded border px-4 py-3`}
+              className={`${row.className} podium-place card`}
               style={{
                 borderColor: 'var(--color-border)',
-                background: 'var(--color-surface)',
                 animation: 'fade-in-up 0.6s ease both',
                 animationDelay: `${idx * 0.16}s`,
               }}

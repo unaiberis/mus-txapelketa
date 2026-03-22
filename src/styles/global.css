@@ -1,18 +1,28 @@
 @import "tailwindcss";
 
-@theme {
-  --color-bg: #0a0f0d;
-  --color-surface: #111a14;
-  --color-surface2: #1a2b1e;
-  --color-accent: #c9a84c;
-  --color-accent-glow: rgba(201,168,76,0.3);
-  --color-text: #e8e0d0;
-  --color-text-muted: #6b7c6f;
-  --color-border: #2a3d2e;
-  --color-winner: #1a3a1a;
-  --color-winner-text: #7ddb7d;
-  --color-loser: #2a1515;
-  --color-loser-text: #6b4a4a;
+:root{
+  /* Palette from BRACKET_STYLE_GUIDE (kept compatible with existing names) */
+  --color-bg: #07101a;
+  --color-surface: #0e1720;
+  --color-surface2: #122029;
+  --color-border: rgba(255,255,255,0.06);
+  --color-text: #E6F2EF;
+  --color-text-muted: rgba(230,242,239,0.65);
+
+  /* Backwards-compatible accent names used in existing CSS */
+  --color-accent: #d4af37; /* gold-ish for existing rules */
+  --color-accent-glow: rgba(212,175,55,0.14);
+
+  /* New tokens suggested by the design guide */
+  --accent-green: #22c55e;
+  --accent-gold: #d4af37;
+  --glass-bg: rgba(255,255,255,0.03);
+  --radius-card: 12px;
+  --shadow-card: 0 8px 24px rgba(2,6,23,0.6);
+  --focus-ring: 0 0 0 4px rgba(34,197,94,0.16);
+  --space-gutter: 1rem;
+
+  /* Font tokens (preserve existing choices) */
   --font-display: 'Bebas Neue', sans-serif;
   --font-body: 'Inter', sans-serif;
 }
@@ -81,25 +91,25 @@ main::after {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-left: 3px solid var(--color-accent);
-  border-radius: 8px;
-  padding: 12px;
+  border-radius: 6px;
+  padding: 8px; /* reduced padding to fit more cards vertically */
   position: relative;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   z-index: 2;
 }
 .match-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px var(--color-accent-glow);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px var(--color-accent-glow);
 }
 
 .match-card--active {
   border-left-color: var(--color-text);
 }
 .match-card--done {
-  opacity: 0.9;
+  opacity: 0.95;
 }
 .match-card--bye {
-  opacity: 0.7;
+  opacity: 0.75;
   border-left-color: var(--color-border);
 }
 
@@ -122,11 +132,11 @@ main::after {
   justify-content: center;
   align-items: center;
   text-transform: uppercase;
-  font-size: 0.7rem;
-  font-weight: bold;
+  font-size: 0.65rem;
+  font-weight: 700;
   color: var(--color-accent);
-  margin: 4px 0;
-  letter-spacing: 0.1em;
+  margin: 3px 0;
+  letter-spacing: 0.08em;
 }
 
 .edit-button {
