@@ -130,13 +130,12 @@ export default function BracketCard({
 
   const PairRow = ({
     name,
-    score,
     isWinner,
     isLoser,
     right,
   }: {
     name: string | null;
-    score?: number;
+    
     isWinner?: boolean;
     isLoser?: boolean;
     right?: React.ReactNode;

@@ -37,9 +37,9 @@ function colX(rIdx: number): number {
 function roundLabel(rIdx: number, total: number, lang: Lang): string {
   if (total === 1) return 'Final';
   if (rIdx === total - 1) return 'Final';
-  if (rIdx === total - 2) return total > 2 ? 'Semifinal' : tr(lang, 'round.header', { n: 1 } as any);
+  if (rIdx === total - 2) return total > 2 ? 'Semifinal' : tr(lang, 'round.header', { n: 1 });
   if (rIdx === total - 3) return 'Cuartos';
-  return tr(lang, 'round.header', { n: rIdx + 1 } as any);
+  return tr(lang, 'round.header', { n: rIdx + 1 });
 }
 
 /* ── Props ────────────────────────────────────────────────────────────────── */
@@ -62,14 +62,6 @@ export default function BracketView({
   lang,
 }: BracketViewProps) {
   const numRounds = rounds.length;
-  if (numRounds === 0) return null;
-
-  const firstRoundMatches = rounds[0].length;
-
-  /* Canvas dimensions */
-  const canvasW = numRounds * (CARD_W + GAP_H) - GAP_H;
-  const canvasH = firstRoundMatches * S - GAP_V + HDR_H + 16;
-
   /* ── SVG connector paths ──────────────────────────────────────────────── */
   const connectors = useMemo(() => {
     const els: React.ReactNode[] = [];
@@ -136,6 +128,14 @@ export default function BracketView({
 
     return els;
   }, [rounds, numRounds]);
+
+  if (numRounds === 0) return null;
+
+  const firstRoundMatches = rounds[0].length;
+
+  /* Canvas dimensions */
+  const canvasW = numRounds * (CARD_W + GAP_H) - GAP_H;
+  const canvasH = firstRoundMatches * S - GAP_V + HDR_H + 16;
 
   /* ── Render ───────────────────────────────────────────────────────────── */
   return (

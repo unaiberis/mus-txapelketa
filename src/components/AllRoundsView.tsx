@@ -1,5 +1,4 @@
-import React from 'react';
-import BracketCard, { BRACKET_CARD_W } from './BracketCard';
+import BracketCard from './BracketCard';
 import { type Match } from '../lib/tournament';
 import { t as tr, type Lang } from '../lib/i18n';
 
@@ -27,7 +26,7 @@ function roundLabel(rIdx: number, total: number, lang: Lang): string {
   if (rIdx === total - 1) return 'Final';
   if (rIdx === total - 2 && total > 2) return 'Semifinal';
   if (rIdx === total - 3 && total > 3) return 'Cuartos';
-  return tr(lang, 'round.header', { n: rIdx + 1 } as any);
+  return tr(lang, 'round.header', { n: rIdx + 1 });
 }
 
 export default function AllRoundsView({
@@ -46,7 +45,7 @@ export default function AllRoundsView({
   if ((filter === 'all' || filter === 'prelim') && prelim.length > 0) {
     sections.push({
       key: 'prelim',
-      title: tr(lang, 'phase.prelimTitle', { count: prelim.length } as any),
+      title: tr(lang, 'phase.prelimTitle', { count: prelim.length }),
       matches: prelim,
     });
   }
