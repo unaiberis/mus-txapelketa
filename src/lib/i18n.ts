@@ -352,10 +352,10 @@ export const I18N_KEYS = [
 
 function getNested(dict: Dict | string, path: string[]): string | undefined {
     if (typeof dict === 'string') return dict;
-    let cur: any = dict;
+    let cur: Record<string, unknown> | string = dict as Record<string, unknown>;
     for (const p of path) {
-        if (cur == null) return undefined;
-        cur = cur[p];
+        if (cur == null || typeof cur === 'string') return undefined;
+        cur = cur[p] as Record<string, unknown> | string;
     }
     return typeof cur === 'string' ? cur : undefined;
 }

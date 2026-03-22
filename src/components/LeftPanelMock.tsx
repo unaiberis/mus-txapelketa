@@ -1,4 +1,3 @@
-import React from 'react';
 import { t as tr, type Lang } from '../lib/i18n';
 
 export default function LeftPanelMock() {
