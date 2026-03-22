@@ -13,7 +13,6 @@ import {
   isValidBestOf,
   parseCSVImport,
   preliminaryInfo,
-  prizePool,
   registerResult,
   signExport,
   verifyAndImport,
@@ -184,11 +183,11 @@ function autoAdvanceByesInState(initial: TournamentState): TournamentState {
       // If the prelim match has an explicit target mapping, use it.
       if (m.targetMatchId && m.targetSlot) {
         const target = findMatch(state, m.targetMatchId);
-        if (target) {
+        if (target && m.targetSlot) {
           try {
             console.debug('[TournamentApp] auto-advance bye -> target', { prelimId: m.id, target: m.targetMatchId, slot: m.targetSlot, winner });
-          } catch (err) { }
-          (target as any)[m.targetSlot] = winner;
+          } catch (err) { void err; }
+          target[m.targetSlot] = winner;
           changed = true;
           continue;
         }
@@ -258,6 +257,9 @@ function autoAdvanceByesInState(initial: TournamentState): TournamentState {
 function TournamentAppInner() {
   const [lang, setLang] = useState<import('../lib/i18n').Lang>(DEFAULT_LANG);
 
+  const isErrWithCode = (e: unknown): e is { code?: string } =>
+    typeof e === 'object' && e !== null && 'code' in (e as Record<string, unknown>) && typeof (e as Record<string, unknown>).code === 'string';
+
   // Read persisted language only on the client after hydration to avoid SSR mismatch
   useEffect(() => {
     try {
@@ -298,7 +300,7 @@ function TournamentAppInner() {
     return percentToPresetKey(prizeConfig.autoSplit);
   }, [prizeConfig.autoSplit, prizeConfig.prizeMode]);
 
-  const poolAmount = useMemo(() => prizePool(prizeConfig.entryFee, pairs.length), [prizeConfig.entryFee, pairs.length]);
+  // pool amount computed when needed by PodiumView; removed local unused variable
 
   const calcPrelim = useMemo(() => {
     if (pairs.length < 2) {
@@ -423,7 +425,7 @@ function TournamentAppInner() {
         const newState = registerResult(tournament, matchId, score1, score2);
         setTournament(autoAdvanceByesInState(newState));
       } catch (err: unknown) {
-        const code = (err as any)?.code ?? (err instanceof Error ? err.message : undefined);
+        const code = isErrWithCode(err) ? err.code : err instanceof Error ? err.message : undefined;
         let msg = 'Resultado inválido';
         if (code) {
           const bestOf = tournament.bestOf;
@@ -1111,7 +1113,7 @@ function TournamentAppInner() {
                           value={typeof viewFilter === 'number' ? String(viewFilter) : viewFilter}
                           onChange={(e) => {
                             const v = e.target.value;
-                            if (v === 'all' || v === 'prelim') setViewFilter(v as any);
+                            if (v === 'all' || v === 'prelim') setViewFilter(v as 'all' | 'prelim');
                             else setViewFilter(Number.parseInt(v, 10));
                           }}
                         >

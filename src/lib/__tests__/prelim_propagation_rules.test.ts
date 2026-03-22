@@ -11,8 +11,8 @@ describe('Prelim propagation rules', () => {
     // Collect prelim winners and resolve each prelim
     const prelimWinners: string[] = [];
     for (const pm of state.prelim) {
-      const winner = pm.pair1 ?? pm.pair2!;
-      prelimWinners.push(winner);
+      const _winner = pm.pair1 ?? pm.pair2!;
+      prelimWinners.push(_winner);
       state = registerResult(state, pm.id, 3, 0);
     }
 
@@ -39,7 +39,6 @@ describe('Prelim propagation rules', () => {
 
     // Resolve prelims first
     for (const pm of state.prelim) {
-      const winner = pm.pair1 ?? pm.pair2!;
       state = registerResult(state, pm.id, 3, 0);
     }
 
@@ -47,12 +46,12 @@ describe('Prelim propagation rules', () => {
     const r1Match = state.rounds[0].find((m) => m.pair1 && m.pair2);
     expect(r1Match).toBeDefined();
 
-    const winner = r1Match!.pair1!;
+    const _winner = r1Match!.pair1!;
     // Resolve the R1 match
     state = registerResult(state, r1Match!.id, 3, 0);
 
     // The winner should now appear in rounds[1]
-    const propagated = state.rounds[1].some((m) => m.pair1 === winner || m.pair2 === winner);
+    const propagated = state.rounds[1].some((m) => m.pair1 === _winner || m.pair2 === _winner);
     expect(propagated).toBe(true);
   });
 });

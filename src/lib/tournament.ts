@@ -384,9 +384,7 @@ function findNextMatchSlot(
 					targetMatchId: prelimMatch.targetMatchId,
 					targetSlot: prelimMatch.targetSlot,
 				});
-			} catch (err) {
-				// noop
-			}
+			} catch (err) { void err; }
 			return { matchId: prelimMatch.targetMatchId, slot: prelimMatch.targetSlot };
 		}
 
@@ -425,7 +423,7 @@ export function registerResult(
 ): TournamentState {
 	const validation = validateScore(score1, score2, state.bestOf);
 	if (!validation.valid) {
-		const err: any = new Error(validation.code || 'Resultado invalido');
+		const err = new Error(validation.code || 'Resultado invalido') as Error & { code?: string };
 		if (validation.code) err.code = validation.code;
 		throw err;
 	}
@@ -444,13 +442,13 @@ export function registerResult(
 	if (nextSlot) {
 		try {
 			console.debug('[tournament] advancing winner', { matchId, winner, nextSlot });
-		} catch (err) {}
+		} catch (err) { void err; }
 		const slotUpdate: Partial<Match> = { [nextSlot.slot]: winner };
 		newState = updateMatchInState(newState, nextSlot.matchId, slotUpdate);
 	} else {
 		try {
 			console.debug('[tournament] no next slot found for', { matchId, winner });
-		} catch (err) {}
+		} catch (err) { void err; }
 	}
 
 	const podium = detectPodium(newState);

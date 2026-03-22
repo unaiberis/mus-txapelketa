@@ -1,4 +1,3 @@
-import { useContext } from 'react';
 import { useInternalToast } from '../components/ToastProvider';
 
 type ToastAPI = {
