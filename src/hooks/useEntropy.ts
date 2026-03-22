@@ -11,6 +11,14 @@ export default function useEntropy() {
 
   useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
+      const target = e.target as Element | null;
+      // Ignore keydown events that originate from form controls or editable regions
+      if (target) {
+        const tag = target.tagName;
+        const isEditable = (target as HTMLElement).isContentEditable;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || isEditable) return;
+      }
+
       const now = Date.now();
       eventsRef.current.push({ t: 'k', key: e.key, ts: now, dt: now - lastKeyTsRef.current });
       lastKeyTsRef.current = now;
