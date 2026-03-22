@@ -219,7 +219,7 @@ const DICT: Record<Lang, Dict> = {
         },
         prizes: { thirdPlaceShared: '3. postua partekatuta' },
         
-        button: { confirm: 'Berretsi' },
+        button: { confirm: 'Onartu' },
         setup: { title: 'Zure txapelketa konfiguratu', description: 'Ezkerreko panelean bikoteak gehitu, sariak eta formatua ezarri, eta ondoren koadroa sortu. Kuadroa zure interakzioen entropiatik eratorritako hazitik sortzen da.' },
         create: { label: 'Sortu txapelketa', needPairs: 'Gutxienez 2 bikote behar dituzu txapelketa sortzeko.' },
         left: {
