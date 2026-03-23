@@ -264,7 +264,6 @@ export default function TournamentApp() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const input1Ref = useRef<HTMLInputElement>(null);
-  const RANDOM_PAIR_COUNT = 80;
 
   const autoSplitPreset = useMemo<AutoSplitPreset>(() => {
     if (prizeConfig.prizeMode !== 'auto') return 'custom';
@@ -352,17 +351,6 @@ export default function TournamentApp() {
     input1Ref.current?.focus();
   }, [input1, input2, pairs, tournament, lang]);
 
-  const generate80Pairs = useCallback(() => {
-    if (tournament) return;
-    if (pairs.length > 0) {
-      const confirmMsg = tr(lang, 'generate.confirmReplace', { count: RANDOM_PAIR_COUNT }) || `Reemplazar parejas existentes con ${RANDOM_PAIR_COUNT} parejas aleatorias?`;
-      if (!window.confirm(confirmMsg)) return;
-    }
-
-    const seed = finalizeEntropy();
-    const gen = generateRandomPairs(RANDOM_PAIR_COUNT, seed, lang);
-    setPairs(gen);
-  }, [tournament, pairs, lang, finalizeEntropy]);
 
   const removePair = useCallback(
     (idx: number) => {
@@ -776,17 +764,6 @@ export default function TournamentApp() {
                   </button>
                 )}
 
-                {!tournament && (
-                  <button
-                    type="button"
-                    className="text-xs uppercase tracking-widest"
-                    style={{ color: 'var(--color-accent)' }}
-                    onClick={generate80Pairs}
-                    data-testid="generate-80-pairs"
-                  >
-                    {tr(lang, 'generate.randomPairs', { count: RANDOM_PAIR_COUNT })}
-                  </button>
-                )}
               </div>
             </div>
             <div className="max-h-64 overflow-y-auto pr-1">
@@ -905,7 +882,6 @@ export default function TournamentApp() {
                       <option value="50-30-15-5">50/30/15/5</option>
                       <option value="40-30-20-10">40/30/20/10</option>
                       <option value="60-25-10-5">60/25/10/5</option>
-                      <option value="custom">Custom</option>
                     </select>
                   </label>
                 )}

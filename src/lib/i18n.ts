@@ -195,7 +195,7 @@ const DICT: Record<Lang, Dict> = {
         importLabel: 'Inportatu',
         addPair: { placeholder1: 'Jokalari 1', placeholder2: 'Jokalari 2', addButton: 'Bikotea gehitu' },
         pairs: { title: 'Bikoteak', empty: 'Oraindik ez da bikoterik erregistratu.', clear: 'Garbitu', remove: 'Kendu', error: { emptyNames: 'Bi izenak sartu behar dituzu.', duplicate: 'Bikote hori jadanik erregistratuta dago.' } },
-        fees: { title: 'Kuotak eta sariak', entryFee: 'Bikote bakoitzeko kuota', auto: 'Auto', manual: 'Eskuzkoa', autoSplit: 'Banaketa automatikoa', currency: 'Moneta', pool: 'Guztira' },
+        fees: { title: 'Kuotak eta sariak', entryFee: 'Bikote bakoitzeko kuota', auto: 'Auto', manual: 'Manuala', autoSplit: 'Banaketa automatikoa', currency: 'Moneta', pool: 'Guztira' },
         format: {
             title: 'Partidaren formatua',
             customPlaceholder: 'Adibidez: 11',
