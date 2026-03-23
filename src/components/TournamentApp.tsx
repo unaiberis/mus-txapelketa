@@ -266,6 +266,57 @@ export default function TournamentApp({ initialLang }: { initialLang?: Lang }) {
   const input1Ref = useRef<HTMLInputElement>(null);
   const input2Ref = useRef<HTMLInputElement>(null);
 
+  // Persist state across full-page navigations (eg. language switch)
+  const SAVED_STATE_KEY = 'museko:savedState';
+
+  const saveAppState = useCallback(() => {
+    try {
+      if (typeof window === 'undefined') return;
+      const payload = {
+        pairs,
+        input1,
+        input2,
+        bestOf,
+        customBestOf,
+        bestOfMode,
+        prizeConfig,
+        showPrizes,
+        showSidebar,
+        tournament,
+        viewMode,
+        exportFormat,
+      } as unknown;
+      window.localStorage.setItem(SAVED_STATE_KEY, JSON.stringify(payload));
+    } catch {
+      // ignore
+    }
+  }, [pairs, input1, input2, bestOf, customBestOf, bestOfMode, prizeConfig, showPrizes, showSidebar, tournament, viewMode, exportFormat]);
+
+  useEffect(() => {
+    try {
+      if (typeof window === 'undefined') return;
+      const raw = window.localStorage.getItem(SAVED_STATE_KEY);
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (Array.isArray(data.pairs)) setPairs(data.pairs);
+      if (typeof data.input1 === 'string') setInput1(data.input1);
+      if (typeof data.input2 === 'string') setInput2(data.input2);
+      if (typeof data.bestOf === 'number') setBestOf(data.bestOf);
+      if (typeof data.customBestOf === 'string') setCustomBestOf(data.customBestOf);
+      if (typeof data.bestOfMode === 'string') setBestOfMode(data.bestOfMode);
+      if (data.prizeConfig) setPrizeConfig(data.prizeConfig);
+      if (typeof data.showPrizes === 'boolean') setShowPrizes(data.showPrizes);
+      if (typeof data.showSidebar === 'boolean') setShowSidebar(data.showSidebar);
+      if (data.tournament) setTournament(data.tournament);
+      if (typeof data.viewMode === 'string') setViewMode(data.viewMode);
+      if (typeof data.exportFormat === 'string') setExportFormat(data.exportFormat);
+      // Clear saved state after restoring once
+      window.localStorage.removeItem(SAVED_STATE_KEY);
+    } catch {
+      // ignore
+    }
+  }, []);
+
   const autoSplitPreset = useMemo<AutoSplitPreset>(() => {
     if (prizeConfig.prizeMode !== 'auto') return 'custom';
     return percentToPresetKey(prizeConfig.autoSplit);
@@ -836,9 +887,9 @@ export default function TournamentApp({ initialLang }: { initialLang?: Lang }) {
             onClick={() => setShowSidebar((s) => !s)}
             className="text-sm px-2 py-1 rounded border"
             style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface2)' }}
-            title={showSidebar ? tr(lang, 'ui.hideSidebar') ?? 'Ocultar panel' : tr(lang, 'ui.showSidebar') ?? 'Mostrar panel'}
+            title={showSidebar ? tr(lang, 'ui.hideSidebar') : tr(lang, 'ui.showSidebar')}
           >
-            {showSidebar ? 'Ocultar' : 'Mostrar'}
+            {showSidebar ? tr(lang, 'ui.hideSidebar') : tr(lang, 'ui.showSidebar')}
           </button>
           {tournament && (
             <>
@@ -865,7 +916,15 @@ export default function TournamentApp({ initialLang }: { initialLang?: Lang }) {
                         href={href}
                         onClick={(_e) => {
                           try {
-                            if (typeof window !== 'undefined') window.localStorage.setItem('museko:lang', l.code);
+                            if (typeof window !== 'undefined') {
+                              // Persist current app state so a full navigation won't lose it
+                              try {
+                                saveAppState();
+                              } catch {
+                                // ignore
+                              }
+                              window.localStorage.setItem('museko:lang', l.code);
+                            }
                           } catch {
                             /* noop */
                           }
