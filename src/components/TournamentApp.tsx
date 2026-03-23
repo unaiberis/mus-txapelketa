@@ -1342,59 +1342,62 @@ export default function TournamentApp() {
                 </div>
               </div>
             </section>
-          ) : tournament.phase === 'finished' && tournament.podium ? (
-            <PodiumView podium={tournament.podium} prizeConfig={tournament.prizeConfig} pairCount={tournament.pairs.length} lang={lang} />
           ) : (
-            <section className="relative z-10 space-y-6">
-
-
-              {tournament.prelim.length > 0 && (
-                <PrelimGrid
-                  matches={tournament.prelim}
-                  bestOf={tournament.bestOf}
-                  allPairs={tournament.pairs}
-                  onResult={handleResult}
-                  onEdit={handleEdit}
-                  lang={lang}
-                />
+            <>
+              {tournament.phase === 'finished' && tournament.podium && (
+                <PodiumView podium={tournament.podium} prizeConfig={tournament.prizeConfig} pairCount={tournament.pairs.length} lang={lang} />
               )}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3
-                    className="text-xl uppercase tracking-widest"
-                    style={{ fontFamily: 'var(--font-display)', color: 'var(--color-accent)' }}
-                  >
-                    {tr(lang, 'bracket.title')}
-                  </h3>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      className={`rounded px-2 py-1 text-sm ${viewMode === 'bracket' ? 'border' : 'text-sm'}`}
-                      onClick={() => setViewMode('bracket')}
-                      aria-pressed={viewMode === 'bracket'}
-                    >
-                      {tr(lang, 'ui.view.bracket')}
-                    </button>
-                    <button
-                      type="button"
-                      className={`rounded px-2 py-1 text-sm ${viewMode === 'rounds' ? 'border' : 'text-sm'}`}
-                      onClick={() => setViewMode('rounds')}
-                      aria-pressed={viewMode === 'rounds'}
-                    >
-                      {tr(lang, 'ui.view.rounds')}
-                    </button>
-                  </div>
-                </div>
 
-                {viewMode === 'bracket' ? (
-                  <div className="overflow-x-auto pb-4">
-                    <BracketView rounds={tournament.rounds} bestOf={tournament.bestOf} allPairs={tournament.pairs} onResult={handleResult} onEdit={handleEdit} lang={lang} />
-                  </div>
-                ) : (
-                  <RoundCardsView rounds={tournament.rounds} bestOf={tournament.bestOf} allPairs={tournament.pairs} onResult={handleResult} onEdit={handleEdit} lang={lang} />
+              <section className="relative z-10 space-y-6">
+
+                {tournament.prelim.length > 0 && (
+                  <PrelimGrid
+                    matches={tournament.prelim}
+                    bestOf={tournament.bestOf}
+                    allPairs={tournament.pairs}
+                    onResult={handleResult}
+                    onEdit={handleEdit}
+                    lang={lang}
+                  />
                 )}
-              </div>
-            </section>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3
+                      className="text-xl uppercase tracking-widest"
+                      style={{ fontFamily: 'var(--font-display)', color: 'var(--color-accent)' }}
+                    >
+                      {tr(lang, 'bracket.title')}
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        className={`rounded px-2 py-1 text-sm ${viewMode === 'bracket' ? 'border' : 'text-sm'}`}
+                        onClick={() => setViewMode('bracket')}
+                        aria-pressed={viewMode === 'bracket'}
+                      >
+                        {tr(lang, 'ui.view.bracket')}
+                      </button>
+                      <button
+                        type="button"
+                        className={`rounded px-2 py-1 text-sm ${viewMode === 'rounds' ? 'border' : 'text-sm'}`}
+                        onClick={() => setViewMode('rounds')}
+                        aria-pressed={viewMode === 'rounds'}
+                      >
+                        {tr(lang, 'ui.view.rounds')}
+                      </button>
+                    </div>
+                  </div>
+
+                  {viewMode === 'bracket' ? (
+                    <div className="overflow-x-auto pb-4">
+                      <BracketView rounds={tournament.rounds} bestOf={tournament.bestOf} allPairs={tournament.pairs} onResult={handleResult} onEdit={handleEdit} lang={lang} />
+                    </div>
+                  ) : (
+                    <RoundCardsView rounds={tournament.rounds} bestOf={tournament.bestOf} allPairs={tournament.pairs} onResult={handleResult} onEdit={handleEdit} lang={lang} />
+                  )}
+                </div>
+              </section>
+            </>
           )}
         </main>
       </div>
