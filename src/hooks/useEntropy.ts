@@ -8,43 +8,65 @@ export default function useEntropy() {
   const lastMouseTsRef = useRef(0);
   const [score, setScore] = useState(0);
   const [lockedSeed, setLockedSeed] = useState<number | null>(null);
+  const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
+    const scheduleUpdate = () => {
+      if (rafRef.current != null) return;
+      rafRef.current = requestAnimationFrame(() => {
+        try {
+          setScore(computeEntropyScore(eventsRef.current));
+        } finally {
+          rafRef.current = null;
+        }
+      });
+    };
+
     const handleKeydown = (e: KeyboardEvent) => {
       const now = Date.now();
       eventsRef.current.push({ t: 'k', key: e.key, ts: now, dt: now - lastKeyTsRef.current });
       lastKeyTsRef.current = now;
-      setScore(computeEntropyScore(eventsRef.current));
+      scheduleUpdate();
     };
 
     const handleMousemove = (e: MouseEvent) => {
+      // Avoid recording mouse movement while the user is actively typing
+      const active = document && document.activeElement as Element | null;
+      if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.getAttribute?.('contenteditable') === 'true')) return;
       const now = Date.now();
       if (now - lastMouseTsRef.current < 50) return;
       lastMouseTsRef.current = now;
       eventsRef.current.push({ t: 'm', x: e.clientX, y: e.clientY, ts: now });
-      setScore(computeEntropyScore(eventsRef.current));
+      scheduleUpdate();
     };
 
     const handleClick = (e: MouseEvent) => {
+      // Ignore clicks that originate from focused form controls to avoid focus churn
+      const active = document && document.activeElement as Element | null;
+      if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.getAttribute?.('contenteditable') === 'true')) return;
       eventsRef.current.push({ t: 'c', x: e.clientX, y: e.clientY, ts: Date.now() });
-      setScore(computeEntropyScore(eventsRef.current));
+      scheduleUpdate();
     };
 
     const handleTouchStart = (e: TouchEvent) => {
       const t = e.touches[0];
       if (!t) return;
+      const active = document && document.activeElement as Element | null;
+      if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.getAttribute?.('contenteditable') === 'true')) return;
       eventsRef.current.push({ t: 'c', x: t.clientX, y: t.clientY, ts: Date.now() });
-      setScore(computeEntropyScore(eventsRef.current));
+      scheduleUpdate();
     };
 
     const handleTouchMove = (e: TouchEvent) => {
       const t = e.touches[0];
       if (!t) return;
+      const active = document && document.activeElement as Element | null;
+      if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.getAttribute?.('contenteditable') === 'true')) return;
       const now = Date.now();
       if (now - lastMouseTsRef.current < 50) return;
       lastMouseTsRef.current = now;
       eventsRef.current.push({ t: 'm', x: t.clientX, y: t.clientY, ts: now });
-      setScore(computeEntropyScore(eventsRef.current));
+      scheduleUpdate();
     };
 
     document.addEventListener('keydown', handleKeydown);
@@ -59,6 +81,7 @@ export default function useEntropy() {
       document.removeEventListener('click', handleClick);
       document.removeEventListener('touchstart', handleTouchStart);
       document.removeEventListener('touchmove', handleTouchMove);
+      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
     };
   }, []);
 
