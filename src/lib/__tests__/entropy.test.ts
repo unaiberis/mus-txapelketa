@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import type { EntropyEvent } from '../entropy';
 import { computeEntropyScore, deriveSeed, mulberry32, shuffle } from '../entropy';
 
 describe('entropy utilities', () => {
@@ -7,18 +8,18 @@ describe('entropy utilities', () => {
   });
 
   it('computeEntropyScore produces value between 0 and 100', () => {
-    const events = [] as any[];
+    const events: EntropyEvent[] = [];
     for (let i = 0; i < 50; i++) events.push({ t: 'm', x: i * 10, y: i * 5, ts: Date.now() + i });
     for (let k = 0; k < 10; k++) events.push({ t: 'k', key: String(k), ts: Date.now() + 1000 + k, dt: k });
     for (let c = 0; c < 3; c++) events.push({ t: 'c', x: c * 5, y: c * 2, ts: Date.now() + 2000 + c });
-    const score = computeEntropyScore(events as any);
+    const score = computeEntropyScore(events);
     expect(score).toBeGreaterThanOrEqual(0);
     expect(score).toBeLessThanOrEqual(100);
   });
 
   it('deriveSeed returns a non-negative number', () => {
-    const events = [{ t: 'c', x: 0, y: 0, ts: 1 }];
-    const s = deriveSeed(events as any);
+    const events: EntropyEvent[] = [{ t: 'c', x: 0, y: 0, ts: 1 }];
+    const s = deriveSeed(events);
     expect(typeof s).toBe('number');
     expect(s).toBeGreaterThanOrEqual(0);
   });

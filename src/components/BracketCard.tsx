@@ -62,13 +62,11 @@ export default function BracketCard({
 
   const PairRow = ({
     name,
-    score,
     isWinner,
     isLoser,
     right,
   }: {
     name: string | null;
-    score?: number;
     isWinner?: boolean;
     isLoser?: boolean;
     right?: React.ReactNode;
@@ -177,7 +175,7 @@ export default function BracketCard({
             opacity: 0.45,
           }}
         >
-          BYE
+          {tr(lang, 'bye')}
         </div>
       </div>
     );

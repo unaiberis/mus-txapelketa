@@ -1,4 +1,3 @@
-import React from 'react';
 import BracketCard from './BracketCard';
 import { type Match } from '../lib/tournament';
 import { t as tr, type Lang } from '../lib/i18n';
@@ -21,7 +20,7 @@ export default function RoundCardsView({ rounds, bestOf, allPairs, onResult, onE
       {rounds.map((r, idx) => (
         <section key={`round-${idx}`} className="round-section">
           <div className="round-header">
-            <h4 className="round-title">{r.length === 0 ? tr(lang, 'round.empty') : tr(lang, 'round.header', { n: idx + 1 } as any)}</h4>
+            <h4 className="round-title">{r.length === 0 ? tr(lang, 'round.empty') : tr(lang, 'round.header', { n: idx + 1 })}</h4>
             <div className="text-sm" style={{ color: 'var(--color-text-muted)' }}>{r.length} {tr(lang, 'round.matches')}</div>
           </div>
 

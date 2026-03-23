@@ -62,7 +62,7 @@ export default function PodiumView({ podium, prizeConfig, pairCount, lang }: Pod
           {tr(lang, 'podium.title')}
         </h2>
         <p className="mt-2 text-sm" style={{ color: 'var(--color-text-muted)' }}>
-          {tr(lang, 'podium.pool', { pool, currency: currencySymbol(prizeConfig.currency) } as any)}
+          {tr(lang, 'podium.pool', { pool, currency: currencySymbol(prizeConfig.currency) })}
         </p>
       </div>
 

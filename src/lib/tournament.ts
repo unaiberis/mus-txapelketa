@@ -1,3 +1,5 @@
+import { t, DEFAULT_LANG, type Lang } from './i18n';
+
 export type EntropyEvent =
 	| { t: 'k'; key: string; ts: number; dt: number }
 	| { t: 'm'; x: number; y: number; ts: number }
@@ -142,16 +144,17 @@ export function deriveSeed(events: EntropyEvent[]): number {
 	return Math.abs(hash ^ ((now * 1000) | 0));
 }
 
-export function generateRandomPairs(count: number, seed?: number): string[] {
+export function generateRandomPairs(count: number, seed?: number, lang: Lang = DEFAULT_LANG): string[] {
 	const s = typeof seed === 'number' ? seed : Date.now();
 	const rand = mulberry32(s);
 	const totalPlayers = count * 2;
-	const players: string[] = Array.from({ length: totalPlayers }, (_, i) => `Jugador ${i + 1}`);
+	const playerLabel = t(lang, 'player');
+	const players: string[] = Array.from({ length: totalPlayers }, (_, i) => `${playerLabel} ${i + 1}`);
 	const shuffled = shuffle(players, rand);
 	const pairs: string[] = [];
 	for (let i = 0; i < shuffled.length; i += 2) {
-		const p1 = shuffled[i] ?? `Jugador ${i + 1}`;
-		const p2 = shuffled[i + 1] ?? `Jugador ${i + 2}`;
+		const p1 = shuffled[i] ?? `${playerLabel} ${i + 1}`;
+		const p2 = shuffled[i + 1] ?? `${playerLabel} ${i + 2}`;
 		pairs.push(`${p1} / ${p2}`);
 	}
 	return pairs;

@@ -13,6 +13,7 @@ type Dict = Record<string, string | Dict>;
 
 const DICT: Record<Lang, Dict> = {
     es: {
+        player: 'Jugador',
         header: { title: 'TORNEO DE MUS' },
         importLabel: 'Importar',
         addPair: { title: 'Añadir pareja', placeholder1: 'Jugador 1', placeholder2: 'Jugador 2', addButton: 'Añadir pareja' },
@@ -62,7 +63,7 @@ const DICT: Record<Lang, Dict> = {
         
         button: { confirm: 'Confirmar' },
         ui: { language: 'Idioma' },
-        generate: { confirmReplace: 'Reemplazar parejas existentes con 80 parejas aleatorias?' },
+        generate: { confirmReplace: 'Reemplazar parejas existentes con {count} parejas aleatorias?', randomPairs: 'Generar {count} parejas' },
         left: { pairEntryHeader: 'Añadir parejas', prizesLabel: 'Premios', bestOfLabel: 'Formato', createButton: 'Crear torneo' },
         setup: { title: 'Configura tu torneo', description: 'Añade parejas en el panel izquierdo, define premios y formato, y después crea el cuadro. El emparejamiento se realiza con una semilla basada en entropía de tus interacciones.' },
         create: { label: 'Crear torneo', needPairs: 'Necesitas al menos 2 parejas para crear el torneo.' },
@@ -70,7 +71,7 @@ const DICT: Record<Lang, Dict> = {
         
         phase: { prelimTitle: 'Fase previa ({count} partidas)' },
         bracket: { title: 'Cuadro principal' },
-        round: { header: 'Ronda {n}' },
+        round: { header: 'Ronda {n}', empty: 'Sin partidas', matches: 'partidas' },
         export: {
             title: 'Exportar',
             exportButton: 'Exportar torneo',
@@ -87,8 +88,11 @@ const DICT: Record<Lang, Dict> = {
         confirmReset: '¿Reiniciar el torneo? Se perderán todos los resultados.',
         seed: 'Seed',
         bestOfBadge: '🔒 Al mejor de {bestOf}',
+        prize: { label: 'Premio {n}' },
+        ui: { view: { bracket: 'Cuadro', rounds: 'Por rondas' } },
     },
     en: {
+        player: 'Player',
         header: { title: 'MUS TOURNAMENT' },
         importLabel: 'Import',
         addPair: { title: 'Add pair', placeholder1: 'Player 1', placeholder2: 'Player 2', addButton: 'Add pair' },
@@ -123,7 +127,7 @@ const DICT: Record<Lang, Dict> = {
         
         button: { confirm: 'Confirm' },
         ui: { language: 'Language' },
-        generate: { confirmReplace: 'Replace existing pairs with 80 random pairs?' },
+        generate: { confirmReplace: 'Replace existing pairs with {count} random pairs?', randomPairs: 'Generate {count} pairs' },
         left: { pairEntryHeader: 'Add pairs', prizesLabel: 'Prizes', bestOfLabel: 'Format', createButton: 'Create tournament' },
         setup: { title: 'Set up your tournament', description: 'Add pairs in the left panel, set prizes and format, then create the bracket. Pairings are generated from a seed derived from your interaction entropy.' },
         create: { label: 'Create tournament', needPairs: 'You need at least 2 pairs to create the tournament.' },
@@ -131,7 +135,7 @@ const DICT: Record<Lang, Dict> = {
         
         phase: { prelimTitle: 'Preliminary phase ({count} matches)' },
         bracket: { title: 'Main bracket' },
-        round: { header: 'Round {n}' },
+        round: { header: 'Round {n}', empty: 'No matches', matches: 'matches' },
         export: {
             title: 'Export',
             exportButton: 'Export tournament',
@@ -148,8 +152,11 @@ const DICT: Record<Lang, Dict> = {
         confirmReset: 'Reset the tournament? All results will be lost.',
         seed: 'Seed',
         bestOfBadge: '🔒 Best of {bestOf}',
+        prize: { label: 'Prize {n}' },
+        ui: { view: { bracket: 'Bracket', rounds: 'By rounds' } },
     },
     fr: {
+        player: 'Joueur',
         header: { title: 'TOURNOI DE MUS' },
         importLabel: 'Importer',
         addPair: { title: 'Ajouter paire', placeholder1: 'Joueur 1', placeholder2: 'Joueur 2', addButton: 'Ajouter paire' },
@@ -163,7 +170,7 @@ const DICT: Record<Lang, Dict> = {
         
         button: { confirm: 'Confirmer' },
         ui: { language: 'Langue' },
-        generate: { confirmReplace: 'Remplacer les paires existantes par 80 paires aléatoires ?' },
+        generate: { confirmReplace: 'Remplacer les paires existantes par {count} paires aléatoires ?', randomPairs: 'Générer {count} paires' },
         left: { pairEntryHeader: 'Ajouter des paires', prizesLabel: 'Prix', bestOfLabel: 'Format', createButton: 'Créer le tournoi' },
         setup: { title: 'Configurez votre tournoi', description: 'Ajoutez des paires dans le panneau de gauche, définissez les prix et le format, puis créez le tableau. Les appariements sont générés à partir d’une graine dérivée de l’entropie de vos interactions.' },
         create: { label: 'Créer le tournoi', needPairs: 'Vous devez avoir au moins 2 paires pour créer le tournoi.' },
@@ -171,7 +178,7 @@ const DICT: Record<Lang, Dict> = {
         
         phase: { prelimTitle: 'Phase préliminaire ({count} matchs)' },
         bracket: { title: 'Tableau principal' },
-        round: { header: 'Tour {n}' },
+        round: { header: 'Tour {n}', empty: 'Aucun match', matches: 'matchs' },
         export: { title: 'Exporter', exportButton: 'Exporter le tournoi', reset: 'Réinitialiser le tournoi', option: { json: 'JSON signé', csv: 'CSV signé', xlsx: 'XLSX' }, sheet: { field: 'Champ', value: 'Valeur' }, xlsx: { matches: 'Matchs', meta: 'Métadonnées', prizes: 'Prix' }, csvHeaders: { phase: 'Phase', round: 'Tour', match: 'Match', pair1: 'Paire 1', pair2: 'Paire 2', victories1: 'Victoires P1', victories2: 'Victoires P2', winner: 'Vainqueur' }, prize: { first: '1er prix', second: '2e prix', third: '3e prix', fourth: '4e prix' } },
         error: { importFile: "Erreur lors de l'importation du fichier.", invalidJSON: 'Fichier invalide — JSON non valide' },
         import: { missingSheets: 'Feuilles requises manquantes : "Metadatos" ou "Partidas".', invalidSignature: { xlsx: 'Signature invalide. Le fichier XLSX a été modifié.', csv: 'Signature invalide. Le fichier CSV a été modifié.' } },
@@ -179,8 +186,11 @@ const DICT: Record<Lang, Dict> = {
         confirmReset: 'Réinitialiser le tournoi ? Tous les résultats seront perdus.',
         seed: 'Seed',
         bestOfBadge: '🔒 Meilleur de {bestOf}',
+        prize: { label: 'Prix {n}' },
+        ui: { view: { bracket: 'Tableau', rounds: 'Par tours' } },
     },
     eu: {
+        player: 'Jokalari',
         header: { title: 'MUS TXAPELKETA' },
         importLabel: 'Inportatu',
         addPair: { title: 'Bikotea gehitu', placeholder1: 'Jokalari 1', placeholder2: 'Jokalari 2', addButton: 'Bikotea gehitu' },
@@ -230,7 +240,7 @@ const DICT: Record<Lang, Dict> = {
         
         button: { confirm: 'Onartu' },
         ui: { language: 'Hizkuntza' },
-        generate: { confirmReplace: 'Orain dauden bikoteak 80 bikote ausazkinengatik ordezkatu?' },
+        generate: { confirmReplace: 'Orain dauden bikoteak {count} bikote ausazkinengatik ordezkatu?', randomPairs: '{count} bikote sortu' },
         
         setup: { title: 'Zure txapelketa konfiguratu', description: 'Ezkerreko panelean bikoteak gehitu, sariak eta formatua ezarri, eta ondoren koadroa sortu. Kuadroa zure interakzioen entropiatik eratorritako hazitik sortzen da.' },
         create: { label: 'Sortu txapelketa', needPairs: 'Gutxienez 2 bikote behar dituzu txapelketa sortzeko.' },
@@ -244,7 +254,7 @@ const DICT: Record<Lang, Dict> = {
         
         phase: { prelimTitle: 'Aurrebaldintza fasea ({count} partida)' },
         bracket: { title: 'Koadro nagusia' },
-        round: { header: 'Txanda {n}' },
+        round: { header: 'Txanda {n}', empty: 'Ez dago partidarik', matches: 'partidak' },
         export: {
             title: 'Esportatu',
             exportButton: 'Txapelketa esportatu',
@@ -261,6 +271,8 @@ const DICT: Record<Lang, Dict> = {
         confirmReset: 'Txapelketa berrezarri? Emaitzak galduko dira.',
         seed: 'Hazia',
         bestOfBadge: '🔒 {bestOf} onena',
+        prize: { label: 'Saria {n}' },
+        ui: { view: { bracket: 'Koadroa', rounds: 'Txandak' } },
     },
 };
 
@@ -352,10 +364,11 @@ export const I18N_KEYS = [
 
 function getNested(dict: Dict | string, path: string[]): string | undefined {
     if (typeof dict === 'string') return dict;
-    let cur: any = dict;
+    let cur: Dict | string | undefined = dict;
     for (const p of path) {
         if (cur == null) return undefined;
-        cur = cur[p];
+        if (typeof cur === 'string') return undefined;
+        cur = cur[p] as Dict | string | undefined;
     }
     return typeof cur === 'string' ? cur : undefined;
 }
