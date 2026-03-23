@@ -920,6 +920,9 @@ export default function TournamentApp({ initialLang }: { initialLang?: Lang }) {
           >
             {showSidebar ? tr(lang, 'ui.hideSidebar') : tr(lang, 'ui.showSidebar')}
           </button>
+          <span className="hidden sm:inline-block text-xs" style={{ color: 'var(--color-text-muted)', marginLeft: 8 }}>
+            {tr(lang, 'ui.exportHint')}
+          </span>
           {tournament && (
             <>
               <span className="text-sm" style={{ color: 'var(--color-text-muted)' }}>

@@ -60,7 +60,7 @@ const DICT: Record<Lang, Dict> = {
         prizes: { thirdPlaceShared: '3º puesto compartido' },
 
         button: { confirm: 'Confirmar' },
-        ui: { language: 'Idioma', view: { bracket: 'Cuadro', rounds: 'Por rondas' }, hideSidebar: 'Ocultar barra lateral', showSidebar: 'Mostrar barra lateral' },
+        ui: { language: 'Idioma', view: { bracket: 'Cuadro', rounds: 'Por rondas' }, hideSidebar: 'Ocultar barra lateral', showSidebar: 'Mostrar barra lateral', exportHint: 'Puedes exportar el torneo a un archivo después de crearlo e importarlo más tarde para volver a visualizarlo o editarlo.' },
         generate: { confirmReplace: 'Reemplazar parejas existentes con {count} parejas aleatorias?', randomPairs: 'Generar {count} parejas' },
         left: { pairEntryHeader: 'Añadir parejas', prizesLabel: 'Premios', bestOfLabel: 'Formato', createButton: 'Crear torneo' },
         setup: { title: 'Configura tu torneo', description: 'Añade parejas en el panel izquierdo, define premios y formato, y después crea el cuadro. El emparejamiento se realiza con una semilla basada en entropía de tus interacciones.' },
@@ -121,7 +121,7 @@ const DICT: Record<Lang, Dict> = {
         prizes: { thirdPlaceShared: '3rd place shared' },
 
         button: { confirm: 'Confirm' },
-        ui: { language: 'Language', view: { bracket: 'Bracket', rounds: 'By rounds' }, hideSidebar: 'Hide sidebar', showSidebar: 'Show sidebar' },
+        ui: { language: 'Language', view: { bracket: 'Bracket', rounds: 'By rounds' }, hideSidebar: 'Hide sidebar', showSidebar: 'Show sidebar', exportHint: 'You can export the tournament to a file after creating it and import it later to view or edit it.' },
         generate: { confirmReplace: 'Replace existing pairs with {count} random pairs?', randomPairs: 'Generate {count} pairs' },
         left: { pairEntryHeader: 'Add pairs', prizesLabel: 'Prizes', bestOfLabel: 'Format', createButton: 'Create tournament' },
         setup: { title: 'Set up your tournament', description: 'Add pairs in the left panel, set prizes and format, then create the bracket. Pairings are generated from a seed derived from your interaction entropy.' },
@@ -163,7 +163,7 @@ const DICT: Record<Lang, Dict> = {
         prizes: { thirdPlaceShared: '3ᵉ place partagé' },
 
         button: { confirm: 'Confirmer' },
-        ui: { language: 'Langue', view: { bracket: 'Tableau', rounds: 'Par tours' }, hideSidebar: 'Masquer la barre latérale', showSidebar: 'Afficher la barre latérale' },
+        ui: { language: 'Langue', view: { bracket: 'Tableau', rounds: 'Par tours' }, hideSidebar: 'Masquer la barre latérale', showSidebar: 'Afficher la barre latérale', exportHint: 'Vous pouvez exporter le tournoi dans un fichier après l\'avoir créé et l\'importer plus tard pour le visualiser ou le modifier.' },
         generate: { confirmReplace: 'Remplacer les paires existantes par {count} paires aléatoires ?', randomPairs: 'Générer {count} paires' },
         left: { pairEntryHeader: 'Ajouter des paires', prizesLabel: 'Prix', bestOfLabel: 'Format', createButton: 'Créer le tournoi' },
         setup: { title: 'Configurez votre tournoi', description: 'Ajoutez des paires dans le panneau de gauche, définissez les prix et le format, puis créez le tableau. Les appariements sont générés à partir d’une graine dérivée de l’entropie de vos interactions.' },
@@ -230,7 +230,7 @@ const DICT: Record<Lang, Dict> = {
         prizes: { thirdPlaceShared: '3. postua partekatuta' },
 
         button: { confirm: 'Onartu' },
-        ui: { language: 'Hizkuntza', view: { bracket: 'Koadroa', rounds: 'Txandak' }, hideSidebar: 'Ezkutatu alboko panela', showSidebar: 'Erakutsi alboko panela' },
+        ui: { language: 'Hizkuntza', view: { bracket: 'Koadroa', rounds: 'Txandak' }, hideSidebar: 'Ezkutatu alboko panela', showSidebar: 'Erakutsi alboko panela', exportHint: 'Sortu ondoren, txapelketa fitxategi batean esporta dezakezu eta geroago inportatu ikusi edo editatzeko.' },
         generate: { confirmReplace: 'Orain dauden bikoteak {count} bikote ausazkinengatik ordezkatu?', randomPairs: '{count} bikote sortu' },
 
         setup: { title: 'Zure txapelketa konfiguratu', description: 'Ezkerreko panelean bikoteak gehitu, sariak eta formatua ezarri, eta ondoren koadroa sortu. Kuadroa zure interakzioen entropiatik eratorritako hazitik sortzen da.' },
@@ -312,6 +312,7 @@ export const I18N_KEYS = [
 
     'ui.hideSidebar',
     'ui.showSidebar',
+    'ui.exportHint',
 
     'button.confirm',
 
