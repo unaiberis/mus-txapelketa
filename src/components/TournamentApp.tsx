@@ -805,7 +805,7 @@ export default function TournamentApp() {
                 )}
               </div>
             </div>
-            <div className="max-h-44 overflow-y-auto pr-1">
+            <div className="max-h-64 overflow-y-auto pr-1">
               {pairs.length === 0 ? (
                 <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
                   {tr(lang, 'pairs.empty')}
