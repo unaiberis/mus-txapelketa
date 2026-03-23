@@ -16,7 +16,7 @@ const DICT: Record<Lang, Dict> = {
         player: 'Jugador',
         header: { title: 'TORNEO DE MUS' },
         importLabel: 'Importar',
-        addPair: { title: 'Añadir pareja', placeholder1: 'Jugador 1', placeholder2: 'Jugador 2', addButton: 'Añadir pareja' },
+        addPair: { placeholder1: 'Jugador 1', placeholder2: 'Jugador 2', addButton: 'Añadir pareja' },
         pairs: { title: 'Parejas', empty: 'Aún no hay parejas inscritas.', clear: 'Vaciar', remove: 'Quitar', error: { emptyNames: 'Debes introducir los dos nombres de la pareja.', duplicate: 'Esa pareja ya está registrada.' } },
         fees: { title: 'Cuotas y premios', entryFee: 'Cuota por pareja', auto: 'Auto', manual: 'Manual', autoSplit: 'Reparto automático', currency: 'Moneda', pool: 'Bote total' },
         format: {
@@ -95,7 +95,7 @@ const DICT: Record<Lang, Dict> = {
         player: 'Player',
         header: { title: 'MUS TOURNAMENT' },
         importLabel: 'Import',
-        addPair: { title: 'Add pair', placeholder1: 'Player 1', placeholder2: 'Player 2', addButton: 'Add pair' },
+        addPair: { placeholder1: 'Player 1', placeholder2: 'Player 2', addButton: 'Add pair' },
         pairs: { title: 'Pairs', empty: 'No pairs registered yet.', clear: 'Clear', remove: 'Remove', error: { emptyNames: 'You must enter both players names.', duplicate: 'That pair is already registered.' } },
         fees: { title: 'Fees & Prizes', entryFee: 'Entry fee per pair', auto: 'Auto', manual: 'Manual', autoSplit: 'Auto split', currency: 'Currency', pool: 'Total pool' },
         format: {
@@ -159,7 +159,7 @@ const DICT: Record<Lang, Dict> = {
         player: 'Joueur',
         header: { title: 'TOURNOI DE MUS' },
         importLabel: 'Importer',
-        addPair: { title: 'Ajouter paire', placeholder1: 'Joueur 1', placeholder2: 'Joueur 2', addButton: 'Ajouter paire' },
+        addPair: { placeholder1: 'Joueur 1', placeholder2: 'Joueur 2', addButton: 'Ajouter paire' },
         pairs: { title: 'Paires', empty: 'Aucune paire inscrite.', clear: 'Vider', remove: 'Supprimer', error: { emptyNames: 'Vous devez saisir les deux noms de la paire.', duplicate: 'Cette paire est déjà enregistrée.' } },
         fees: { title: 'Frais & Prix', entryFee: 'Frais par paire', auto: 'Auto', manual: 'Manuel', autoSplit: 'Répartition auto', currency: 'Devise', pool: 'Cagnotte' },
         format: { title: 'Format de match', customPlaceholder: 'Ex: 11', invalidCustom: 'Doit être un entier impair > 0.', options: { '3': 'Meilleur de 3', '5': 'Meilleur de 5', '7': 'Meilleur de 7', '9': 'Meilleur de 9', custom: 'Personnalisé' } },
@@ -193,7 +193,7 @@ const DICT: Record<Lang, Dict> = {
         player: 'Jokalari',
         header: { title: 'MUS TXAPELKETA' },
         importLabel: 'Inportatu',
-        addPair: { title: 'Bikotea gehitu', placeholder1: 'Jokalari 1', placeholder2: 'Jokalari 2', addButton: 'Bikotea gehitu' },
+        addPair: { placeholder1: 'Jokalari 1', placeholder2: 'Jokalari 2', addButton: 'Bikotea gehitu' },
         pairs: { title: 'Bikoteak', empty: 'Oraindik ez da bikoterik erregistratu.', clear: 'Garbitu', remove: 'Kendu', error: { emptyNames: 'Bi izenak sartu behar dituzu.', duplicate: 'Bikote hori jadanik erregistratuta dago.' } },
         fees: { title: 'Kuotak eta sariak', entryFee: 'Bikote bakoitzeko kuota', auto: 'Auto', manual: 'Eskuzkoa', autoSplit: 'Banaketa automatikoa', currency: 'Moneta', pool: 'Guztira' },
         format: {

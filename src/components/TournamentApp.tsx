@@ -728,9 +728,6 @@ export default function TournamentApp() {
 
           {!tournament && (
             <section className="mb-5 space-y-2">
-              <h2 className="text-sm uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
-                {tr(lang, 'addPair.title')}
-              </h2>
               <input
                 ref={input1Ref}
                 type="text"
