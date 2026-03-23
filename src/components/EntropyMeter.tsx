@@ -70,8 +70,6 @@ export default function EntropyMeter({ score, seed, lang = 'es' }: EntropyMeterP
         />
       </div>
       <p className="entropy-label">{label}</p>
-      {clamped < 60 && <p className="entropy-hint">{t(lang, 'entropy.hintKeyboard')}</p>}
-      {clamped >= 80 && <p className="entropy-secure">{t(lang, 'entropy.hint')}</p>}
     </div>
   );
 }

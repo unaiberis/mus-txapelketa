@@ -27,7 +27,6 @@ const DICT: Record<Lang, Dict> = {
         },
         entropy: {
             title: '🎲 Nivel de aleatoriedad',
-            hint: 'Mueve el ratón por la pantalla para un sorteo más seguro',
             labels: {
                 max: 'Máxima - ¡Perfecto!',
                 veryHigh: 'Muy alta',
@@ -36,7 +35,6 @@ const DICT: Record<Lang, Dict> = {
                 low: 'Baja',
                 none: 'Sin aleatoriedad',
             },
-            hintKeyboard: 'Mueve el ratón y pulsa teclas para un sorteo más seguro.',
         },
         match: {
             error: {
@@ -60,15 +58,15 @@ const DICT: Record<Lang, Dict> = {
             labels: { fourth: '4º puesto', third: '3º puesto', thirdShared: '3º/4º compartido', second: '2º puesto', first: 'Campeón' },
         },
         prizes: { thirdPlaceShared: '3º puesto compartido' },
-        
+
         button: { confirm: 'Confirmar' },
-        ui: { language: 'Idioma' },
+        ui: { language: 'Idioma', view: { bracket: 'Cuadro', rounds: 'Por rondas' } },
         generate: { confirmReplace: 'Reemplazar parejas existentes con {count} parejas aleatorias?', randomPairs: 'Generar {count} parejas' },
         left: { pairEntryHeader: 'Añadir parejas', prizesLabel: 'Premios', bestOfLabel: 'Formato', createButton: 'Crear torneo' },
         setup: { title: 'Configura tu torneo', description: 'Añade parejas en el panel izquierdo, define premios y formato, y después crea el cuadro. El emparejamiento se realiza con una semilla basada en entropía de tus interacciones.' },
         create: { label: 'Crear torneo', needPairs: 'Necesitas al menos 2 parejas para crear el torneo.' },
         prelim: { card: { prelimRound: 'Ronda previa', target: 'Cuadro objetivo', byes: 'Pasan directas', playPrelim: 'Juegan previa', matchesCount: '{count} partidas', pairsCount: '{count} parejas' } },
-        
+
         phase: { prelimTitle: 'Fase previa ({count} partidas)' },
         bracket: { title: 'Cuadro principal' },
         round: { header: 'Ronda {n}', empty: 'Sin partidas', matches: 'partidas' },
@@ -89,7 +87,6 @@ const DICT: Record<Lang, Dict> = {
         seed: 'Seed',
         bestOfBadge: '🔒 Al mejor de {bestOf}',
         prize: { label: 'Premio {n}' },
-        ui: { view: { bracket: 'Cuadro', rounds: 'Por rondas' } },
     },
     en: {
         player: 'Player',
@@ -106,9 +103,7 @@ const DICT: Record<Lang, Dict> = {
         },
         entropy: {
             title: '🎲 Entropy level',
-            hint: 'Move the mouse to increase randomness',
             labels: { max: 'Maximum — Perfect!', veryHigh: 'Very high', high: 'High', medium: 'Medium', low: 'Low', none: 'No entropy' },
-            hintKeyboard: 'Move the mouse and press keys for a more secure draw.',
         },
         match: {
             error: { nan: 'You must enter two numbers.', invalidScore: 'Invalid score for best of {bestOf}. Winner must reach {winsNeeded}.', registerFail: 'Could not record the result.' },
@@ -124,15 +119,15 @@ const DICT: Record<Lang, Dict> = {
         },
         podium: { title: 'Tournament finished', pool: 'Total pool: {pool} {currency}', labels: { fourth: '4th place', third: '3rd place', thirdShared: '3rd/4th shared', second: '2nd place', first: 'Champion' } },
         prizes: { thirdPlaceShared: '3rd place shared' },
-        
+
         button: { confirm: 'Confirm' },
-        ui: { language: 'Language' },
+        ui: { language: 'Language', view: { bracket: 'Bracket', rounds: 'By rounds' } },
         generate: { confirmReplace: 'Replace existing pairs with {count} random pairs?', randomPairs: 'Generate {count} pairs' },
         left: { pairEntryHeader: 'Add pairs', prizesLabel: 'Prizes', bestOfLabel: 'Format', createButton: 'Create tournament' },
         setup: { title: 'Set up your tournament', description: 'Add pairs in the left panel, set prizes and format, then create the bracket. Pairings are generated from a seed derived from your interaction entropy.' },
         create: { label: 'Create tournament', needPairs: 'You need at least 2 pairs to create the tournament.' },
         prelim: { card: { prelimRound: 'Preliminary round', target: 'Target bracket', byes: 'Byes', playPrelim: 'Play prelim', matchesCount: '{count} matches', pairsCount: '{count} pairs' } },
-        
+
         phase: { prelimTitle: 'Preliminary phase ({count} matches)' },
         bracket: { title: 'Main bracket' },
         round: { header: 'Round {n}', empty: 'No matches', matches: 'matches' },
@@ -153,7 +148,6 @@ const DICT: Record<Lang, Dict> = {
         seed: 'Seed',
         bestOfBadge: '🔒 Best of {bestOf}',
         prize: { label: 'Prize {n}' },
-        ui: { view: { bracket: 'Bracket', rounds: 'By rounds' } },
     },
     fr: {
         player: 'Joueur',
@@ -167,15 +161,15 @@ const DICT: Record<Lang, Dict> = {
         match: { error: { nan: 'Vous devez entrer deux nombres.', invalidScore: 'Score invalide pour meilleur de {bestOf}. Le gagnant doit atteindre {winsNeeded}.', registerFail: 'Impossible d’enregistrer le résultat.' }, prelimLabel: 'Préliminaire', roundLabel: 'Tour {round}', pending: 'En attente des qualifiés...', vs: 'VS', editAria: 'Modifier le résultat', confirmEdit: 'Modifier ce résultat effacera les résultats dépendants. Continuer ?', boBadge: 'BO{bestOf}', placeholderScore: '0', byeInfo: 'Passe automatiquement au tour suivant.' },
         podium: { title: 'Tournoi terminé', pool: 'Cagnotte totale : {pool} {currency}', labels: { fourth: '4ᵉ place', third: '3ᵉ place', thirdShared: '3ᵉ/4ᵉ partagé', second: '2ᵉ place', first: 'Champion' } },
         prizes: { thirdPlaceShared: '3ᵉ place partagé' },
-        
+
         button: { confirm: 'Confirmer' },
-        ui: { language: 'Langue' },
+        ui: { language: 'Langue', view: { bracket: 'Tableau', rounds: 'Par tours' } },
         generate: { confirmReplace: 'Remplacer les paires existantes par {count} paires aléatoires ?', randomPairs: 'Générer {count} paires' },
         left: { pairEntryHeader: 'Ajouter des paires', prizesLabel: 'Prix', bestOfLabel: 'Format', createButton: 'Créer le tournoi' },
         setup: { title: 'Configurez votre tournoi', description: 'Ajoutez des paires dans le panneau de gauche, définissez les prix et le format, puis créez le tableau. Les appariements sont générés à partir d’une graine dérivée de l’entropie de vos interactions.' },
         create: { label: 'Créer le tournoi', needPairs: 'Vous devez avoir au moins 2 paires pour créer le tournoi.' },
         prelim: { card: { prelimRound: 'Phase préliminaire', target: 'Tableau cible', byes: 'Qualifiés directs', playPrelim: 'Jouent la préliminaire', matchesCount: '{count} matchs', pairsCount: '{count} paires' } },
-        
+
         phase: { prelimTitle: 'Phase préliminaire ({count} matchs)' },
         bracket: { title: 'Tableau principal' },
         round: { header: 'Tour {n}', empty: 'Aucun match', matches: 'matchs' },
@@ -187,7 +181,6 @@ const DICT: Record<Lang, Dict> = {
         seed: 'Seed',
         bestOfBadge: '🔒 Meilleur de {bestOf}',
         prize: { label: 'Prix {n}' },
-        ui: { view: { bracket: 'Tableau', rounds: 'Par tours' } },
     },
     eu: {
         player: 'Jokalari',
@@ -204,7 +197,6 @@ const DICT: Record<Lang, Dict> = {
         },
         entropy: {
             title: '🎲 Entropia maila',
-            hint: 'Ziurtasunezko zozketa handiagoa lortzeko mugitu saguarekin',
             labels: {
                 max: 'Gehienez — Perfectua!',
                 veryHigh: 'Oso altua',
@@ -213,7 +205,6 @@ const DICT: Record<Lang, Dict> = {
                 low: 'Txikia',
                 none: 'Entropiarik gabe',
             },
-            hintKeyboard: 'Sagua mugitu eta teklak sakatu zozketa seguruago izateko.',
         },
         match: {
             error: {
@@ -237,11 +228,11 @@ const DICT: Record<Lang, Dict> = {
             labels: { fourth: '4. postua', third: '3. postua', thirdShared: '3./4. partekatua', second: '2. postua', first: 'Txapelduna' },
         },
         prizes: { thirdPlaceShared: '3. postua partekatuta' },
-        
+
         button: { confirm: 'Onartu' },
-        ui: { language: 'Hizkuntza' },
+        ui: { language: 'Hizkuntza', view: { bracket: 'Koadroa', rounds: 'Txandak' } },
         generate: { confirmReplace: 'Orain dauden bikoteak {count} bikote ausazkinengatik ordezkatu?', randomPairs: '{count} bikote sortu' },
-        
+
         setup: { title: 'Zure txapelketa konfiguratu', description: 'Ezkerreko panelean bikoteak gehitu, sariak eta formatua ezarri, eta ondoren koadroa sortu. Kuadroa zure interakzioen entropiatik eratorritako hazitik sortzen da.' },
         create: { label: 'Sortu txapelketa', needPairs: 'Gutxienez 2 bikote behar dituzu txapelketa sortzeko.' },
         left: {
@@ -251,7 +242,7 @@ const DICT: Record<Lang, Dict> = {
             createButton: 'Sortu txapelketa'
         },
         prelim: { card: { prelimRound: 'Aurrebaldintza', target: 'Helburu koadroa', byes: 'Zuzen pasatzen dira', playPrelim: 'Aurrebaldintzan jokatzen dute', matchesCount: '{count} partida', pairsCount: '{count} bikote' } },
-        
+
         phase: { prelimTitle: 'Aurrebaldintza fasea ({count} partida)' },
         bracket: { title: 'Koadro nagusia' },
         round: { header: 'Txanda {n}', empty: 'Ez dago partidarik', matches: 'partidak' },
@@ -272,7 +263,6 @@ const DICT: Record<Lang, Dict> = {
         seed: 'Hazia',
         bestOfBadge: '🔒 {bestOf} onena',
         prize: { label: 'Saria {n}' },
-        ui: { view: { bracket: 'Koadroa', rounds: 'Txandak' } },
     },
 };
 
@@ -329,7 +319,7 @@ export const I18N_KEYS = [
     'prelim.card.target',
     'prelim.card.byes',
     'prelim.card.playPrelim',
-    
+
     'phase.prelimTitle',
     'bracket.title',
     'round.header',

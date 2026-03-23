@@ -228,19 +228,22 @@ function autoAdvanceByesInState(initial: TournamentState): TournamentState {
   return state;
 }
 
-export default function TournamentApp() {
-  const [lang, setLang] = useState<Lang>(DEFAULT_LANG);
+export default function TournamentApp({ initialLang }: { initialLang?: Lang }) {
+  const [lang, setLang] = useState<Lang>(initialLang ?? DEFAULT_LANG);
 
-  // Read persisted language only on the client after hydration to avoid SSR mismatch
+  // Read persisted language only on the client after hydration to avoid SSR mismatch.
+  // This will override the initial server-provided language if the user previously
+  // selected a language stored in localStorage. Keeping this separation avoids
+  // hydration mismatches while still respecting an explicit client preference.
   useEffect(() => {
     try {
       if (typeof window === 'undefined') return;
       const stored = window.localStorage.getItem('museko:lang');
-      if (stored && ['es', 'en', 'fr', 'eu'].includes(stored)) setLang(stored as Lang);
+      if (stored && ['es', 'en', 'fr', 'eu'].includes(stored) && stored !== lang) setLang(stored as Lang);
     } catch {
       // noop
     }
-  }, []);
+  }, [lang]);
   const { score: entropyScore, finalize: finalizeEntropy, lockedSeed } = useEntropy();
 
   const [pairs, setPairs] = useState<string[]>([]);
@@ -451,7 +454,7 @@ export default function TournamentApp() {
     [dragOverIndex, pairs.length]
   );
 
-  const handleDragEnter = useCallback((e?: React.DragEvent) => {
+  const handleDragEnter = useCallback((_e?: React.DragEvent) => {
     // Increment enter counter to track nested enters/leaves
     enterCounterRef.current = Math.max(0, enterCounterRef.current) + 1;
     // Cancel any pending leave clear when we re-enter
@@ -464,7 +467,8 @@ export default function TournamentApp() {
   const handleDragLeave = useCallback((e?: React.DragEvent) => {
     // If relatedTarget is inside the same container, ignore the leave
     try {
-      const related = (e?.relatedTarget ?? (e?.nativeEvent as any)?.relatedTarget) as Node | null;
+      const native = e?.nativeEvent as unknown as { relatedTarget?: EventTarget | null } | undefined;
+      const related = (e?.relatedTarget ?? native?.relatedTarget) as Node | null;
       const cur = e?.currentTarget as Node | null;
       if (related && cur && cur.contains && cur.contains(related)) {
         return;
@@ -523,7 +527,7 @@ export default function TournamentApp() {
       window.clearTimeout(leaveTimerRef.current);
       leaveTimerRef.current = null;
     }
-  }, [tournament]);
+  }, [tournament, dragOverIndex]);
 
   const handleDragEnd = useCallback(() => {
     console.log('[drag] end', { ts: Date.now() });
@@ -853,17 +857,31 @@ export default function TournamentApp() {
           )}
           <div className="ml-2 flex items-center gap-2">
             <label className="sr-only">{tr(lang, 'ui.language')}</label>
-            <select
-              aria-label={tr(lang, 'ui.language')}
-              data-testid="header-lang-select"
-              className="form-input text-sm"
-              value={lang}
-              onChange={(e) => setLang(e.target.value as Lang)}
-            >
-              {LANGUAGES.map((l) => (
-                <option key={l.code} value={l.code}>{l.label}</option>
-              ))}
-            </select>
+            <nav aria-label={tr(lang, 'ui.language')}>
+              <ul className="flex gap-2" data-testid="header-lang-list">
+                {LANGUAGES.map((l) => {
+                  const href = l.code === DEFAULT_LANG ? '/' : `/${l.code}/`;
+                  return (
+                    <li key={l.code}>
+                      <a
+                        href={href}
+                        onClick={(_e) => {
+                          try {
+                            if (typeof window !== 'undefined') window.localStorage.setItem('museko:lang', l.code);
+                          } catch {
+                            /* noop */
+                          }
+                          // Let the browser navigate normally to the prefixed page
+                        }}
+                        className={"text-sm px-2 py-1 rounded " + (lang === l.code ? 'bg-surface2' : '')}
+                      >
+                        {l.label}
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            </nav>
             <label className="sr-only">{tr(lang, 'importLabel')}</label>
             <input
               ref={fileInputRef}
@@ -1004,7 +1022,7 @@ export default function TournamentApp() {
                       items.push(
                         <div key={`${pair}-${idx}`}>
                           <div
-                            ref={(el) => (itemRefs.current[idx] = el)}
+                            ref={(el) => { itemRefs.current[idx] = el; }}
                             className="pair-list-item flex items-center justify-between gap-2"
                             style={{
                               opacity: dragSourceIdx === idx ? 0.35 : 1,
