@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import TournamentApp from '../TournamentApp';
-import * as tourLib from '../../lib/tournament';
 import * as entropyLib from '../../lib/entropy';
 import { DEFAULT_LANG, t } from '../../lib/i18n';
 

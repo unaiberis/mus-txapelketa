@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateBracket, findMatch, registerResult } from '../../lib/tournament';
+import { generateBracket, registerResult } from '../../lib/tournament';
 
 describe('prelim repro', () => {
   it('places prelim winner only in r1 (not jumping rounds)', () => {
