@@ -11,14 +11,12 @@ import {
   generateBracket,
   generateRandomPairs,
   isValidBestOf,
-  isValidScore,
   parseCSVImport,
   preliminaryInfo,
   prizePool,
   registerResult,
   signExport,
   verifyAndImport,
-  type EntropyEvent,
   type Match,
   type MatchScore,
   type Phase,
@@ -35,7 +33,6 @@ import useEntropy from '../hooks/useEntropy';
 import toast, { Toaster } from 'react-hot-toast';
 import { currencySymbol, percentToPresetKey, presetToPercentages, type AutoSplitPreset } from '../lib/format';
 import PodiumView from './PodiumView';
-import LeftPanelMock from './LeftPanelMock';
 import PrelimGrid from './PrelimGrid';
 import RoundCardsView from './RoundCardsView';
 
@@ -46,17 +43,7 @@ function isByeMatch(match: Match): boolean {
   return Boolean((match.pair1 && !match.pair2) || (!match.pair1 && match.pair2));
 }
 
-function roundIndexFromId(matchId: string): number | null {
-  const parsed = /^r(\d+)-\d+$/.exec(matchId);
-  if (!parsed) return null;
-  return Number.parseInt(parsed[1], 10) - 1;
-}
 
-function matchIndexFromId(matchId: string): number | null {
-  const parsed = /^r\d+-(\d+)$/.exec(matchId);
-  if (!parsed) return null;
-  return Number.parseInt(parsed[1], 10);
-}
 
 function cloneTournamentState(state: TournamentState): TournamentState {
   return {
@@ -243,7 +230,7 @@ function autoAdvanceByesInState(initial: TournamentState): TournamentState {
 }
 
 export default function TournamentApp() {
-  const [lang, setLang] = useState<import('../lib/i18n').Lang>(DEFAULT_LANG);
+  const [lang, setLang] = useState<Lang>(DEFAULT_LANG);
 
   // Read persisted language only on the client after hydration to avoid SSR mismatch
   useEffect(() => {
@@ -251,7 +238,7 @@ export default function TournamentApp() {
       if (typeof window === 'undefined') return;
       const stored = window.localStorage.getItem('museko:lang');
       if (stored && ['es', 'en', 'fr', 'eu'].includes(stored)) setLang(stored as Lang);
-    } catch (e) {
+    } catch {
       // noop
     }
   }, []);
@@ -307,7 +294,7 @@ export default function TournamentApp() {
   useEffect(() => {
     try {
       if (typeof window !== 'undefined') window.localStorage.setItem('museko:lang', lang);
-    } catch (e) {
+    } catch {
       // ignore
     }
   }, [lang]);
@@ -316,7 +303,7 @@ export default function TournamentApp() {
     if (importError) {
       try {
         toast.error(importError);
-      } catch (e) {
+      } catch {
         // ignore toast failures
       }
     }
@@ -326,7 +313,7 @@ export default function TournamentApp() {
     if (pairError) {
       try {
         toast.error(pairError);
-      } catch (e) {
+      } catch {
         // ignore
       }
     }
@@ -336,7 +323,7 @@ export default function TournamentApp() {
     if (formatError) {
       try {
         toast.error(formatError);
-      } catch (e) {
+      } catch {
         // ignore
       }
     }
@@ -363,7 +350,7 @@ export default function TournamentApp() {
     setInput1('');
     setInput2('');
     input1Ref.current?.focus();
-  }, [input1, input2, pairs, tournament]);
+  }, [input1, input2, pairs, tournament, lang]);
 
   const generate80Pairs = useCallback(() => {
     if (tournament) return;
@@ -375,7 +362,7 @@ export default function TournamentApp() {
     const seed = finalizeEntropy();
     const gen = generateRandomPairs(RANDOM_PAIR_COUNT, seed, lang);
     setPairs(gen);
-  }, [tournament, pairs, lang]);
+  }, [tournament, pairs, lang, finalizeEntropy]);
 
   const removePair = useCallback(
     (idx: number) => {
@@ -430,7 +417,7 @@ export default function TournamentApp() {
     const state = generateBracket(pairs, seed, actualBestOf, prizeConfig);
     const withByes = autoAdvanceByesInState(state);
     setTournament(withByes);
-  }, [actualBestOf, pairs, prizeConfig]);
+  }, [actualBestOf, pairs, prizeConfig, finalizeEntropy, lang]);
 
   const handleResult = useCallback(
     (matchId: string, score1: number, score2: number) => {
@@ -452,7 +439,7 @@ export default function TournamentApp() {
       const newState = clearDownstream(tournament, matchId);
       setTournament(newState);
     },
-    [tournament]
+    [tournament, lang]
   );
 
   const handleExport = useCallback(async () => {
@@ -542,7 +529,7 @@ export default function TournamentApp() {
       new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
       `torneo-mus-${Date.now()}.xlsx`
     );
-  }, [exportFormat, tournament]);
+  }, [exportFormat, tournament, lang]);
 
   const handleImport = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -655,7 +642,7 @@ export default function TournamentApp() {
 
       if (fileInputRef.current) fileInputRef.current.value = '';
     },
-    []
+    [lang]
   );
 
   const resetTournament = useCallback(() => {

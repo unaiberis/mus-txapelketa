@@ -1,4 +1,3 @@
-import React from 'react';
 import type { Podium, PrizeConfig } from '../lib/tournament';
 import { prizePool } from '../lib/tournament';
 import { t as tr, type Lang } from '../lib/i18n';
