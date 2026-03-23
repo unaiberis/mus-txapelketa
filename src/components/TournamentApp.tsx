@@ -899,9 +899,13 @@ export default function TournamentApp() {
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
-                    if (input1.trim() !== '') {
-                      input2Ref.current?.focus();
+                    // If the second input already has text, submit as if Add Pair was pressed
+                    if (input2.trim() !== '') {
+                      addPair();
+                      return;
                     }
+                    // Otherwise move focus to the second input
+                    input2Ref.current?.focus();
                   }
                 }}
               />
@@ -913,7 +917,16 @@ export default function TournamentApp() {
                 value={input2}
                 onChange={(e) => setInput2(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') addPair();
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    // If first input is empty and second has text, move focus to first
+                    if (input1.trim() === '' && input2.trim() !== '') {
+                      input1Ref.current?.focus();
+                      return;
+                    }
+                    // Otherwise attempt to add the pair
+                    addPair();
+                  }
                 }}
               />
               <button type="button" className="btn-primary w-full" onClick={addPair}>
