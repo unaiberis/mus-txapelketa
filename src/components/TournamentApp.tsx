@@ -32,6 +32,7 @@ import { DEFAULT_LANG, LANGUAGES, t as tr, type Lang } from '../lib/i18n';
 import EntropyMeter from './EntropyMeter';
 import BracketView from './BracketView';
 import useEntropy from '../hooks/useEntropy';
+import toast, { Toaster } from 'react-hot-toast';
 import { currencySymbol, percentToPresetKey, presetToPercentages, type AutoSplitPreset } from '../lib/format';
 import PodiumView from './PodiumView';
 import LeftPanelMock from './LeftPanelMock';
@@ -206,7 +207,8 @@ function autoAdvanceByesInState(initial: TournamentState): TournamentState {
     for (let r = 0; r < state.rounds.length; r++) {
       for (let mIdx = 0; mIdx < state.rounds[r].length; mIdx++) {
         const match = state.rounds[r][mIdx];
-        if (!isByeMatch(match) || match.winner) continue;
+        // Only auto-advance true initial BYEs created at generation time.
+        if (!isByeMatch(match) || match.winner || !match.initialBye) continue;
 
         const winner = match.pair1 ?? match.pair2;
         if (!winner) continue;
@@ -305,6 +307,36 @@ export default function TournamentApp() {
       // ignore
     }
   }, [lang]);
+
+  useEffect(() => {
+    if (importError) {
+      try {
+        toast.error(importError);
+      } catch (e) {
+        // ignore toast failures
+      }
+    }
+  }, [importError]);
+
+  useEffect(() => {
+    if (pairError) {
+      try {
+        toast.error(pairError);
+      } catch (e) {
+        // ignore
+      }
+    }
+  }, [pairError]);
+
+  useEffect(() => {
+    if (formatError) {
+      try {
+        toast.error(formatError);
+      } catch (e) {
+        // ignore
+      }
+    }
+  }, [formatError]);
 
   const addPair = useCallback(() => {
     if (tournament) return;
@@ -683,16 +715,14 @@ export default function TournamentApp() {
         </div>
       </header>
 
+      <Toaster position="top-right" />
+
       <div className="flex flex-1 min-h-0 overflow-hidden">
         <aside
           className="left-panel w-80 flex-shrink-0 overflow-y-auto p-4 border-r"
           style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
         >
-          {importError && (
-            <section className="mb-5">
-              <p className="score-error">{importError}</p>
-            </section>
-          )}
+        
 
           {!tournament && (
             <section className="mb-5 space-y-2">
@@ -723,7 +753,7 @@ export default function TournamentApp() {
               <button type="button" className="btn-primary w-full" onClick={addPair}>
                 {tr(lang, 'addPair.addButton')}
               </button>
-              {pairError && <p className="score-error">{pairError}</p>}
+              
             </section>
           )}
 

@@ -16,6 +16,12 @@ export interface Match {
 	winner?: string;
 	round: number;
 	isPrelim: boolean;
+	// When this is a prelim match, these optional fields point to
+	// the target match/slot in round 1 where the winner should be placed.
+	nextMatchId?: string;
+	nextSlot?: 'pair1' | 'pair2';
+	// Marks matches that were true BYEs from generation (one real pair, no opponent).
+	initialBye?: boolean;
 }
 
 export type Phase = 'entry' | 'generated' | 'inProgress' | 'finished';
@@ -220,36 +226,57 @@ export function generateBracket(
 
 	const prelim: Match[] = [];
 	for (let i = 0; i < prelimPairsList.length; i += 2) {
+		const prelimIdx = i / 2;
+		// compute the intended target slot in round 1 for this prelim winner
+		const targetIndex = info.byeCount + prelimIdx; // position in r1Participants
+		const targetMatchIdx = Math.floor(targetIndex / 2);
+		const targetSlot: 'pair1' | 'pair2' = targetIndex % 2 === 0 ? 'pair1' : 'pair2';
+
 		prelim.push({
-			id: `prelim-${i / 2}`,
+			id: `prelim-${prelimIdx}`,
 			pair1: prelimPairsList[i] ?? null,
 			pair2: prelimPairsList[i + 1] ?? null,
 			round: 0,
 			isPrelim: true,
+			nextMatchId: `r1-${targetMatchIdx}`,
+			nextSlot: targetSlot,
 		});
 	}
 
 	const r1Size = info.prelimMatches > 0 ? info.target / 2 : n;
 	const numRounds = Math.max(1, Math.log2(r1Size));
 
+	// Build r1 participants and a parallel flag array indicating which slots
+	// came from actual bye pairs (true) vs placeholders for prelim winners (false).
 	const r1Participants: (string | null)[] = [];
+	const r1IsFromBye: boolean[] = [];
 	for (const p of byePairs) {
 		r1Participants.push(p);
+		r1IsFromBye.push(true);
 	}
 	for (let i = 0; i < info.prelimMatches; i++) {
 		r1Participants.push(null);
+		r1IsFromBye.push(false);
 	}
 
 	const r1: Match[] = [];
 	for (let i = 0; i < r1Participants.length; i += 2) {
 		const p1 = r1Participants[i] ?? null;
 		const p2 = r1Participants[i + 1] ?? null;
+		const fromBye1 = r1IsFromBye[i] ?? false;
+		const fromBye2 = r1IsFromBye[i + 1] ?? false;
+		const initialBye = (
+			((p1 !== null) && (p2 === null) && fromBye1) ||
+			((p2 !== null) && (p1 === null) && fromBye2)
+		);
+
 		const match: Match = {
 			id: `r1-${i / 2}`,
 			pair1: p1,
 			pair2: p2,
 			round: 1,
 			isPrelim: false,
+			initialBye,
 		};
 		r1.push(match);
 	}
@@ -313,6 +340,13 @@ function findNextMatchSlot(
 	matchId: string
 ): { matchId: string; slot: 'pair1' | 'pair2' } | null {
 	if (matchId.startsWith('prelim-')) {
+		// Prefer explicit mapping stored on the prelim match (set during generation).
+		const prelimMatch = state.prelim.find((m) => m.id === matchId);
+		if (prelimMatch && prelimMatch.nextMatchId && prelimMatch.nextSlot) {
+			return { matchId: prelimMatch.nextMatchId, slot: prelimMatch.nextSlot };
+		}
+
+		// Fallback: find the Nth null slot in r1 (legacy behaviour)
 		const prelimIdx = parseInt(matchId.split('-')[1], 10);
 		const r1 = state.rounds[0] ?? [];
 		let nullCount = 0;
