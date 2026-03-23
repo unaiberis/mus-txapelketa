@@ -363,6 +363,10 @@ export default function TournamentApp() {
   // Drag-and-drop reordering for pairs
   const dragIndexRef = useRef<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [dragSourceIdx, setDragSourceIdx] = useState<number | null>(null);
+  const itemRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const leaveTimerRef = useRef<number | null>(null);
+  const enterCounterRef = useRef<number>(0);
 
   const handleDragStart = useCallback((e: React.DragEvent, idx: number) => {
     if (tournament) {
@@ -376,6 +380,7 @@ export default function TournamentApp() {
     } catch {
       // some browsers may throw when setting data; ignore
     }
+    setDragSourceIdx(idx);
     console.log('[drag] start', { ts: Date.now(), src: idx });
   }, [tournament]);
 
@@ -383,18 +388,20 @@ export default function TournamentApp() {
     (e: React.DragEvent, idx?: number) => {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
-      const srcStr = e.dataTransfer.getData('text/plain');
-      const src = srcStr ? Number.parseInt(srcStr, 10) : dragIndexRef.current;
+      const src = dragIndexRef.current;
 
       if (typeof idx === 'number') {
-        const el = e.currentTarget as HTMLElement;
-        const rect = el.getBoundingClientRect();
-        const y = e.clientY;
-        const half = rect.top + rect.height / 2;
-        const desired = y < half ? idx : idx + 1;
+        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        const desired = e.clientY < rect.top + rect.height / 2 ? idx : idx + 1;
 
-        // If hovering over the element being dragged (or immediately after it), hide placeholder
-        if (src != null && !Number.isNaN(src) && (desired === src || desired === src + 1)) {
+        // cancel any pending leave clear when we re-enter/hover
+        if (leaveTimerRef.current) {
+          window.clearTimeout(leaveTimerRef.current);
+          leaveTimerRef.current = null;
+        }
+
+        // No mover si el destino es la misma posición que el origen
+        if (src != null && (desired === src || desired === src + 1)) {
           if (dragOverIndex !== null) {
             console.log('[drag] clear placeholder - hovering source', { ts: Date.now(), src, idx, desired });
             setDragOverIndex(null);
@@ -403,24 +410,91 @@ export default function TournamentApp() {
         }
 
         if (dragOverIndex !== desired) {
-          console.log('[drag] set placeholder', { ts: Date.now(), src, idx, desired, y, half });
+          console.log('[drag] set placeholder', { ts: Date.now(), src, idx, desired, clientY: e.clientY, rectTop: rect.top, rectHeight: rect.height });
           setDragOverIndex(desired);
         }
       } else {
-        // Hovering over container area -> placeholder at end
-        if (dragOverIndex !== pairs.length) {
-          console.log('[drag] set placeholder at end', { ts: Date.now(), src, desiredEnd: pairs.length });
-          setDragOverIndex(pairs.length);
+        // When hovering the container (not a particular item), only set
+        // the placeholder at the end if the pointer is actually past the
+        // last item's bottom. This avoids rapid toggling between an item
+        // and the end when the cursor crosses small gaps.
+        const lastIdx = pairs.length - 1;
+        const lastEl = itemRefs.current[lastIdx] ?? null;
+        if (lastEl) {
+          try {
+            const lastRect = lastEl.getBoundingClientRect();
+            const tolerance = 4; // px
+            if (e.clientY >= lastRect.bottom - tolerance) {
+              if (dragOverIndex !== pairs.length) {
+                console.log('[drag] set placeholder at end', { ts: Date.now(), src, desired: pairs.length, clientY: e.clientY, lastBottom: lastRect.bottom });
+                setDragOverIndex(pairs.length);
+              }
+            } else {
+              // Pointer is inside container but not beyond last item — do nothing
+              // (keep current placeholder to avoid flicker)
+            }
+          } catch {
+            if (dragOverIndex !== pairs.length) {
+              console.log('[drag] set placeholder at end (fallback)', { ts: Date.now(), src, desired: pairs.length });
+              setDragOverIndex(pairs.length);
+            }
+          }
+        } else {
+          // No items — safe to set to end (0)
+          if (dragOverIndex !== pairs.length) {
+            console.log('[drag] set placeholder at end (no items)', { ts: Date.now(), src, desired: pairs.length });
+            setDragOverIndex(pairs.length);
+          }
         }
       }
     },
     [dragOverIndex, pairs.length]
   );
 
-  const handleDragLeave = useCallback(() => {
-    console.log('[drag] leave - clear placeholder', { ts: Date.now() });
-    setDragOverIndex(null);
+  const handleDragEnter = useCallback((e?: React.DragEvent) => {
+    // Increment enter counter to track nested enters/leaves
+    enterCounterRef.current = Math.max(0, enterCounterRef.current) + 1;
+    // Cancel any pending leave clear when we re-enter
+    if (leaveTimerRef.current) {
+      window.clearTimeout(leaveTimerRef.current);
+      leaveTimerRef.current = null;
+    }
   }, []);
+
+  const handleDragLeave = useCallback((e?: React.DragEvent) => {
+    // If relatedTarget is inside the same container, ignore the leave
+    try {
+      const related = (e?.relatedTarget ?? (e?.nativeEvent as any)?.relatedTarget) as Node | null;
+      const cur = e?.currentTarget as Node | null;
+      if (related && cur && cur.contains && cur.contains(related)) {
+        return;
+      }
+    } catch {
+      // ignore errors and fallthrough to clearing
+    }
+    // Decrement enter counter and only clear when it reaches zero.
+    enterCounterRef.current = Math.max(0, enterCounterRef.current - 1);
+
+    // If no drag in progress or there's nothing to clear, skip scheduling
+    if (dragIndexRef.current == null || dragOverIndex === null) return;
+
+    // If there are still nested entered elements, don't clear yet
+    if (enterCounterRef.current > 0) return;
+
+    // Debounce clearing to avoid flicker when moving between children
+    if (leaveTimerRef.current) window.clearTimeout(leaveTimerRef.current);
+    leaveTimerRef.current = window.setTimeout(() => {
+      // Only clear (and log) if the placeholder is currently visible
+      setDragOverIndex((cur) => {
+        if (cur !== null) {
+          console.log('[drag] leave - clear placeholder (debounced)', { ts: Date.now() });
+          return null;
+        }
+        return cur;
+      });
+      leaveTimerRef.current = null;
+    }, 80) as unknown as number;
+  }, [dragOverIndex]);
 
   const handleDrop = useCallback((e: React.DragEvent, destIdx: number) => {
     e.preventDefault();
@@ -443,11 +517,20 @@ export default function TournamentApp() {
     });
     dragIndexRef.current = null;
     setDragOverIndex(null);
+    setDragSourceIdx(null);
+    enterCounterRef.current = 0;
+    if (leaveTimerRef.current) {
+      window.clearTimeout(leaveTimerRef.current);
+      leaveTimerRef.current = null;
+    }
   }, [tournament]);
 
   const handleDragEnd = useCallback(() => {
     console.log('[drag] end', { ts: Date.now() });
     dragIndexRef.current = null;
+    setDragSourceIdx(null);
+    setDragOverIndex(null);
+    enterCounterRef.current = 0;
   }, []);
 
   const setPrizeMode = useCallback((mode: 'manual' | 'auto') => {
@@ -862,80 +945,106 @@ export default function TournamentApp() {
 
               </div>
             </div>
-            <div className="max-h-64 overflow-y-auto pr-1" style={{ position: 'relative' }}>
-                {pairs.length === 0 ? (
+            <div
+              className="max-h-64 overflow-y-auto pr-1"
+              style={{ position: 'relative' }}
+              onDragOver={(e) => { if (e.currentTarget === e.target) handleDragOver(e); }}
+              onDrop={(e) => { if (e.currentTarget === e.target) handleDrop(e, pairs.length); }}
+              onDragLeave={(e) => { if (e.currentTarget === e.target) handleDragLeave(); }}
+              onDragEnter={(e) => { if (e.currentTarget === e.target) handleDragEnter(e); }}
+            >
+              {pairs.length === 0 ? (
                 <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
                   {tr(lang, 'pairs.empty')}
                 </p>
               ) : (
-                pairs.map((pair, idx) => (
-                  <div key={`${pair}-${idx}`}>
-                    <div
-                      className="pair-list-item flex items-center justify-between gap-2"
-                      style={{ position: 'relative' }}
-                      draggable={!tournament}
-                      onDragStart={(e) => handleDragStart(e, idx)}
-                      onDragOver={(e) => handleDragOver(e, idx)}
-                      onDragLeave={handleDragLeave}
-                      onDrop={(e) => handleDrop(e, idx)}
-                      onDragEnd={handleDragEnd}
-                      aria-grabbed={dragIndexRef.current === idx}
-                      role="listitem"
-                    >
-                      {/* Absolute indicator at the top of the item when placeholder targets this index */}
-                      {dragOverIndex === idx && (
-                        <div
-                          style={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 6,
-                            right: 6,
-                            height: 10,
-                            pointerEvents: 'none',
-                            borderTop: '2px dashed var(--color-accent)',
-                            borderRadius: 6,
-                          }}
-                          data-testid="drag-placeholder"
-                        />
-                      )}
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted">#{idx + 1}</span>
-                        <span className="truncate text-sm">{pair}</span>
-                      </div>
-                      {!tournament && (
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => removePair(idx)}
-                            className="text-xs uppercase tracking-widest"
-                            style={{ color: '#ef4444' }}
+                <>
+                  {(() => {
+                    const items: React.ReactNode[] = [];
+
+                    const Placeholder = () => (
+                      <div
+                        key="placeholder"
+                        data-testid="drag-placeholder"
+                        style={{
+                          border: '2px dashed var(--color-accent)',
+                          borderRadius: 6,
+                          minHeight: 36,
+                          opacity: 0.55,
+                          margin: '2px 0',
+                          background: 'transparent',
+                          pointerEvents: 'none',
+                        }}
+                      />
+                    );
+
+                    pairs.forEach((pair, idx) => {
+                      // Mostrar placeholder ANTES de este ítem si corresponde
+                      const showBefore =
+                        dragOverIndex === idx &&
+                        dragSourceIdx !== null &&
+                        dragOverIndex !== dragSourceIdx &&
+                        dragOverIndex !== dragSourceIdx + 1;
+
+                      if (showBefore) items.push(<Placeholder key={`placeholder-before-${idx}`} />);
+
+                      items.push(
+                        <div key={`${pair}-${idx}`}>
+                          <div
+                            ref={(el) => (itemRefs.current[idx] = el)}
+                            className="pair-list-item flex items-center justify-between gap-2"
+                            style={{
+                              opacity: dragSourceIdx === idx ? 0.35 : 1,
+                              transition: 'opacity 150ms ease',
+                            }}
+                            draggable={!tournament}
+                            onDragStart={(e) => handleDragStart(e, idx)}
+                            onDragOver={(e) => handleDragOver(e, idx)}
+                            onDragEnter={handleDragEnter}
+                            onDragLeave={handleDragLeave}
+                            onDrop={(e) => handleDrop(e, idx)}
+                            onDragEnd={handleDragEnd}
+                            role="listitem"
                           >
-                            {tr(lang, 'pairs.remove')}
-                          </button>
-                          <span className="text-xs text-muted" style={{ cursor: 'grab' }} aria-hidden>
-                            ⋮
-                          </span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-muted">#{idx + 1}</span>
+                              <span className="truncate text-sm">{pair}</span>
+                            </div>
+                            {!tournament && (
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => removePair(idx)}
+                                  className="text-xs uppercase tracking-widest"
+                                  style={{ color: '#ef4444' }}
+                                >
+                                  {tr(lang, 'pairs.remove')}
+                                </button>
+                                <span
+                                  className="text-xs text-muted"
+                                  style={{ cursor: 'grab' }}
+                                  aria-hidden
+                                >
+                                  ⋮
+                                </span>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  </div>
-                ))
-              )}
-              {/* If placeholder targets the end of the list, show an absolute indicator at bottom */}
-              {dragOverIndex === pairs.length && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    left: 6,
-                    right: 6,
-                    bottom: 6,
-                    height: 10,
-                    pointerEvents: 'none',
-                    borderTop: '2px dashed var(--color-accent)',
-                    borderRadius: 6,
-                  }}
-                  data-testid="drag-placeholder-end"
-                />
+                      );
+                    });
+
+                    // Placeholder al final de la lista
+                    const showAtEnd =
+                      dragOverIndex === pairs.length &&
+                      dragSourceIdx !== null &&
+                      dragOverIndex !== dragSourceIdx + 1;
+
+                    if (showAtEnd) items.push(<Placeholder key="placeholder-end" />);
+
+                    return items;
+                  })()}
+                </>
               )}
             </div>
           </section>
