@@ -317,6 +317,35 @@ export default function TournamentApp({ initialLang }: { initialLang?: Lang }) {
     }
   }, []);
 
+  // Ensure app state is persisted when the user refreshes, navigates away or
+  // the page becomes hidden (covers mobile browsers). This prevents losing
+  // the current pairs/tournament when the page is reloaded.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handler = () => {
+      try {
+        saveAppState();
+      } catch {
+        // ignore
+      }
+    };
+
+    const visibilityHandler = () => {
+      if (document.visibilityState === 'hidden') handler();
+    };
+
+    window.addEventListener('beforeunload', handler);
+    window.addEventListener('pagehide', handler);
+    document.addEventListener('visibilitychange', visibilityHandler);
+
+    return () => {
+      window.removeEventListener('beforeunload', handler);
+      window.removeEventListener('pagehide', handler);
+      document.removeEventListener('visibilitychange', visibilityHandler);
+    };
+  }, [saveAppState]);
+
   const autoSplitPreset = useMemo<AutoSplitPreset>(() => {
     if (prizeConfig.prizeMode !== 'auto') return 'custom';
     return percentToPresetKey(prizeConfig.autoSplit);
