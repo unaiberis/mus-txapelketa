@@ -9,7 +9,6 @@ import {
   downloadBlob,
   exportCSVString,
   generateBracket,
-  generateRandomPairs,
   isValidBestOf,
   parseCSVImport,
   preliminaryInfo,
@@ -264,6 +263,7 @@ export default function TournamentApp() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const input1Ref = useRef<HTMLInputElement>(null);
+  const input2Ref = useRef<HTMLInputElement>(null);
 
   const autoSplitPreset = useMemo<AutoSplitPreset>(() => {
     if (prizeConfig.prizeMode !== 'auto') return 'custom';
@@ -359,6 +359,48 @@ export default function TournamentApp() {
     },
     [tournament]
   );
+
+  // Drag-and-drop reordering for pairs
+  const dragIndexRef = useRef<number | null>(null);
+
+  const handleDragStart = useCallback((e: React.DragEvent, idx: number) => {
+    if (tournament) {
+      e.preventDefault();
+      return;
+    }
+    dragIndexRef.current = idx;
+    e.dataTransfer.effectAllowed = 'move';
+    try {
+      e.dataTransfer.setData('text/plain', String(idx));
+    } catch {
+      // some browsers may throw when setting data; ignore
+    }
+  }, [tournament]);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent, destIdx: number) => {
+    e.preventDefault();
+    if (tournament) return;
+    const srcStr = e.dataTransfer.getData('text/plain');
+    const src = srcStr ? Number.parseInt(srcStr, 10) : dragIndexRef.current;
+    if (src == null || Number.isNaN(src)) return;
+    if (src === destIdx) return;
+    setPairs((prev) => {
+      const copy = [...prev];
+      const [moved] = copy.splice(src, 1);
+      copy.splice(destIdx, 0, moved);
+      return copy;
+    });
+    dragIndexRef.current = null;
+  }, [tournament]);
+
+  const handleDragEnd = useCallback(() => {
+    dragIndexRef.current = null;
+  }, []);
 
   const setPrizeMode = useCallback((mode: 'manual' | 'auto') => {
     setPrizeConfig((prev) => {
@@ -724,10 +766,16 @@ export default function TournamentApp() {
                 value={input1}
                 onChange={(e) => setInput1(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') addPair();
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (input1.trim() !== '') {
+                      input2Ref.current?.focus();
+                    }
+                  }
                 }}
               />
               <input
+                ref={input2Ref}
                 type="text"
                 className="form-input"
                 placeholder={tr(lang, 'addPair.placeholder2')}
@@ -767,26 +815,41 @@ export default function TournamentApp() {
               </div>
             </div>
             <div className="max-h-64 overflow-y-auto pr-1">
-              {pairs.length === 0 ? (
+                {pairs.length === 0 ? (
                 <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
                   {tr(lang, 'pairs.empty')}
                 </p>
               ) : (
                 pairs.map((pair, idx) => (
-                  <div key={`${pair}-${idx}`} className="pair-list-item flex items-center justify-between gap-2">
+                  <div
+                    key={`${pair}-${idx}`}
+                    className="pair-list-item flex items-center justify-between gap-2"
+                    draggable={!tournament}
+                    onDragStart={(e) => handleDragStart(e, idx)}
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, idx)}
+                    onDragEnd={handleDragEnd}
+                    aria-grabbed={dragIndexRef.current === idx}
+                    role="listitem"
+                  >
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-muted">#{idx + 1}</span>
                       <span className="truncate text-sm">{pair}</span>
                     </div>
                     {!tournament && (
-                      <button
-                        type="button"
-                        onClick={() => removePair(idx)}
-                        className="text-xs uppercase tracking-widest"
-                        style={{ color: '#ef4444' }}
-                      >
-                        {tr(lang, 'pairs.remove')}
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => removePair(idx)}
+                          className="text-xs uppercase tracking-widest"
+                          style={{ color: '#ef4444' }}
+                        >
+                          {tr(lang, 'pairs.remove')}
+                        </button>
+                        <span className="text-xs text-muted" style={{ cursor: 'grab' }} aria-hidden>
+                          ⋮
+                        </span>
+                      </div>
                     )}
                   </div>
                 ))
