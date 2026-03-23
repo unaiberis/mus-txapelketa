@@ -362,6 +362,7 @@ export default function TournamentApp() {
 
   // Drag-and-drop reordering for pairs
   const dragIndexRef = useRef<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   const handleDragStart = useCallback((e: React.DragEvent, idx: number) => {
     if (tournament) {
@@ -375,11 +376,50 @@ export default function TournamentApp() {
     } catch {
       // some browsers may throw when setting data; ignore
     }
+    console.log('[drag] start', { ts: Date.now(), src: idx });
   }, [tournament]);
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
+  const handleDragOver = useCallback(
+    (e: React.DragEvent, idx?: number) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      const srcStr = e.dataTransfer.getData('text/plain');
+      const src = srcStr ? Number.parseInt(srcStr, 10) : dragIndexRef.current;
+
+      if (typeof idx === 'number') {
+        const el = e.currentTarget as HTMLElement;
+        const rect = el.getBoundingClientRect();
+        const y = e.clientY;
+        const half = rect.top + rect.height / 2;
+        const desired = y < half ? idx : idx + 1;
+
+        // If hovering over the element being dragged (or immediately after it), hide placeholder
+        if (src != null && !Number.isNaN(src) && (desired === src || desired === src + 1)) {
+          if (dragOverIndex !== null) {
+            console.log('[drag] clear placeholder - hovering source', { ts: Date.now(), src, idx, desired });
+            setDragOverIndex(null);
+          }
+          return;
+        }
+
+        if (dragOverIndex !== desired) {
+          console.log('[drag] set placeholder', { ts: Date.now(), src, idx, desired, y, half });
+          setDragOverIndex(desired);
+        }
+      } else {
+        // Hovering over container area -> placeholder at end
+        if (dragOverIndex !== pairs.length) {
+          console.log('[drag] set placeholder at end', { ts: Date.now(), src, desiredEnd: pairs.length });
+          setDragOverIndex(pairs.length);
+        }
+      }
+    },
+    [dragOverIndex, pairs.length]
+  );
+
+  const handleDragLeave = useCallback(() => {
+    console.log('[drag] leave - clear placeholder', { ts: Date.now() });
+    setDragOverIndex(null);
   }, []);
 
   const handleDrop = useCallback((e: React.DragEvent, destIdx: number) => {
@@ -388,17 +428,25 @@ export default function TournamentApp() {
     const srcStr = e.dataTransfer.getData('text/plain');
     const src = srcStr ? Number.parseInt(srcStr, 10) : dragIndexRef.current;
     if (src == null || Number.isNaN(src)) return;
-    if (src === destIdx) return;
+    // Use the current dragOverIndex as desired drop location (may be idx or idx+1)
+    let desired = dragOverIndex ?? destIdx;
+    if (desired == null) desired = destIdx;
+    console.log('[drag] drop', { ts: Date.now(), src, destIdx, desired });
+
     setPairs((prev) => {
       const copy = [...prev];
       const [moved] = copy.splice(src, 1);
-      copy.splice(destIdx, 0, moved);
+      // clamp desired to bounds of the array after removal
+      const insertAt = Math.min(Math.max(0, desired), copy.length);
+      copy.splice(insertAt, 0, moved);
       return copy;
     });
     dragIndexRef.current = null;
+    setDragOverIndex(null);
   }, [tournament]);
 
   const handleDragEnd = useCallback(() => {
+    console.log('[drag] end', { ts: Date.now() });
     dragIndexRef.current = null;
   }, []);
 
@@ -814,45 +862,80 @@ export default function TournamentApp() {
 
               </div>
             </div>
-            <div className="max-h-64 overflow-y-auto pr-1">
+            <div className="max-h-64 overflow-y-auto pr-1" style={{ position: 'relative' }}>
                 {pairs.length === 0 ? (
                 <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
                   {tr(lang, 'pairs.empty')}
                 </p>
               ) : (
                 pairs.map((pair, idx) => (
-                  <div
-                    key={`${pair}-${idx}`}
-                    className="pair-list-item flex items-center justify-between gap-2"
-                    draggable={!tournament}
-                    onDragStart={(e) => handleDragStart(e, idx)}
-                    onDragOver={handleDragOver}
-                    onDrop={(e) => handleDrop(e, idx)}
-                    onDragEnd={handleDragEnd}
-                    aria-grabbed={dragIndexRef.current === idx}
-                    role="listitem"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted">#{idx + 1}</span>
-                      <span className="truncate text-sm">{pair}</span>
-                    </div>
-                    {!tournament && (
+                  <div key={`${pair}-${idx}`}>
+                    <div
+                      className="pair-list-item flex items-center justify-between gap-2"
+                      style={{ position: 'relative' }}
+                      draggable={!tournament}
+                      onDragStart={(e) => handleDragStart(e, idx)}
+                      onDragOver={(e) => handleDragOver(e, idx)}
+                      onDragLeave={handleDragLeave}
+                      onDrop={(e) => handleDrop(e, idx)}
+                      onDragEnd={handleDragEnd}
+                      aria-grabbed={dragIndexRef.current === idx}
+                      role="listitem"
+                    >
+                      {/* Absolute indicator at the top of the item when placeholder targets this index */}
+                      {dragOverIndex === idx && (
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 6,
+                            right: 6,
+                            height: 10,
+                            pointerEvents: 'none',
+                            borderTop: '2px dashed var(--color-accent)',
+                            borderRadius: 6,
+                          }}
+                          data-testid="drag-placeholder"
+                        />
+                      )}
                       <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => removePair(idx)}
-                          className="text-xs uppercase tracking-widest"
-                          style={{ color: '#ef4444' }}
-                        >
-                          {tr(lang, 'pairs.remove')}
-                        </button>
-                        <span className="text-xs text-muted" style={{ cursor: 'grab' }} aria-hidden>
-                          ⋮
-                        </span>
+                        <span className="text-xs text-muted">#{idx + 1}</span>
+                        <span className="truncate text-sm">{pair}</span>
                       </div>
-                    )}
+                      {!tournament && (
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => removePair(idx)}
+                            className="text-xs uppercase tracking-widest"
+                            style={{ color: '#ef4444' }}
+                          >
+                            {tr(lang, 'pairs.remove')}
+                          </button>
+                          <span className="text-xs text-muted" style={{ cursor: 'grab' }} aria-hidden>
+                            ⋮
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))
+              )}
+              {/* If placeholder targets the end of the list, show an absolute indicator at bottom */}
+              {dragOverIndex === pairs.length && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: 6,
+                    right: 6,
+                    bottom: 6,
+                    height: 10,
+                    pointerEvents: 'none',
+                    borderTop: '2px dashed var(--color-accent)',
+                    borderRadius: 6,
+                  }}
+                  data-testid="drag-placeholder-end"
+                />
               )}
             </div>
           </section>
