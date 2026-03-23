@@ -231,19 +231,17 @@ function autoAdvanceByesInState(initial: TournamentState): TournamentState {
 export default function TournamentApp({ initialLang }: { initialLang?: Lang }) {
   const [lang, setLang] = useState<Lang>(initialLang ?? DEFAULT_LANG);
 
-  // Read persisted language only on the client after hydration to avoid SSR mismatch.
-  // This will override the initial server-provided language if the user previously
-  // selected a language stored in localStorage. Keeping this separation avoids
-  // hydration mismatches while still respecting an explicit client preference.
+  // Read persisted language once on the client after hydration to avoid SSR mismatch.
+  // Run only on mount so we don't fight the other effect that writes `museko:lang`.
   useEffect(() => {
     try {
       if (typeof window === 'undefined') return;
       const stored = window.localStorage.getItem('museko:lang');
-      if (stored && ['es', 'en', 'fr', 'eu'].includes(stored) && stored !== lang) setLang(stored as Lang);
+      if (stored && ['es', 'en', 'fr', 'eu'].includes(stored)) setLang(stored as Lang);
     } catch {
       // noop
     }
-  }, [lang]);
+  }, []);
   const { score: entropyScore, finalize: finalizeEntropy, lockedSeed } = useEntropy();
 
   const [pairs, setPairs] = useState<string[]>([]);
